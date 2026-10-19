@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 import urllib.request
 import urllib.error
 from datetime import datetime, timedelta
@@ -36,15 +37,19 @@ CRITÉRIOS DE SELEÇÃO E DISTRIBUIÇÃO DINÂMICA:
 3. PRIORIZAÇÃO POR RELEVÂNCIA TÉCNICA E ENGAJAMENTO:
    - Dê prioridade máxima a projetos open-source com repositórios reais (GitHub), lançamentos de modelos, papers (ArXiv) e ferramentas práticas.
    - Use o número de curtidas (likes), comentários (replies) e reposts para ranquear e priorizar as discussões que mais repercutiram no dia.
-   - Se o tweet mencionar ou contiver link para GitHub, ArXiv ou demonstração direta, SEMPRE inclua esse link formatado em markdown nos sub-bullets!
+   - Se o tweet mencionar ou contiver link para GitHub, ArXiv, artigos externos (`external_links`) ou demonstração direta, SEMPRE inclua esse link formatado em markdown nos sub-bullets!
 
-Sua missão é selecionar, filtrar e consolidar as publicações em um relatório Markdown estruturado OBRIGATORIAMENTE nos seguintes 5 TÓPICOS TEMÁTICOS:
+Sua missão é selecionar, filtrar e consolidar as publicações em um relatório Markdown estruturado nos seguintes TÓPICOS TEMÁTICOS:
 
 ### 1. 🚀 Ferramentas Open-Source, Visão & Ambientes 3D
 ### 2. 🤖 Agentes Autônomos, MCP & Infraestrutura de Execução
-### 3. 💻 Desenvolvimento, Claude Code & Eficiência de Custos
-### 4. 🏆 Capacitação Profissional, Cursos & Hackathons
-### 5. 🌐 Economia, Modelos de Negócio & Mercado Global de IA
+### 3. 🧪 Harness Engineering, Evals & RAG Avançado
+(Dedique este tópico a evals de modelos/agentes, frameworks de harness, testes automatizados de agentes, recuperação semântica, RAG, embeddings e benchmarks práticos de confiabilidade).
+### 4. 💻 Desenvolvimento, Claude Code & Eficiência de Custos
+### 5. 🎯 Radar Matt Pocock (@mattpocockuk)
+(Destaque exclusivo para as postagens, threads, dicas de engenharia de software com IA, evals e novidades compartilhadas por Matt Pocock no período).
+### 6. 🏆 Capacitação Profissional, Cursos & Hackathons
+### 7. 🌐 Economia, Modelos de Negócio & Mercado Global de IA
 
 Para cada publicação destacada dentro do seu respectivo tópico:
 - Crie um título conciso destacando a ferramenta/inovação, seguido do autor e arroba com link markdown para o tweet original:
@@ -52,7 +57,7 @@ Para cada publicação destacada dentro do seu respectivo tópico:
   (Se o tweet tiver métricas notáveis de engajamento, adicione ao lado, ex: `* **Nome da Novidade ([@handle](url)) — 🔥 1.4k likes:**`)
 - Adicione 2 a 3 sub-bullets detalhados e concisos explicando:
   - O que é, o que faz e como funciona
-  - Características técnicas principais (ex: licença open-source, modelo usado, métricas de benchmark, link de repositório GitHub / Paper ArXiv quando disponível)
+  - Características técnicas principais (ex: licença open-source, modelo usado, métricas de benchmark, links para repositórios GitHub, papers ArXiv ou artigos detalhados quando disponíveis)
   - Impacto ou relevância prática para desenvolvedores e empresas
 
 Cabeçalho padrão a ser incluído no topo:
@@ -98,7 +103,21 @@ def chamar_openai(api_key, dados_tweets):
     print("Enviando dados para a API da OpenAI (gpt-6-luna)...")
     url = "https://api.openai.com/v1/chat/completions"
     
-    prompt_completo = f"{PROMPT_SISTEMA}\n\nTWEETS COLETADOS:\n{json.dumps(dados_tweets, ensure_ascii=False, indent=2)}"
+    # Envia apenas os campos úteis para a IA não ter sobrecarga de dados desnecessários
+    tweets_limpos = []
+    for t in dados_tweets:
+        item = {
+            "autor": f"{t.get('author_name')} ({t.get('author_handle')})",
+            "data": t.get("timestamp"),
+            "texto": t.get("text"),
+            "url": t.get("url"),
+            "engajamento": f"{t.get('likes', '0')} likes, {t.get('reposts', '0')} reposts, {t.get('replies', '0')} replies"
+        }
+        if t.get("external_links"):
+            item["links_externos"] = t["external_links"]
+        tweets_limpos.append(item)
+
+    prompt_completo = f"{PROMPT_SISTEMA}\n\nTWEETS COLETADOS:\n{json.dumps(tweets_limpos, ensure_ascii=False, indent=2)}"
     payload = {
         "model": "gpt-6-luna",
         "messages": [
@@ -115,10 +134,18 @@ def chamar_openai(api_key, dados_tweets):
         }
     )
     
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        result = json.loads(resp.read().decode("utf-8"))
-        texto = result["choices"][0]["message"]["content"]
-        return texto
+    for tentativa in range(2):
+        try:
+            with urllib.request.urlopen(req, timeout=180) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+                texto = result["choices"][0]["message"]["content"]
+                return texto
+        except Exception as err:
+            if tentativa == 0:
+                print(f"Tentativa 1 falhou ({err}), tentando novamente em 5s...")
+                time.sleep(5)
+            else:
+                raise err
 
 def gerar_relatorio():
     if not os.path.exists(INPUT_JSON):

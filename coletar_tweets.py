@@ -216,6 +216,17 @@ def coletar_tweets(max_scrolls=25, headless=True):
                     except Exception:
                         pass
 
+                    # Extrai links externos (artigos, cards, github, blogs)
+                    card_links = []
+                    try:
+                        all_links = art.locator("a[href]").all()
+                        for lk in all_links:
+                            h = lk.get_attribute("href")
+                            if h and not h.startswith("/") and "twitter.com" not in h and "x.com" not in h:
+                                card_links.append(h)
+                    except Exception:
+                        pass
+
                     tweets_coletados.append({
                         "author_name": name,
                         "author_handle": handle_str,
@@ -225,7 +236,8 @@ def coletar_tweets(max_scrolls=25, headless=True):
                         "likes": likes,
                         "reposts": reposts,
                         "replies": replies,
-                        "views": views
+                        "views": views,
+                        "external_links": list(set(card_links))
                     })
                 except Exception:
                     continue
@@ -236,6 +248,79 @@ def coletar_tweets(max_scrolls=25, headless=True):
             if alcancou_limite and len(tweets_coletados) >= 40:
                 print(f"\n[OK] Ciclo de 24h a 36h já totalmente coberto com volume robusto ({len(tweets_coletados)} tweets capturados). Encerrando rolagens.")
                 break
+
+        # Coleta dedicada do perfil do @mattpocockuk para garantir as atualizações dele
+        print("\n[ESPECIAL] Acessando perfil de @mattpocockuk para coletar atualizações recentes...")
+        try:
+            page.goto("https://x.com/mattpocockuk", wait_until="domcontentloaded", timeout=45000)
+            time.sleep(3.5)
+            matt_articles = page.locator("article[data-testid='tweet']").all()
+            print(f"Posts encontrados no perfil de @mattpocockuk: {len(matt_articles)}")
+            for art in matt_articles[:6]:
+                try:
+                    text_elem = art.locator("div[data-testid='tweetText']")
+                    if text_elem.count() == 0:
+                        continue
+                    tweet_text = text_elem.inner_text().strip()
+                    if tweet_text in seen_texts or len(tweet_text) < 15:
+                        continue
+                    seen_texts.add(tweet_text)
+
+                    time_elem = art.locator("time")
+                    timestamp = time_elem.get_attribute("datetime") if time_elem.count() > 0 else ""
+                    if not timestamp:
+                        continue
+
+                    link_elems = art.locator("a[href*='/status/']").all()
+                    tweet_url = ""
+                    for le in link_elems:
+                        href = le.get_attribute("href")
+                        if href and "/status/" in href:
+                            tweet_url = f"https://x.com{href}" if href.startswith("/") else href
+                            break
+
+                    likes = ""
+                    reposts = ""
+                    replies = ""
+                    views = ""
+                    try:
+                        like_btn = art.locator("button[data-testid='like']")
+                        if like_btn.count() > 0: likes = like_btn.inner_text().strip()
+                        retweet_btn = art.locator("button[data-testid='retweet']")
+                        if retweet_btn.count() > 0: reposts = retweet_btn.inner_text().strip()
+                        reply_btn = art.locator("button[data-testid='reply']")
+                        if reply_btn.count() > 0: replies = reply_btn.inner_text().strip()
+                        analytics_link = art.locator("a[href*='/analytics']")
+                        if analytics_link.count() > 0: views = analytics_link.inner_text().strip()
+                    except Exception:
+                        pass
+
+                    card_links = []
+                    try:
+                        all_links = art.locator("a[href]").all()
+                        for lk in all_links:
+                            h = lk.get_attribute("href")
+                            if h and not h.startswith("/") and "twitter.com" not in h and "x.com" not in h:
+                                card_links.append(h)
+                    except Exception:
+                        pass
+
+                    tweets_coletados.append({
+                        "author_name": "Matt Pocock",
+                        "author_handle": "@mattpocockuk",
+                        "timestamp": timestamp,
+                        "text": tweet_text,
+                        "url": tweet_url,
+                        "likes": likes,
+                        "reposts": reposts,
+                        "replies": replies,
+                        "views": views,
+                        "external_links": list(set(card_links))
+                    })
+                except Exception:
+                    continue
+        except Exception as e:
+            print(f"Aviso ao consultar perfil de @mattpocockuk: {e}")
 
         if len(tweets_coletados) == 0:
             print("\n[DIAGNÓSTICO] Nenhum tweet foi capturado.")
