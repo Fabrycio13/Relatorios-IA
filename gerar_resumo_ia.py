@@ -28,14 +28,15 @@ Abaixo está uma lista de tweets coletados recentemente em formato JSON, contend
 CRITÉRIOS DE SELEÇÃO E DISTRIBUIÇÃO DINÂMICA:
 1. FILTRO ESTRITO DE INTELIGÊNCIA ARTIFICIAL:
    - Inclua EXCLUSIVAMENTE publicações relacionadas a Inteligência Artificial, Modelos de Linguagem (LLMs), Agentes Autônomos, Coding Agents, MCP, Visão Computacional, 3D com IA, Infraestrutura/Hardware para IA e Negócios/Economia impulsionados por IA.
-   - DESCARTE OBRIGATORIAMENTE tweets fora do escopo de IA (ex: vistos de imigração, plataformas financeiras tradicionais, marketing genérico ou notícias não relacionadas a IA).
-2. DISTRIBUIÇÃO DINÂMICA (SEM LIMITE RÍGIDO DE ITENS):
-   - A quantidade de itens por tópico deve ser DINÂMICA e orgânica, refletindo o volume real de novidades do dia.
-   - Se um tópico (como 'Ferramentas' ou 'Agentes') teve 3, 4, 5 ou mais novidades de alto impacto, inclua TODAS elas!
-   - Se outro tópico teve apenas 1 ou 2 novidades relevantes, inclua apenas as genuínas sem forçar preenchimento artificial.
+   - DESCARTE OBRIGATORIAMENTE tweets fora do escopo de IA (ex: finanças tradicionais, jogos sem IA, marketing genérico, política ou notícias não relacionadas a IA).
+2. DISTRIBUIÇÃO DINÂMICA (SEM PREENCHIMENTO ARTIFICIAL):
+   - A quantidade de itens por tópico deve ser DINÂMICA e orgânica, refletindo o volume real de novidades do dia (de 0 a 5+ itens por categoria).
+   - Se um tópico (como 'Ferramentas' ou 'Agentes') teve 3, 4 ou mais novidades de alto impacto, inclua TODAS elas!
+   - Se um tópico não teve novidades genuínas de IA no período, deixe uma nota breve e elegante informando que não houve anúncios relevantes no ciclo, sem forçar itens irrelevantes.
 3. PRIORIZAÇÃO POR RELEVÂNCIA TÉCNICA E ENGAJAMENTO:
-   - Dê prioridade a projetos open-source com repositórios reais, lançamentos de modelos, avanços de arquitetura e ferramentas práticas.
+   - Dê prioridade máxima a projetos open-source com repositórios reais (GitHub), lançamentos de modelos, papers (ArXiv) e ferramentas práticas.
    - Use o número de curtidas (likes), comentários (replies) e reposts para ranquear e priorizar as discussões que mais repercutiram no dia.
+   - Se o tweet mencionar ou contiver link para GitHub, ArXiv ou demonstração direta, SEMPRE inclua esse link formatado em markdown nos sub-bullets!
 
 Sua missão é selecionar, filtrar e consolidar as publicações em um relatório Markdown estruturado OBRIGATORIAMENTE nos seguintes 5 TÓPICOS TEMÁTICOS:
 
@@ -48,10 +49,10 @@ Sua missão é selecionar, filtrar e consolidar as publicações em um relatóri
 Para cada publicação destacada dentro do seu respectivo tópico:
 - Crie um título conciso destacando a ferramenta/inovação, seguido do autor e arroba com link markdown para o tweet original:
   `* **Nome da Novidade ([@handle](url)):**`
-  (Se o tweet tiver métricas notáveis de engajamento, pode adicionar sutilmente ao lado, ex: `* **Nome da Novidade ([@handle](url)) — 🔥 1.4k likes:**`)
+  (Se o tweet tiver métricas notáveis de engajamento, adicione ao lado, ex: `* **Nome da Novidade ([@handle](url)) — 🔥 1.4k likes:**`)
 - Adicione 2 a 3 sub-bullets detalhados e concisos explicando:
   - O que é, o que faz e como funciona
-  - Características técnicas principais (ex: licença open-source, modelo usado, métricas de benchmark, repositório)
+  - Características técnicas principais (ex: licença open-source, modelo usado, métricas de benchmark, link de repositório GitHub / Paper ArXiv quando disponível)
   - Impacto ou relevância prática para desenvolvedores e empresas
 
 Cabeçalho padrão a ser incluído no topo:
@@ -94,16 +95,15 @@ def chamar_gemini(api_key, dados_tweets):
         return texto
 
 def chamar_openai(api_key, dados_tweets):
-    print("Enviando dados para a API da OpenAI (gpt-4o-mini)...")
+    print("Enviando dados para a API da OpenAI (gpt-6-luna)...")
     url = "https://api.openai.com/v1/chat/completions"
     
     prompt_completo = f"{PROMPT_SISTEMA}\n\nTWEETS COLETADOS:\n{json.dumps(dados_tweets, ensure_ascii=False, indent=2)}"
     payload = {
-        "model": "gpt-4o-mini",
+        "model": "gpt-6-luna",
         "messages": [
             {"role": "user", "content": prompt_completo}
-        ],
-        "temperature": 0.4
+        ]
     }
     
     req = urllib.request.Request(

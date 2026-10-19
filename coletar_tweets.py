@@ -60,7 +60,7 @@ def carregar_cookies_se_existir(context):
         context.add_cookies(cookies)
         print(f"Cookies de autenticação ({len(cookies)}) aplicados com sucesso.")
 
-def coletar_tweets(max_scrolls=18, headless=True):
+def coletar_tweets(max_scrolls=25, headless=True):
     print("=" * 60)
     print("Coletando posts do X (Feed Seguindo / Following)...")
     print(f"Data da execução: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -176,6 +176,10 @@ def coletar_tweets(max_scrolls=18, headless=True):
                     time_elem = art.locator("time")
                     timestamp = time_elem.get_attribute("datetime") if time_elem.count() > 0 else ""
 
+                    # Anúncios e posts promovidos no X não possuem a tag <time>
+                    if not timestamp:
+                        continue
+
                     link_elems = art.locator("a[href*='/status/']").all()
                     tweet_url = ""
                     for le in link_elems:
@@ -184,13 +188,12 @@ def coletar_tweets(max_scrolls=18, headless=True):
                             tweet_url = f"https://x.com{href}" if href.startswith("/") else href
                             break
 
-                    if timestamp:
-                        try:
-                            dt_tweet = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
-                            if dt_tweet < limite_tempo:
-                                alcancou_limite = True
-                        except Exception:
-                            pass
+                    try:
+                        dt_tweet = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                        if dt_tweet < limite_tempo:
+                            alcancou_limite = True
+                    except Exception:
+                        pass
 
                     # Extrai métricas de engajamento (curtidas, comentários, reposts, visualizações)
                     likes = ""
@@ -227,11 +230,11 @@ def coletar_tweets(max_scrolls=18, headless=True):
                 except Exception:
                     continue
 
-            page.evaluate("window.scrollBy(0, 1000)")
-            time.sleep(2.5)
+            page.evaluate("window.scrollBy(0, 1200)")
+            time.sleep(3.0)
 
-            if alcancou_limite and len(tweets_coletados) >= 15:
-                print(f"\n[OK] Ciclo de 24h a 36h já totalmente coberto ({len(tweets_coletados)} tweets capturados). Encerrando rolagens.")
+            if alcancou_limite and len(tweets_coletados) >= 40:
+                print(f"\n[OK] Ciclo de 24h a 36h já totalmente coberto com volume robusto ({len(tweets_coletados)} tweets capturados). Encerrando rolagens.")
                 break
 
         if len(tweets_coletados) == 0:
