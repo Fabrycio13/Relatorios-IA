@@ -23,7 +23,20 @@ OUTPUT_MD = os.path.join(BASE_DIR, f"Resumo_IA_{DATE_STR}.md")
 PROMPT_SISTEMA = f"""Você é um analista sênior de tecnologia e Inteligência Artificial encarregado de criar o relatório diário oficial de novidades do X (Twitter).
 
 Este relatório cobre o ciclo de 24 horas consolidadas do DIA ANTERIOR ({data_ontem_str}), gerado e emitido em {data_hoje_str}.
-Abaixo está uma lista de tweets coletados recentemente em formato JSON.
+Abaixo está uma lista de tweets coletados recentemente em formato JSON, contendo autor, texto, link e métricas de engajamento (likes, reposts, replies, views).
+
+CRITÉRIOS DE SELEÇÃO E DISTRIBUIÇÃO DINÂMICA:
+1. FILTRO ESTRITO DE INTELIGÊNCIA ARTIFICIAL:
+   - Inclua EXCLUSIVAMENTE publicações relacionadas a Inteligência Artificial, Modelos de Linguagem (LLMs), Agentes Autônomos, Coding Agents, MCP, Visão Computacional, 3D com IA, Infraestrutura/Hardware para IA e Negócios/Economia impulsionados por IA.
+   - DESCARTE OBRIGATORIAMENTE tweets fora do escopo de IA (ex: vistos de imigração, plataformas financeiras tradicionais, marketing genérico ou notícias não relacionadas a IA).
+2. DISTRIBUIÇÃO DINÂMICA (SEM LIMITE RÍGIDO DE ITENS):
+   - A quantidade de itens por tópico deve ser DINÂMICA e orgânica, refletindo o volume real de novidades do dia.
+   - Se um tópico (como 'Ferramentas' ou 'Agentes') teve 3, 4, 5 ou mais novidades de alto impacto, inclua TODAS elas!
+   - Se outro tópico teve apenas 1 ou 2 novidades relevantes, inclua apenas as genuínas sem forçar preenchimento artificial.
+3. PRIORIZAÇÃO POR RELEVÂNCIA TÉCNICA E ENGAJAMENTO:
+   - Dê prioridade a projetos open-source com repositórios reais, lançamentos de modelos, avanços de arquitetura e ferramentas práticas.
+   - Use o número de curtidas (likes), comentários (replies) e reposts para ranquear e priorizar as discussões que mais repercutiram no dia.
+
 Sua missão é selecionar, filtrar e consolidar as publicações em um relatório Markdown estruturado OBRIGATORIAMENTE nos seguintes 5 TÓPICOS TEMÁTICOS:
 
 ### 1. 🚀 Ferramentas Open-Source, Visão & Ambientes 3D
@@ -33,11 +46,13 @@ Sua missão é selecionar, filtrar e consolidar as publicações em um relatóri
 ### 5. 🌐 Economia, Modelos de Negócio & Mercado Global de IA
 
 Para cada publicação destacada dentro do seu respectivo tópico:
-- Crie um título conciso destacando a ferramenta/inovação, seguido do autor e arroba com link markdown para o tweet original: `* **Nome da Novidade ([@handle](url)):**`
+- Crie um título conciso destacando a ferramenta/inovação, seguido do autor e arroba com link markdown para o tweet original:
+  `* **Nome da Novidade ([@handle](url)):**`
+  (Se o tweet tiver métricas notáveis de engajamento, pode adicionar sutilmente ao lado, ex: `* **Nome da Novidade ([@handle](url)) — 🔥 1.4k likes:**`)
 - Adicione 2 a 3 sub-bullets detalhados e concisos explicando:
-  - O que é e o que faz
-  - Características técnicas principais (ex: licença open-source, modelo usado, métricas de benchmark, etc.)
-  - Impacto ou relevância para desenvolvedores e empresas
+  - O que é, o que faz e como funciona
+  - Características técnicas principais (ex: licença open-source, modelo usado, métricas de benchmark, repositório)
+  - Impacto ou relevância prática para desenvolvedores e empresas
 
 Cabeçalho padrão a ser incluído no topo:
 # 🧠 Relatório Diário de IA - X (Twitter)

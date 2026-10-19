@@ -192,12 +192,37 @@ def coletar_tweets(max_scrolls=18, headless=True):
                         except Exception:
                             pass
 
+                    # Extrai métricas de engajamento (curtidas, comentários, reposts, visualizações)
+                    likes = ""
+                    reposts = ""
+                    replies = ""
+                    views = ""
+                    try:
+                        like_btn = art.locator("button[data-testid='like']")
+                        if like_btn.count() > 0:
+                            likes = like_btn.inner_text().strip()
+                        retweet_btn = art.locator("button[data-testid='retweet']")
+                        if retweet_btn.count() > 0:
+                            reposts = retweet_btn.inner_text().strip()
+                        reply_btn = art.locator("button[data-testid='reply']")
+                        if reply_btn.count() > 0:
+                            replies = reply_btn.inner_text().strip()
+                        analytics_link = art.locator("a[href*='/analytics']")
+                        if analytics_link.count() > 0:
+                            views = analytics_link.inner_text().strip()
+                    except Exception:
+                        pass
+
                     tweets_coletados.append({
                         "author_name": name,
                         "author_handle": handle_str,
                         "timestamp": timestamp,
                         "text": tweet_text,
-                        "url": tweet_url
+                        "url": tweet_url,
+                        "likes": likes,
+                        "reposts": reposts,
+                        "replies": replies,
+                        "views": views
                     })
                 except Exception:
                     continue
