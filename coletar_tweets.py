@@ -246,6 +246,10 @@ def coletar_tweets(max_scrolls=18, headless=True):
 
         context.close()
 
+    if len(tweets_coletados) == 0:
+        print("\n[ERRO] Nenhum tweet coletado nesta execução. O arquivo anterior foi preservado.")
+        sys.exit(1)
+
     print(f"\n[OK] Total de tweets coletados: {len(tweets_coletados)}")
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(tweets_coletados, f, ensure_ascii=False, indent=2)
