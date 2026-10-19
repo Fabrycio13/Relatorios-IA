@@ -15,28 +15,46 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SESSION_DIR = os.path.join(BASE_DIR, ".session")
 AUTH_FILE = os.path.join(BASE_DIR, "auth.json")
 OUTPUT_FILE = os.path.join(BASE_DIR, "tweets_coletados.json")
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
+if sys.platform == "linux" or os.environ.get("CI"):
+    USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
+else:
+    USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
 
 def carregar_cookies_se_existir(context):
     cookies = []
     env_token = os.environ.get("X_AUTH_TOKEN")
     env_ct0 = os.environ.get("X_CT0")
 
-    if env_token:
-        cookies.append({"name": "auth_token", "value": env_token.strip(), "domain": ".x.com", "path": "/"})
-    if env_ct0:
-        cookies.append({"name": "ct0", "value": env_ct0.strip(), "domain": ".x.com", "path": "/"})
+    token_val = env_token.strip() if env_token else None
+    ct0_val = env_ct0.strip() if env_ct0 else None
 
-    if not cookies and os.path.exists(AUTH_FILE):
+    if not token_val and os.path.exists(AUTH_FILE):
         try:
             with open(AUTH_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            if "auth_token" in data:
-                cookies.append({"name": "auth_token", "value": data["auth_token"], "domain": ".x.com", "path": "/"})
-            if "ct0" in data:
-                cookies.append({"name": "ct0", "value": data["ct0"], "domain": ".x.com", "path": "/"})
+            token_val = data.get("auth_token")
+            ct0_val = data.get("ct0")
         except Exception as e:
             print(f"Aviso ao carregar auth.json: {e}")
+
+    if token_val:
+        for domain in [".x.com", "x.com", ".twitter.com", "twitter.com"]:
+            cookies.append({
+                "name": "auth_token",
+                "value": token_val,
+                "domain": domain,
+                "path": "/",
+                "secure": True,
+                "httpOnly": True
+            })
+            if ct0_val:
+                cookies.append({
+                    "name": "ct0",
+                    "value": ct0_val,
+                    "domain": domain,
+                    "path": "/",
+                    "secure": True
+                })
 
     if cookies:
         context.add_cookies(cookies)
@@ -61,7 +79,6 @@ def coletar_tweets(max_scrolls=8, headless=True):
         }
 
         context = None
-        # No ambiente local Windows, tenta Chrome estável; em CI/Linux usa Chromium padrão
         if sys.platform == "win32" and not os.environ.get("CI"):
             try:
                 context = p.chromium.launch_persistent_context(channel="chrome", **launch_args)
@@ -75,24 +92,47 @@ def coletar_tweets(max_scrolls=8, headless=True):
                 print(f"Erro ao abrir contexto do Chromium: {e}")
                 sys.exit(1)
 
+        # Remove propriedade webdriver para evitar detecção
+        context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined});")
+
         carregar_cookies_se_existir(context)
 
         page = context.pages[0] if context.pages else context.new_page()
 
         print("Acessando https://x.com/home ...")
-        page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=60000)
-        time.sleep(5)
+        try:
+            page.goto("https://x.com/home", wait_until="networkidle", timeout=60000)
+        except Exception:
+            page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=60000)
+        time.sleep(3)
 
         current_url = page.url
+        print(f"Página acessada. URL: {current_url} | Título: {page.title()}")
+
         if "login" in current_url or "onboarding" in current_url:
             print("\n[AVISO DE AUTENTICAÇÃO]")
             print("A sessão ainda não está autenticada no X.")
-            print("Você pode autenticar de duas formas:")
-            print(" 1) Rodar 'python login_x.py' e fazer login na janela do Chrome;")
-            print(" 2) Criar o arquivo 'auth.json' em D:\\Projetos\\Relatorios - IA com:")
-            print('    {\n      "auth_token": "seu_cookie_auth_token",\n      "ct0": "seu_cookie_ct0"\n    }')
+            print(f"URL retornada: {current_url}")
             context.close()
             sys.exit(1)
+
+        # Fecha eventuais banners de cookies ou popups
+        try:
+            for btn_text in ["Accept all cookies", "Refuse non-essential cookies", "Aceitar todos os cookies", "Aceitar", "Dismiss"]:
+                b = page.locator(f"button:has-text('{btn_text}'), span:has-text('{btn_text}')")
+                if b.count() > 0:
+                    b.first.click()
+                    print(f"Banner/Popup dispensado: {btn_text}")
+                    time.sleep(1)
+                    break
+        except Exception:
+            pass
+
+        # Espera carregar a lista de tweets ou abas
+        try:
+            page.wait_for_selector("article[data-testid='tweet'], div[role='tablist']", timeout=15000)
+        except Exception as e:
+            print(f"Aviso ao aguardar timeline: {e}")
 
         print("Localizando aba 'Seguindo' / 'Following'...")
         try:
@@ -153,6 +193,16 @@ def coletar_tweets(max_scrolls=8, headless=True):
 
             page.evaluate("window.scrollBy(0, 1000)")
             time.sleep(2.5)
+
+        if len(tweets_coletados) == 0:
+            print("\n[DIAGNÓSTICO] Nenhum tweet foi capturado.")
+            print(f"Título da página: {page.title()}")
+            print(f"URL final: {page.url}")
+            try:
+                body_sample = page.inner_text("body")[:400].replace("\n", " ")
+                print(f"Amostra de texto da página: {body_sample}")
+            except Exception:
+                pass
 
         context.close()
 
