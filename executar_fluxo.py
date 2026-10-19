@@ -11,6 +11,7 @@ if sys.stdout.encoding != 'utf-8':
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(BASE_DIR, "execucao.log")
+STATUS_FILE = os.path.join(BASE_DIR, "ultimo_envio.txt")
 
 def log(msg):
     data_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -32,8 +33,22 @@ def run_step(step_name, command):
     return True
 
 def main():
+    force = "--force" in sys.argv or "-f" in sys.argv
+    hoje_str = datetime.now().strftime("%Y-%m-%d")
+
+    # Verifica se já rodou com sucesso no dia de hoje (evita duplicidade ao religar/reiniciar o PC)
+    if not force and os.path.exists(STATUS_FILE):
+        try:
+            with open(STATUS_FILE, "r", encoding="utf-8") as f:
+                ultimo_dia = f.read().strip()
+            if ultimo_dia == hoje_str:
+                log(f"ℹ️  [OK] O relatório de hoje ({hoje_str}) já foi enviado com sucesso mais cedo. Nenhuma ação necessária.")
+                return
+        except Exception:
+            pass
+
     log("=" * 60)
-    log("🚀 INICIANDO FLUXO COMPLETO DO RELATÓRIO DIÁRIO DE IA (D-1)")
+    log(f"🚀 INICIANDO FLUXO COMPLETO DO RELATÓRIO DIÁRIO DE IA (D-1)")
     log("=" * 60)
     
     # Etapa 1: Coletar tweets do X
@@ -50,6 +65,13 @@ def main():
     if not run_step("Envio do E-mail Formatado", ["enviar_email.py"]):
         log("Fluxo interrompido devido a erro no envio de e-mail.")
         sys.exit(1)
+
+    # Marca a data de hoje como enviada com sucesso
+    try:
+        with open(STATUS_FILE, "w", encoding="utf-8") as f:
+            f.write(hoje_str)
+    except Exception:
+        pass
         
     log("=" * 60)
     log("🎉 FLUXO COMPLETO CONCLUÍDO COM SUCESSO! E-mail entregue.")

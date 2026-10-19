@@ -3,6 +3,7 @@ auth.json
 email_config.json
 .env
 *.env
+ultimo_envio.txt
 
 # Sessões do Playwright / Chrome
 .session/
