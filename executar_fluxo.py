@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import os
+from datetime import datetime
 
 if sys.stdout.encoding != 'utf-8':
     try:
@@ -9,36 +10,50 @@ if sys.stdout.encoding != 'utf-8':
         pass
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_FILE = os.path.join(BASE_DIR, "execucao.log")
+
+def log(msg):
+    data_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    linha = f"[{data_hora}] {msg}"
+    print(linha)
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(linha + "\n")
+    except Exception:
+        pass
 
 def run_step(step_name, command):
-    print("\n" + "=" * 60)
-    print(f"▶️  ETAPA: {step_name}")
-    print("=" * 60)
+    log(f"▶️  INICIANDO ETAPA: {step_name}")
     res = subprocess.run([sys.executable] + command, cwd=BASE_DIR)
     if res.returncode != 0:
-        print(f"\n❌ [FALHA] Etapa '{step_name}' encerrou com código {res.returncode}")
+        log(f"❌ [FALHA] Etapa '{step_name}' encerrou com código de erro {res.returncode}")
         return False
-    print(f"\n✅ [SUCESSO] Etapa '{step_name}' concluída!")
+    log(f"✅ [SUCESSO] Etapa '{step_name}' concluída com sucesso.")
     return True
 
 def main():
-    print("🚀 INICIANDO FLUXO COMPLETO DO RELATÓRIO DIÁRIO DE IA...")
+    log("=" * 60)
+    log("🚀 INICIANDO FLUXO COMPLETO DO RELATÓRIO DIÁRIO DE IA (D-1)")
+    log("=" * 60)
     
     # Etapa 1: Coletar tweets do X
     if not run_step("Coleta de Tweets do X", ["coletar_tweets.py"]):
+        log("Fluxo interrompido devido a erro na coleta de tweets.")
         sys.exit(1)
         
     # Etapa 2: Gerar Resumo estruturado com IA
     if not run_step("Geração do Resumo Inteligente com IA", ["gerar_resumo_ia.py"]):
+        log("Fluxo interrompido devido a erro na geração com IA.")
         sys.exit(1)
         
     # Etapa 3: Enviar E-mail formatado
     if not run_step("Envio do E-mail Formatado", ["enviar_email.py"]):
+        log("Fluxo interrompido devido a erro no envio de e-mail.")
         sys.exit(1)
         
-    print("\n" + "=" * 60)
-    print("🎉 FLUXO COMPLETO CONCLUÍDO COM SUCESSO!")
-    print("=" * 60)
+    log("=" * 60)
+    log("🎉 FLUXO COMPLETO CONCLUÍDO COM SUCESSO! E-mail entregue.")
+    log("=" * 60 + "\n")
 
 if __name__ == "__main__":
     main()

@@ -12,32 +12,29 @@ Automação completa para coleta, análise por IA e envio diário por e-mail dos
        ▼ (Playwright Headless)
 [coletar_tweets.py] ──► tweets_coletados.json
                              │
-                             ▼ (Gemini / OpenAI API)
+                             ▼ (OpenAI / Gemini API)
                       [gerar_resumo_ia.py] ──► Resumo_IA_<DATA>.md
                                                     │
                                                     ▼ (Gmail SMTP SSL)
-                                             [enviar_email.py] ──► Caixa de Entrada ✉️
+                                             [enviar_email.py] ──► fabrycio.bermudes@usabit.com.br ✉️
 ```
 
 ---
 
-## ⏰ Execução Automática (GitHub Actions)
+## ⏰ Execução Automática (Agendador de Tarefas do Windows)
 
-O workflow em `.github/workflows/relatorio_diario.yml` é executado:
-* **Automaticamente todos os dias às 09:00 (Horário de Brasília / 12:00 UTC)**.
-* **Manualmente a qualquer momento** através do botão **"Run workflow"** na aba *Actions* do GitHub.
+A rotina é orquestrada pelo script principal `executar_fluxo.py`:
+* **Horário:** Todos os dias pontualmente às **09:00 da manhã**.
+* **Modo Silencioso:** Executado em segundo plano via `pythonw.exe` (sem abrir janela de console).
+* **Histórico de Logs:** Registrado em `execucao.log`.
+* **Janela Temporal:** Analisa o ciclo de 24 horas completo do **dia anterior (D-1)**.
 
 ---
 
-## 🔐 Secrets Necessárias no GitHub
+## 🛠️ Como Executar Manualmente
 
-Configuradas em *Settings > Secrets and variables > Actions*:
+Para rodar o fluxo completo a qualquer momento:
 
-| Secret | Descrição |
-|---|---|
-| `X_AUTH_TOKEN` | Token do cookie de sessão do X (`auth_token`) |
-| `X_CT0` | Token de segurança CSRF do X (`ct0`) |
-| `OPENAI_API_KEY` ou `GEMINI_API_KEY` | Chave de API para estruturar o resumo nos 5 tópicos |
-| `GMAIL_USER` | E-mail do remetente (ex: `bermudes.fbc@gmail.com`) |
-| `GMAIL_APP_PASSWORD` | Senha de Aplicativo de 16 letras gerada no Google |
-| `GMAIL_TO` | E-mail corporativo de destino (ex: `fabrycio.bermudes@usabit.com.br`) |
+```powershell
+python "D:\Projetos\Relatorios - IA\executar_fluxo.py"
+```
