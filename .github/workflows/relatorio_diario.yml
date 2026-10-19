@@ -1,0 +1,44 @@
+name: Disparo Diário do Relatório de IA
+
+on:
+  schedule:
+    # 09:00 Horário de Brasília (UTC-3) = 12:00 UTC
+    - cron: '0 12 * * *'
+  workflow_dispatch: # Permite disparo manual a qualquer momento pelo GitHub
+
+jobs:
+  executar-relatorio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Clonar repositório
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 📦 Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🌐 Instalar navegadores do Playwright
+        run: |
+          playwright install chromium --with-deps
+
+      - name: 🚀 Executar Fluxo de IA (Coleta + Resumo + Envio de E-mail)
+        env:
+          CI: "true"
+          X_AUTH_TOKEN: ${{ secrets.X_AUTH_TOKEN }}
+          X_CT0: ${{ secrets.X_CT0 }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          GMAIL_TO: ${{ secrets.GMAIL_TO }}
+        run: |
+          python executar_fluxo.py

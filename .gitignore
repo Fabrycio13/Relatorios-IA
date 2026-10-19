@@ -1,0 +1,24 @@
+# Credenciais e tokens sensíveis
+auth.json
+email_config.json
+.env
+*.env
+
+# Sessões do Playwright / Chrome
+.session/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Ambientes virtuais
+venv/
+.venv/
+env/
+.env/
+
+# Arquivos temporários de SO
+Thumbs.db
+.DS_Store

@@ -1,0 +1,86 @@
+[
+  {
+    "author_name": "Guillermo Rauch",
+    "author_handle": "@rauchg",
+    "timestamp": "2026-10-18T19:48:50.000Z",
+    "text": "Every once in a while, some unsuspecting country's domain economy goes vertical \n\n.𝚌𝚘 → Colombia\n.𝚒𝚘 → I/O → Island Ocean\n.𝚖𝚍 → Markdown → Moldova\n.𝚛𝚜 → Rust → Serbia\n.𝚊𝚒 → AI → Anguilla\n.𝚜𝚒 → SI → Slovenia",
+    "url": "https://x.com/rauchg/status/2111907375120859243"
+  },
+  {
+    "author_name": "Telegraph",
+    "author_handle": "@Telegraphprotoc",
+    "timestamp": "",
+    "text": "Calling all AI Engineers: the Telegraph Hackathon Season II is open.",
+    "url": "https://x.com/Telegraphprotoc/status/2106470294051270715/analytics"
+  },
+  {
+    "author_name": "0xMarioNawfal",
+    "author_handle": "@RoundtableSpace",
+    "timestamp": "2026-10-19T10:15:00.000Z",
+    "text": "Cloudflare open-sourced the security audit skill that seeded its own vulnerability hunting harness. Your coding agent can now run it on your code.\n\nHow it works, in 6 phases:\n→ maps your codebase\n→ hunts for bugs area by area so nothing gets skipped\n→ sends every finding to a",
+    "url": "https://x.com/RoundtableSpace/status/2112125353594401162"
+  },
+  {
+    "author_name": "Hermes Release Watch",
+    "author_handle": "@HermesWatcher",
+    "timestamp": "2026-10-18T14:00:02.000Z",
+    "text": "OKAY THIS IS WILD\n \nSomeone just paired Hermes Agent with Google's new Gemini 4 Argon and had it design a custom 3D-printable case for a dual-DGX setup.\n\nAnd we're not talking about some concept image. There's an actual 3D model loaded into a printer slicer! \n\nHermes is out",
+    "url": "https://x.com/HermesWatcher/status/2111819596428693906"
+  },
+  {
+    "author_name": "liam.",
+    "author_handle": "@liambraus",
+    "timestamp": "2026-10-18T15:41:45.000Z",
+    "text": "NVIDIA HAS JUST RELEASED A TOOL TO TURN ANY IMAGE INTO AN EXPLORABLE 3D WORLD\n\nand they've made it 100% open source.\n\n→ model available on hugging face\n→ interface code available on GitHub\n\nLyra 2.0 creates a world you can walk through, spin around, and even drop a robot into",
+    "url": "https://x.com/liambraus/status/2111845196270870822"
+  },
+  {
+    "author_name": "Simplifying AI",
+    "author_handle": "@simplifyinAI",
+    "timestamp": "2026-10-19T02:16:25.000Z",
+    "text": "Turn any Google Street View into a 3D Gaussian splat \n\nPaste a Google Maps link and turn that spot into an immersive 3D scene you can explore.\n\nYour hometown. Your favorite street. That place you’ve always wanted to visit.\n\n100% free.",
+    "url": "https://x.com/simplifyinAI/status/2112004913014480971"
+  },
+  {
+    "author_name": "Jobescape",
+    "author_handle": "@jobescape_ai",
+    "timestamp": "",
+    "text": "Full Claude Course \n\nMaster Claude to automate repetitive tasks, build apps without coding, create real portfolio projects, and become more valuable at work.",
+    "url": "https://x.com/jobescape_ai/status/2090781339985621238/analytics"
+  },
+  {
+    "author_name": "Joseph Webb",
+    "author_handle": "@999toba",
+    "timestamp": "2026-10-18T10:03:10.000Z",
+    "text": "Someone created a repo on GitHub that lets you run Claude Code completely for free.  \n\nIt redirects your Claude Code traffic to 10 free providers like DeepSeek and Kimi, takes 5 minutes to set up, and already has over 20,000 developers running it.",
+    "url": "https://x.com/999toba/status/2111759988766982563"
+  },
+  {
+    "author_name": "Dan Kornas",
+    "author_handle": "@DanKornas",
+    "timestamp": "2026-10-18T17:43:59.000Z",
+    "text": "Turning existing APIs into agent tools shouldn’t mean hand-writing every integration.\n\nreShapr is an open-source, no-code MCP server for builders who want to give AI agents access to existing REST, GraphQL, or gRPC services.\n\nIt helps you turn those services into discoverable,",
+    "url": "https://x.com/DanKornas/status/2111875957233750432"
+  },
+  {
+    "author_name": "Trinity by Ability",
+    "author_handle": "@get_trinity",
+    "timestamp": "",
+    "text": "Spin up a whole fleet of AI agents on your own server - stateful, auditable, yours. Trinity is the self-hosted runtime that recovers, schedules, and logs every action. Open source, Apache 2.0.",
+    "url": "https://x.com/get_trinity/status/2087117289900437667/analytics"
+  },
+  {
+    "author_name": "Dhruv kumar",
+    "author_handle": "@Dhruvkumar16797",
+    "timestamp": "2026-10-18T10:30:23.000Z",
+    "text": "Andrew Ng just dropped the best 2-hour course on Graph Engineering: from single agent to full automation\n\n9:14 - your first agent\n33:11 - loop engineering\n1:02:46 - graph engineering\n1:30:15 - agents that rewrite themselves\n1:49:05 - full graph system\n\ntwo hours, and it replaces",
+    "url": "https://x.com/Dhruvkumar16797/status/2111766839516917979"
+  },
+  {
+    "author_name": "Rafa",
+    "author_handle": "@RafaCrackYT",
+    "timestamp": "2026-10-18T13:18:36.000Z",
+    "text": "Opus 5.5 spent $55.59 to break this dam. DeepSeek V4.1 Flash 1017 did it for $0.46 \n\nSame prompt, one shot:\nOpus 5.5 max: $55.59 · 2h09m\nDeepSeek V4.1 Flash 1017 max: $0.46 · 1h21m\n\nThat's 120x cheaper.. but at this point, does price matter that much to you over quality?",
+    "url": "https://x.com/RafaCrackYT/status/2111809171716751720"
+  }
+]
