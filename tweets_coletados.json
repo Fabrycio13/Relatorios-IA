@@ -1,86 +1,191 @@
 [
   {
-    "author_name": "Guillermo Rauch",
-    "author_handle": "@rauchg",
-    "timestamp": "2026-10-18T19:48:50.000Z",
-    "text": "Every once in a while, some unsuspecting country's domain economy goes vertical \n\n.𝚌𝚘 → Colombia\n.𝚒𝚘 → I/O → Island Ocean\n.𝚖𝚍 → Markdown → Moldova\n.𝚛𝚜 → Rust → Serbia\n.𝚊𝚒 → AI → Anguilla\n.𝚜𝚒 → SI → Slovenia",
-    "url": "https://x.com/rauchg/status/2111907375120859243"
-  },
-  {
-    "author_name": "Telegraph",
-    "author_handle": "@Telegraphprotoc",
-    "timestamp": "",
-    "text": "Calling all AI Engineers: the Telegraph Hackathon Season II is open.",
-    "url": "https://x.com/Telegraphprotoc/status/2106470294051270715/analytics"
-  },
-  {
-    "author_name": "0xMarioNawfal",
-    "author_handle": "@RoundtableSpace",
-    "timestamp": "2026-10-19T10:15:00.000Z",
-    "text": "Cloudflare open-sourced the security audit skill that seeded its own vulnerability hunting harness. Your coding agent can now run it on your code.\n\nHow it works, in 6 phases:\n→ maps your codebase\n→ hunts for bugs area by area so nothing gets skipped\n→ sends every finding to a",
-    "url": "https://x.com/RoundtableSpace/status/2112125353594401162"
-  },
-  {
-    "author_name": "Hermes Release Watch",
-    "author_handle": "@HermesWatcher",
-    "timestamp": "2026-10-18T14:00:02.000Z",
-    "text": "OKAY THIS IS WILD\n \nSomeone just paired Hermes Agent with Google's new Gemini 4 Argon and had it design a custom 3D-printable case for a dual-DGX setup.\n\nAnd we're not talking about some concept image. There's an actual 3D model loaded into a printer slicer! \n\nHermes is out",
-    "url": "https://x.com/HermesWatcher/status/2111819596428693906"
-  },
-  {
-    "author_name": "liam.",
-    "author_handle": "@liambraus",
-    "timestamp": "2026-10-18T15:41:45.000Z",
-    "text": "NVIDIA HAS JUST RELEASED A TOOL TO TURN ANY IMAGE INTO AN EXPLORABLE 3D WORLD\n\nand they've made it 100% open source.\n\n→ model available on hugging face\n→ interface code available on GitHub\n\nLyra 2.0 creates a world you can walk through, spin around, and even drop a robot into",
-    "url": "https://x.com/liambraus/status/2111845196270870822"
-  },
-  {
-    "author_name": "Simplifying AI",
-    "author_handle": "@simplifyinAI",
-    "timestamp": "2026-10-19T02:16:25.000Z",
-    "text": "Turn any Google Street View into a 3D Gaussian splat \n\nPaste a Google Maps link and turn that spot into an immersive 3D scene you can explore.\n\nYour hometown. Your favorite street. That place you’ve always wanted to visit.\n\n100% free.",
-    "url": "https://x.com/simplifyinAI/status/2112004913014480971"
-  },
-  {
-    "author_name": "Jobescape",
-    "author_handle": "@jobescape_ai",
-    "timestamp": "",
-    "text": "Full Claude Course \n\nMaster Claude to automate repetitive tasks, build apps without coding, create real portfolio projects, and become more valuable at work.",
-    "url": "https://x.com/jobescape_ai/status/2090781339985621238/analytics"
-  },
-  {
-    "author_name": "Joseph Webb",
-    "author_handle": "@999toba",
-    "timestamp": "2026-10-18T10:03:10.000Z",
-    "text": "Someone created a repo on GitHub that lets you run Claude Code completely for free.  \n\nIt redirects your Claude Code traffic to 10 free providers like DeepSeek and Kimi, takes 5 minutes to set up, and already has over 20,000 developers running it.",
-    "url": "https://x.com/999toba/status/2111759988766982563"
-  },
-  {
     "author_name": "Dan Kornas",
     "author_handle": "@DanKornas",
-    "timestamp": "2026-10-18T17:43:59.000Z",
-    "text": "Turning existing APIs into agent tools shouldn’t mean hand-writing every integration.\n\nreShapr is an open-source, no-code MCP server for builders who want to give AI agents access to existing REST, GraphQL, or gRPC services.\n\nIt helps you turn those services into discoverable,",
-    "url": "https://x.com/DanKornas/status/2111875957233750432"
+    "timestamp": "2026-10-19T07:58:58.000Z",
+    "text": "Coordinating people and coding agents shouldn’t mean passing context through five tabs.\n\nOpenMeld is an open-source collaboration system for teams working with people, cloud agents, and local coding agents.\n\nIt helps you keep work moving in parallel by putting conversations,",
+    "url": "https://x.com/DanKornas/status/2112091118737252364"
   },
   {
-    "author_name": "Trinity by Ability",
-    "author_handle": "@get_trinity",
+    "author_name": "Alexandre Ayoub",
+    "author_handle": "@Alex_Ayoub_",
     "timestamp": "",
-    "text": "Spin up a whole fleet of AI agents on your own server - stateful, auditable, yours. Trinity is the self-hosted runtime that recovers, schedules, and logs every action. Open source, Apache 2.0.",
-    "url": "https://x.com/get_trinity/status/2087117289900437667/analytics"
+    "text": "Your MCP logs show which tools were called. But do you know what users were actually trying to accomplish?\n\nFlowlines uncovers user intent, silent failures, and product opportunities across MCP sessions.\n\nGet started for free. No credit card required ↓",
+    "url": "https://x.com/Alex_Ayoub_/status/2111139399887122834/analytics"
   },
   {
-    "author_name": "Dhruv kumar",
-    "author_handle": "@Dhruvkumar16797",
-    "timestamp": "2026-10-18T10:30:23.000Z",
-    "text": "Andrew Ng just dropped the best 2-hour course on Graph Engineering: from single agent to full automation\n\n9:14 - your first agent\n33:11 - loop engineering\n1:02:46 - graph engineering\n1:30:15 - agents that rewrite themselves\n1:49:05 - full graph system\n\ntwo hours, and it replaces",
-    "url": "https://x.com/Dhruvkumar16797/status/2111766839516917979"
+    "author_name": "morbian",
+    "author_handle": "@morbianai",
+    "timestamp": "2026-10-19T11:44:23.000Z",
+    "text": "this is pure f*cking gold\n\none visual that shows how a reverse-engineering swarm actually runs from first look to final patch\nten tools chained together so agents recon the binary, load the right models, argue about the fix, and ship the change while you sleep\n\n(1/10) REA\ncore",
+    "url": "https://x.com/morbianai/status/2112147849139847372"
   },
   {
-    "author_name": "Rafa",
-    "author_handle": "@RafaCrackYT",
-    "timestamp": "2026-10-18T13:18:36.000Z",
-    "text": "Opus 5.5 spent $55.59 to break this dam. DeepSeek V4.1 Flash 1017 did it for $0.46 \n\nSame prompt, one shot:\nOpus 5.5 max: $55.59 · 2h09m\nDeepSeek V4.1 Flash 1017 max: $0.46 · 1h21m\n\nThat's 120x cheaper.. but at this point, does price matter that much to you over quality?",
-    "url": "https://x.com/RafaCrackYT/status/2111809171716751720"
+    "author_name": "Quadcode AI",
+    "author_handle": "@quadcode_ai",
+    "timestamp": "",
+    "text": "First month free on Quadcode AI. Build games and apps with a team of AI agents. Desktop app.\n\n\nhttps://\nquadcode.ai/?utm_source=x&\nutm_medium=paid&utm_campaign=w5_br_desktop_trial&utm_content=versus_video_en_v1&utm_term=int_gamedev&twclid=24njt0pstgug3ymn8blre6lq51\n…",
+    "url": "https://x.com/quadcode_ai/status/2111324103583928424/analytics"
+  },
+  {
+    "author_name": "Matt",
+    "author_handle": "@meszmatew",
+    "timestamp": "2026-10-19T11:30:25.000Z",
+    "text": "We open-sourced a Zendesk alternative and it went VIRAL. \n\nConnect your support@ inbox. Plug in any tool via MCP. Pay $0. \nIt's called Opendesk  \nhttps://\nopendesk.sh \n\n video made with \n@snapcndev",
+    "url": "https://x.com/meszmatew/status/2112144333046485348"
+  },
+  {
+    "author_name": "max",
+    "author_handle": "@maxwell_lenoir",
+    "timestamp": "2026-10-18T15:02:17.000Z",
+    "text": "THIS IS REALLY INCREDIBLE\n\nGitHub is full of free stuff that almost no one is using.\n\nGitHub is packed with powerful free tools that most people are overlooking. Here are the 10 repositories that are blowing up this month, ranked from the easiest to use to the most technical.",
+    "url": "https://x.com/maxwell_lenoir/status/2111835261520794054"
+  },
+  {
+    "author_name": "Orchestrator.inc",
+    "author_handle": "@useOrchestrator",
+    "timestamp": "2026-10-19T11:55:37.000Z",
+    "text": "https://\nOrchestrator.inc v0.14.3 is out.\n\nArtifacts: everything your agents make, in one place.\nChat now suggests your next message.\nManage agent CLIs right from Settings, and nudged to update then to latest versions.\nRedesigned shortcuts, and a faster app overall.\n\nSee thread",
+    "url": "https://x.com/useOrchestrator/status/2112150674427482498"
+  },
+  {
+    "author_name": "Elia | In SF",
+    "author_handle": "@eliakuratli",
+    "timestamp": "2026-10-19T08:38:06.000Z",
+    "text": "Zoom in and the data gets more detailed\n\n\nhttps://\nuiarc.dev",
+    "url": "https://x.com/eliakuratli/status/2112100967932141762"
+  },
+  {
+    "author_name": "CanadaCIS",
+    "author_handle": "@Canada_CIS",
+    "timestamp": "",
+    "text": "Canada can be your next career move - If your background is in demand, your experience could open the door. See if you're eligible",
+    "url": "https://x.com/Canada_CIS/status/2107752278862225809/analytics"
+  },
+  {
+    "author_name": "Vullnet Ademaj",
+    "author_handle": "@VullnetAdemaj",
+    "timestamp": "2026-10-19T08:40:19.000Z",
+    "text": "Tired of boring AI websites, save these 10 tools \n\n1. \nhttps://\nmodulify.ai/templates — Free website templates\n2. \nhttps://\nmotionin.design — Motion design inspiration\n3. \nhttps://\nlanddding.com — Landing page references\n4. \nhttps://\nwonderlist.design — Premium Figma designs\n5.",
+    "url": "https://x.com/VullnetAdemaj/status/2112101526336364705"
+  },
+  {
+    "author_name": "nerea",
+    "author_handle": "@nereasolenne",
+    "timestamp": "2026-10-19T05:50:00.000Z",
+    "text": "A 7-MINUTE TUTORIAL THAT SAVES YOU HOURS SEARCHING FOR HOW TO DO IT.\n\nCreating 3D websites with AI, step by step, from scratch.\n\nSave it before you need it.",
+    "url": "https://x.com/nereasolenne/status/2112058663489941851"
+  },
+  {
+    "author_name": "Docker",
+    "author_handle": "@Docker",
+    "timestamp": "2026-10-18T17:30:04.000Z",
+    "text": "The isolation question for AI agents is getting more specific. Not 'is it sandboxed?' but 'what exactly does the boundary hold, and what can get past it?'\n\nSandbox Review on how to answer that, and what major coding agents are actually doing about isolation in production today:",
+    "url": "https://x.com/Docker/status/2111872454578642998"
+  },
+  {
+    "author_name": "Ted Kupolov",
+    "author_handle": "@kupolov",
+    "timestamp": "",
+    "text": "New in AI Badger 0.8.0: Codebase Map \n\nExplore your codebase in one interactive map.\n\nRun badger map locally to browse folders, language breakdowns, and where code is concentrated.\n\nFree, open source, offline. No code uploads.\n\nTry the demo:",
+    "url": "https://x.com/kupolov/status/2110511107832246308/analytics"
+  },
+  {
+    "author_name": "Deep-ML",
+    "author_handle": "@real_deep_ml",
+    "timestamp": "2026-10-19T12:18:17.000Z",
+    "text": "Deep-Path: The entire Deep-ML catalog, organized into one structured learning path featuring nearly 2,000 machine learning coding problems and hands-on projects.\n\nThroughout the path, you'll work through the math, implement concepts from scratch using minimal libraries like NumPy",
+    "url": "https://x.com/real_deep_ml/status/2112156379658027087"
+  },
+  {
+    "author_name": "Dipanshu Kushwaha",
+    "author_handle": "@Dipanshu_AI",
+    "timestamp": "2026-10-19T04:35:20.000Z",
+    "text": "Anthropic Engineering: \"At Anthropic, we don't write prompts anymore. we build loops\"\n\nin 42 minutes, she shows how the Claude team creates loops that prompt themselves\n\nif this cost $400, people would call it the best agents course of the year\n\nit's free\n\nwatch it, and Bookmark.",
+    "url": "https://x.com/Dipanshu_AI/status/2112039872500584616"
+  },
+  {
+    "author_name": "𝗿𝗮𝗺𝗮𝗸𝗿𝘂𝘀𝗵𝗻𝗮— 𝗲/𝗮𝗰𝗰",
+    "author_handle": "@techwith_ram",
+    "timestamp": "2026-10-19T03:58:51.000Z",
+    "text": "𝗩𝗲𝗰𝘁𝗼𝗿 𝗥𝗔𝗚 𝘃𝘀 𝗩𝗲𝗰𝘁𝗼𝗿𝗹𝗲𝘀𝘀 𝗥𝗔𝗚 𝘃𝘀 𝗔𝗴𝗲𝗻𝘁𝗶𝗰 𝗥𝗔𝗚\n\nRAG tutorials teach you one pattern: chunk the document, embed it, store the vectors, search by similarity.\n\nIt works. Until someone asks a question where the answer depends on where something sits",
+    "url": "https://x.com/techwith_ram/status/2112030692536365476"
+  },
+  {
+    "author_name": "GitHub",
+    "author_handle": "@github",
+    "timestamp": "2026-10-18T18:00:06.000Z",
+    "text": "The GitHub Security Lab used an open-source agent to find 24 Android vulnerabilities, including a location leak in a navigation app with 10M downloads.\n\nHow to run the taskflows on your own project",
+    "url": "https://x.com/github/status/2111880011485516083"
+  },
+  {
+    "author_name": "VanHack",
+    "author_handle": "@GoVanHack",
+    "timestamp": "",
+    "text": "Software engineer earning US $60K+ annually? Keep your current job and get a Canadian work permit through VanHack's Canadian Engineering Office plus visas for your family. Sign up free today.",
+    "url": "https://x.com/GoVanHack/status/2100583265971413159/analytics"
+  },
+  {
+    "author_name": "Kirk Borne",
+    "author_handle": "@KirkDBorne",
+    "timestamp": "2026-10-18T22:53:50.000Z",
+    "text": "Nicomachus’s theorem: \nhttps://\nmathworld.wolfram.com/NicomachussThe\norem.html\n…",
+    "url": "https://x.com/KirkDBorne/status/2111953935128752498"
+  },
+  {
+    "author_name": "Nerv",
+    "author_handle": "@satellitedown",
+    "timestamp": "2026-10-18T17:57:34.000Z",
+    "text": "imagine being hacked and the attacker is leaving readme.md files all over your system that cause your ai to constantly give cyber refusals so you can't even use ai to defend yourself lmao",
+    "url": "https://x.com/satellitedown/status/2111879374056345937"
+  },
+  {
+    "author_name": "Stephen Wu",
+    "author_handle": "@wustep",
+    "timestamp": "2026-10-18T17:35:23.000Z",
+    "text": "this is my AI psychosis (ft \n@bot\n x \n@notionhq\n)",
+    "url": "https://x.com/wustep/status/2111873792008237254"
+  },
+  {
+    "author_name": "Brij Pandey",
+    "author_handle": "@LearnWithBrij",
+    "timestamp": "2026-10-18T18:50:42.000Z",
+    "text": "Google isn’t trying to win the AI race.\n\nThey’re trying to own the entire AI Agent ecosystem.\n\nWhile everyone argues ChatGPT vs Claude, Google quietly built:\n\nModels → Gemini Pro, Flash, Deep Think, Gemma\n\nDesign → Stitch, Whisk, Imagen\n\nResearch → NotebookLM, AI Mode\n\nVideo",
+    "url": "https://x.com/LearnWithBrij/status/2111892746437038549"
+  },
+  {
+    "author_name": "Tangem",
+    "author_handle": "@Tangem",
+    "timestamp": "",
+    "text": "No screen. No battery. Fewer potential attack vectors. \n\nTangem keeps hardware wallet security simple: a secure chip, NFC, and no unnecessary components.\n\nRethink crypto security. Switch to Tangem and save 30%.",
+    "url": "https://x.com/Tangem/status/2109028481015374004/analytics"
+  },
+  {
+    "author_name": "Python Coding",
+    "author_handle": "@clcoding",
+    "timestamp": "2026-10-18T18:48:50.000Z",
+    "text": "Build a Chat with PDF App Using Python Flask and Google AI Studio API\n\nCode: \nhttps://\npythonclcoding.gumroad.com/l/zfpynny",
+    "url": "https://x.com/clcoding/status/2111892275056062480"
+  },
+  {
+    "author_name": "Novita AI",
+    "author_handle": "@novita_labs",
+    "timestamp": "2026-10-19T06:47:36.000Z",
+    "text": "DeepSeek V4.1 Flash 1017 is now live on Novita AI!\n\nThe latest DeepSeek V4.1 Flash update, with improved reasoning, coding, agentic tasks, and visual understanding, plus shorter outputs and faster task completion.\n\n 1M-token context window\n Text and image input\n Tool",
+    "url": "https://x.com/novita_labs/status/2112073161097572549"
+  },
+  {
+    "author_name": "smeshny",
+    "author_handle": "@smeshny",
+    "timestamp": "2026-10-18T07:37:14.000Z",
+    "text": "My girlfriend is the reason I found an AI agent use case I actually care about.\n\nI’m fine watching movies in English. Some of the more complex movies are harder for her to follow in English.\n\nNow I can tell my hermes desktop: “Yo, dub this into polish language using OpenVoice.",
+    "url": "https://x.com/smeshny/status/2111723262027747695"
+  },
+  {
+    "author_name": "Oku Trade",
+    "author_handle": "@okutrade",
+    "timestamp": "",
+    "text": "Own a piece of Apple for $20. Oku is coming to mobile this October. Join the waitlist for early access.",
+    "url": "https://x.com/okutrade/status/2110866304106209504/analytics"
   }
 ]
