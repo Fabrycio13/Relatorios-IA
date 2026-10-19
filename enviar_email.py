@@ -3,7 +3,7 @@ import os
 import re
 import smtplib
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -155,8 +155,9 @@ def enviar_relatorio_email(destinatario=None, caminho_relatorio=None):
     with open(caminho_relatorio, "r", encoding="utf-8") as f:
         md_content = f.read()
 
-    data_hoje = datetime.now().strftime("%d/%m/%Y")
-    assunto = f"🧠 Resumo de IA - Feed do X ({data_hoje})"
+    hoje = datetime.now()
+    ontem = hoje - timedelta(days=1)
+    assunto = f"🧠 Resumo de IA - Feed do X (Destaques de {ontem.strftime('%d/%m/%Y')})"
 
     html_content = markdown_to_html(md_content)
 

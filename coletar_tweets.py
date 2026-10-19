@@ -2,7 +2,7 @@ import json
 import os
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from playwright.sync_api import sync_playwright
 
 if sys.stdout.encoding != 'utf-8':
@@ -60,14 +60,17 @@ def carregar_cookies_se_existir(context):
         context.add_cookies(cookies)
         print(f"Cookies de autenticação ({len(cookies)}) aplicados com sucesso.")
 
-def coletar_tweets(max_scrolls=8, headless=True):
+def coletar_tweets(max_scrolls=18, headless=True):
     print("=" * 60)
     print("Coletando posts do X (Feed Seguindo / Following)...")
     print(f"Data da execução: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("Objetivo: Coletar ciclo completo das últimas 24h a 36h")
     print("=" * 60)
 
     tweets_coletados = []
     seen_texts = set()
+    limite_tempo = datetime.now(timezone.utc) - timedelta(hours=48)
+    alcancou_limite = False
 
     with sync_playwright() as p:
         launch_args = {
@@ -181,6 +184,14 @@ def coletar_tweets(max_scrolls=8, headless=True):
                             tweet_url = f"https://x.com{href}" if href.startswith("/") else href
                             break
 
+                    if timestamp:
+                        try:
+                            dt_tweet = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                            if dt_tweet < limite_tempo:
+                                alcancou_limite = True
+                        except Exception:
+                            pass
+
                     tweets_coletados.append({
                         "author_name": name,
                         "author_handle": handle_str,
@@ -193,6 +204,10 @@ def coletar_tweets(max_scrolls=8, headless=True):
 
             page.evaluate("window.scrollBy(0, 1000)")
             time.sleep(2.5)
+
+            if alcancou_limite and len(tweets_coletados) >= 15:
+                print(f"\n[OK] Ciclo de 24h a 36h já totalmente coberto ({len(tweets_coletados)} tweets capturados). Encerrando rolagens.")
+                break
 
         if len(tweets_coletados) == 0:
             print("\n[DIAGNÓSTICO] Nenhum tweet foi capturado.")

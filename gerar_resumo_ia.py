@@ -3,7 +3,7 @@ import os
 import sys
 import urllib.request
 import urllib.error
-from datetime import datetime
+from datetime import datetime, timedelta
 
 if sys.stdout.encoding != 'utf-8':
     try:
@@ -14,11 +14,15 @@ if sys.stdout.encoding != 'utf-8':
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INPUT_JSON = os.path.join(BASE_DIR, "tweets_coletados.json")
 DATE_STR = datetime.now().strftime("%Y-%m-%d")
-DATE_BR = datetime.now().strftime("%d de %B de %Y").replace("October", "Outubro")
+hoje = datetime.now()
+ontem = hoje - timedelta(days=1)
+data_hoje_str = hoje.strftime("%d/%m/%Y")
+data_ontem_str = ontem.strftime("%d/%m/%Y")
 OUTPUT_MD = os.path.join(BASE_DIR, f"Resumo_IA_{DATE_STR}.md")
 
 PROMPT_SISTEMA = f"""Você é um analista sênior de tecnologia e Inteligência Artificial encarregado de criar o relatório diário oficial de novidades do X (Twitter).
 
+Este relatório cobre o ciclo de 24 horas consolidadas do DIA ANTERIOR ({data_ontem_str}), gerado e emitido em {data_hoje_str}.
 Abaixo está uma lista de tweets coletados recentemente em formato JSON.
 Sua missão é selecionar, filtrar e consolidar as publicações em um relatório Markdown estruturado OBRIGATORIAMENTE nos seguintes 5 TÓPICOS TEMÁTICOS:
 
@@ -37,7 +41,8 @@ Para cada publicação destacada dentro do seu respectivo tópico:
 
 Cabeçalho padrão a ser incluído no topo:
 # 🧠 Relatório Diário de IA - X (Twitter)
-**Data:** {datetime.now().strftime("%d/%m/%Y")}  
+**Data de Emissão:** {data_hoje_str} (Referente ao dia {data_ontem_str})  
+**Período Analisado:** Ciclo de 24h do dia anterior  
 **Fonte:** Feed "Seguindo" (@Fabrycio)  
 **Total de Publicações Analisadas:** <coloque a quantidade de tweets considerados>  
 
