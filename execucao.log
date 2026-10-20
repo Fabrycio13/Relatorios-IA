@@ -2,3 +2,97 @@
 [2026-10-19 10:38:13] 🚀 INICIANDO FLUXO COMPLETO DO RELATÓRIO DIÁRIO DE IA (D-1)
 [2026-10-19 10:38:13] ============================================================
 [2026-10-19 10:38:13] ▶️  INICIANDO ETAPA: Coleta de Tweets do X
+============================================================
+Coletando posts do X (Feed Seguindo / Following)...
+Data da execução: 2026-10-19 10:39:29
+Objetivo: Coletar ciclo completo das últimas 24h a 36h
+============================================================
+Cookies de autenticação (8) aplicados com sucesso.
+Acessando https://x.com/home ...
+Página acessada. URL: https://x.com/home | Título: 
+Aviso ao aguardar timeline: Page.wait_for_selector: Timeout 15000ms exceeded.
+Call log:
+  - waiting for locator("article[data-testid='tweet'], div[role='tablist']") to be visible
+
+Localizando aba 'Seguindo' / 'Following'...
+Scroll 1/18 - Tweets encontrados na visualização: 0
+Scroll 2/18 - Tweets encontrados na visualização: 0
+Scroll 3/18 - Tweets encontrados na visualização: 0
+Scroll 4/18 - Tweets encontrados na visualização: 0
+Scroll 5/18 - Tweets encontrados na visualização: 0
+Scroll 6/18 - Tweets encontrados na visualização: 0
+Scroll 7/18 - Tweets encontrados na visualização: 0
+Scroll 8/18 - Tweets encontrados na visualização: 0
+Scroll 9/18 - Tweets encontrados na visualização: 0
+Scroll 10/18 - Tweets encontrados na visualização: 0
+Scroll 11/18 - Tweets encontrados na visualização: 0
+Scroll 12/18 - Tweets encontrados na visualização: 0
+Scroll 13/18 - Tweets encontrados na visualização: 0
+Scroll 14/18 - Tweets encontrados na visualização: 0
+Scroll 15/18 - Tweets encontrados na visualização: 0
+Scroll 16/18 - Tweets encontrados na visualização: 0
+Scroll 17/18 - Tweets encontrados na visualização: 0
+Scroll 18/18 - Tweets encontrados na visualização: 0
+
+[DIAGNÓSTICO] Nenhum tweet foi capturado.
+Título da página: 
+URL final: https://x.com/home
+Amostra de texto da página: 
+
+[OK] Total de tweets coletados: 0
+Arquivo gerado em: D:\Projetos\Relatorios - IA\tweets_coletados.json
+[AVISO] Nenhum tweet coletado no JSON.
+[2026-10-19 10:39:29] ============================================================
+[2026-10-19 10:39:29] 🚀 INICIANDO FLUXO COMPLETO DO RELATÓRIO DIÁRIO DE IA (D-1)
+[2026-10-19 10:39:29] ============================================================
+[2026-10-19 10:39:29] ▶️  INICIANDO ETAPA: Coleta de Tweets do X
+[2026-10-19 10:42:05] ✅ [SUCESSO] Etapa 'Coleta de Tweets do X' concluída com sucesso.
+[2026-10-19 10:42:05] ▶️  INICIANDO ETAPA: Geração do Resumo Inteligente com IA
+[2026-10-19 10:42:05] ❌ [FALHA] Etapa 'Geração do Resumo Inteligente com IA' encerrou com código de erro 1
+[2026-10-19 10:42:05] Fluxo interrompido devido a erro na geração com IA.
+[2026-10-19 10:48:12] ============================================================
+[2026-10-19 10:48:12] 🚀 INICIANDO FLUXO COMPLETO DO RELATÓRIO DIÁRIO DE IA (D-1)
+[2026-10-19 10:48:12] ============================================================
+[2026-10-19 10:48:12] ▶️  INICIANDO ETAPA: Coleta de Tweets do X
+[2026-10-19 10:49:39] ============================================================
+[2026-10-19 10:49:39] 🚀 INICIANDO FLUXO COMPLETO DO RELATÓRIO DIÁRIO DE IA (D-1)
+[2026-10-19 10:49:39] ============================================================
+[2026-10-19 10:49:39] ▶️  INICIANDO ETAPA: Coleta de Tweets do X
+[2026-10-19 10:50:29] ✅ [SUCESSO] Etapa 'Coleta de Tweets do X' concluída com sucesso.
+[2026-10-19 10:50:29] ▶️  INICIANDO ETAPA: Geração do Resumo Inteligente com IA
+[2026-10-19 10:50:42] ✅ [SUCESSO] Etapa 'Geração do Resumo Inteligente com IA' concluída com sucesso.
+[2026-10-19 10:50:42] ▶️  INICIANDO ETAPA: Envio do E-mail Formatado
+[2026-10-19 10:50:46] ✅ [SUCESSO] Etapa 'Envio do E-mail Formatado' concluída com sucesso.
+[2026-10-19 10:50:46] ============================================================
+[2026-10-19 10:50:46] 🎉 FLUXO COMPLETO CONCLUÍDO COM SUCESSO! E-mail entregue.
+[2026-10-19 10:50:46] ============================================================
+
+[2026-10-19 10:51:22] ✅ [SUCESSO] Etapa 'Coleta de Tweets do X' concluída com sucesso.
+[2026-10-19 10:51:22] ▶️  INICIANDO ETAPA: Geração do Resumo Inteligente com IA
+[2026-10-19 10:51:22] ❌ [FALHA] Etapa 'Geração do Resumo Inteligente com IA' encerrou com código de erro 1
+[2026-10-19 10:51:22] Fluxo interrompido devido a erro na geração com IA.
+[2026-10-19 11:20:07] ============================================================
+[2026-10-19 11:20:07] 🚀 INICIANDO FLUXO COMPLETO DO RELATÓRIO DIÁRIO DE IA (D-1)
+[2026-10-19 11:20:07] ============================================================
+[2026-10-19 11:20:07] ▶️  INICIANDO ETAPA: Coleta de Tweets do X
+[2026-10-19 11:24:36] ✅ [SUCESSO] Etapa 'Coleta de Tweets do X' concluída com sucesso.
+[2026-10-19 11:24:36] ▶️  INICIANDO ETAPA: Geração do Resumo Inteligente com IA
+[2026-10-19 11:25:23] ✅ [SUCESSO] Etapa 'Geração do Resumo Inteligente com IA' concluída com sucesso.
+[2026-10-19 11:25:23] ▶️  INICIANDO ETAPA: Envio do E-mail Formatado
+[2026-10-19 11:25:27] ✅ [SUCESSO] Etapa 'Envio do E-mail Formatado' concluída com sucesso.
+[2026-10-19 11:25:27] ============================================================
+[2026-10-19 11:25:27] 🎉 FLUXO COMPLETO CONCLUÍDO COM SUCESSO! E-mail entregue.
+[2026-10-19 11:25:27] ============================================================
+
+[2026-10-19 11:32:47] ============================================================
+[2026-10-19 11:32:47] 🚀 INICIANDO FLUXO COMPLETO DO RELATÓRIO DIÁRIO DE IA (D-1)
+[2026-10-19 11:32:47] ============================================================
+[2026-10-19 11:32:47] ▶️  INICIANDO ETAPA: Coleta de Tweets do X
+[2026-10-19 11:37:22] ✅ [SUCESSO] Etapa 'Coleta de Tweets do X' concluída com sucesso.
+[2026-10-19 11:37:22] ▶️  INICIANDO ETAPA: Geração do Resumo Inteligente com IA
+[2026-10-19 11:38:24] ❌ [FALHA] Etapa 'Geração do Resumo Inteligente com IA' encerrou com código de erro 1
+[2026-10-19 11:38:24] Fluxo interrompido devido a erro na geração com IA.
+[2026-10-20 08:05:06] ============================================================
+[2026-10-20 08:05:06] 🚀 INICIANDO FLUXO COMPLETO DO RELATÓRIO DIÁRIO DE IA (D-1)
+[2026-10-20 08:05:06] ============================================================
+[2026-10-20 08:05:06] ▶️  INICIANDO ETAPA: Coleta de Tweets do X
