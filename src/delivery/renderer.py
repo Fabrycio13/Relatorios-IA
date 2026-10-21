@@ -79,7 +79,7 @@ def render_bento_email(md_text: str) -> str:
             cards_html.append(f"""
             <!-- HERO CARD: DESTAQUES DO DIA -->
             <a name="destaques" id="destaques" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>
-            <div class="bento-card" style="background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.08);">
+            <div class="bento-card" style="background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-left: 4px solid #2563eb; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.08);">
                 <div style="display: flex; align-items: center; margin-bottom: 12px;">
                     <span style="font-size: 18px; margin-right: 8px;">📌</span>
                     <h2 style="color: #1e40af; font-size: 16px; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Destaques Principais do Dia</h2>
@@ -144,7 +144,7 @@ def render_bento_email(md_text: str) -> str:
             cards_html.append(f"""
             <!-- GITHUB TRENDING CARD -->
             <a name="github-trending" id="github-trending" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>
-            <div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
+            <div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #ea580c; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
                 <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 14px;">
                     <h2 style="color: #0f172a; font-size: 16px; margin: 0; font-weight: 700;">🔥 GitHub Trending: Repositórios de IA em Alta no Dia</h2>
                     <p style="color: #64748b; font-size: 12px; margin: 3px 0 0 0;">Projetos em destaque com resumo e aplicabilidade em português</p>
@@ -205,7 +205,7 @@ def render_bento_email(md_text: str) -> str:
             cards_html.append(f"""
             <!-- PAPERS CARD -->
             <a name="papers" id="papers" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>
-            <div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
+            <div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #db2777; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
                 <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 14px;">
                     <h2 style="color: #0f172a; font-size: 16px; margin: 0; font-weight: 700;">📄 Papers em Destaque: Pesquisa &amp; Estado da Arte</h2>
                     <p style="color: #64748b; font-size: 12px; margin: 3px 0 0 0;">Curadoria dos artigos científicos mais votados no Hugging Face / ArXiv</p>
@@ -291,21 +291,29 @@ def render_bento_email(md_text: str) -> str:
                 """)
 
         accent_color = "#3b82f6"
-        if "Radar Perfis" in title: accent_color = "#8b5cf6"
-        elif "Harness" in title: accent_color = "#06b6d4"
-        elif "Desenvolvimento" in title: accent_color = "#10b981"
-        elif "Ferramentas" in title: accent_color = "#f59e0b"
-        elif "Papers" in title: accent_color = "#ec4899"
+        if "1." in title or "Ferramentas" in title or "Visão" in title or "Visao" in title:
+            accent_color = "#f97316"  # Laranja Âmbar (Tópico 1: Ferramentas & Visão)
+        elif "2." in title or "Agentes" in title or "MCP" in title:
+            accent_color = "#8b5cf6"  # Roxo Violeta (Tópico 2: Agentes & MCP)
+        elif "3." in title or "Harness" in title or "Evals" in title:
+            accent_color = "#06b6d4"  # Ciano / Teal (Tópico 3: Harness & RAG)
+        elif "4." in title or "Desenvolvimento" in title or "Claude" in title:
+            accent_color = "#10b981"  # Verde Esmeralda (Tópico 4: Dev & Claude Code)
+        elif "5." in title or "Radar" in title or "Perfis" in title:
+            accent_color = "#4f46e5"  # Índigo / Azul Royal (Tópico 5: Radar VIP)
+        elif "6." in title or "Capacitação" in title or "Capacitacao" in title or "Hackathons" in title:
+            accent_color = "#ec4899"  # Rosa Magenta (Tópico 6: Capacitação & Hackathons)
+        elif "7." in title or "Economia" in title or "Mercado" in title:
+            accent_color = "#d97706"  # Dourado Ocre (Tópico 7: Economia & Negócios)
 
         is_radar = ("1." in title or "Ferramentas" in title or "Agentes" in title or "Radar" in title) and not any('name="radar-x"' in c for c in cards_html)
         radar_anchor = '<a name="radar-x" id="radar-x" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>\n        ' if is_radar else ''
 
         cards_html.append(f"""
         <!-- BENTO CARD -->
-        {radar_anchor}<div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
-            <div style="display: flex; align-items: center; border-bottom: 2px solid #f8fafc; padding-bottom: 10px; margin-bottom: 14px;">
-                <div style="width: 4px; height: 16px; background-color: {accent_color}; border-radius: 2px; margin-right: 8px;"></div>
-                <h2 style="color: #0f172a; font-size: 15.5px; margin: 0; font-weight: 700; letter-spacing: -0.2px;">{title}</h2>
+        {radar_anchor}<div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid {accent_color}; border-radius: 16px; padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
+            <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 14px;">
+                <h2 style="color: #0f172a; font-size: 15.5px; margin: 0; font-weight: 700; letter-spacing: -0.2px; line-height: 1.4;">{title}</h2>
             </div>
             {''.join(rendered_items)}
         </div>
@@ -410,18 +418,13 @@ def render_bento_email(md_text: str) -> str:
                 <div style="width: 100%; line-height: 0; font-size: 0; background-color: #0f172a; max-height: 150px; overflow: hidden;">
                     <img src="{FOOTER_BANNER_URL}" alt="Curadoria de Engenharia" width="680" height="150" style="display: block; width: 100%; max-width: 680px; max-height: 150px; height: auto; object-fit: cover; object-position: center; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
                 </div>
-                <div class="footer-content" style="padding: 20px 24px; text-align: center; background-color: #ffffff;">
-                    <p style="color: #0f172a; font-size: 13.5px; font-weight: 700; margin: 0 0 4px 0; letter-spacing: -0.2px;">
+                <div class="footer-content" style="padding: 22px 24px; text-align: center; background-color: #ffffff;">
+                    <p style="color: #0f172a; font-size: 14px; font-weight: 700; margin: 0 0 4px 0; letter-spacing: -0.2px;">
                         Curadoria & Automação por Fabrycio Bermudes
                     </p>
-                    <p style="color: #64748b; font-size: 12px; margin: 0 0 10px 0;">
+                    <p style="color: #64748b; font-size: 12.5px; margin: 0; line-height: 1.45;">
                         Desenvolvido para Usabit • Relatório diário de IA e Coding Agents
                     </p>
-                    <div style="border-top: 1px solid #f1f5f9; padding-top: 10px; margin-top: 6px;">
-                        <span style="color: #94a3b8; font-size: 11px;">
-                            Enviado para fabrycio.bermudes@usabit.com.br • Agendado diariamente às 08:00 BRT
-                        </span>
-                    </div>
                 </div>
             </div>
 
