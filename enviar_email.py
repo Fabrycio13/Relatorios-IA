@@ -154,10 +154,11 @@ def render_bento_email(md_text):
                 
             if (l_str.startswith("* **") or l_str.startswith("- **")) and not l.startswith("  "):
                 item_header = format_inline(l_str[2:])
-                # Substitui badge 🔥 garantindo display: inline-block e white-space: nowrap para NUNCA QUEBRAR
+                
+                # Substitui badge 🔥 capturando até o final ou dois-pontos
                 if "🔥" in item_header:
                     item_header = re.sub(
-                        r'—\s*(🔥\s*[^<*\n:]+)',
+                        r'—\s*(🔥\s*[^<*\n]+?)(?::\s*|\*\*:|\*\*|\s*$)',
                         r'<span style="display: inline-block; white-space: nowrap; background-color: #ffedd5; color: #c2410c; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 6px; margin-top: 2px; vertical-align: middle;">\1</span>',
                         item_header
                     )
