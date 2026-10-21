@@ -79,7 +79,7 @@ _Evitar_: Modelo fechado / API-only.
 
 | Arquivo / Pasta | Responsabilidade Única |
 | :--- | :--- |
-| **`main.py`** | Ponto de entrada CLI unificado com flags (`--force`, `--step`, `--status`). |
+| **`main.py`** | Ponto de entrada CLI unificado com flags (`--force`, `--step`, `--status`, `--check-auth`). |
 | **`executar.bat`** | Script de disparo matinal chamado diariamente às 08:00 pelo Agendador do Windows. |
 | **`src/core/config.py`** | Central de configuração: lê `.env`, valida credenciais e expõe caminhos absolutos. |
 | **`src/core/logger.py`** | Gerenciador de logs unificado com rotação de arquivos (`logs/execucao.log`) e saída no console. |
@@ -111,3 +111,16 @@ _Evitar_: Modelo fechado / API-only.
 | **`GMAIL_USER`** | Conta Google utilizada como remetente oficial do e-mail. | Seu e-mail Gmail (`bermudes.fbc@gmail.com`). |
 | **`GMAIL_APP_PASSWORD`** | Senha de aplicativo de 16 dígitos com permissão SMTP exclusiva. | Segurança da Conta Google ➔ Senhas de App. |
 | **`GMAIL_TO`** | E-mail de destino corporativo que recebe a edição diária às 08:00. | E-mail corporativo (`fabrycio.bermudes@usabit.com.br`). |
+
+---
+
+## 5. 💻 Comandos e Operações Canônicas da CLI
+
+| Comando | Finalidade Operacional |
+| :--- | :--- |
+| **`python main.py --check-auth`** | Executa em 5 segundos o diagnóstico de saúde e validação ao vivo das credenciais de todas as integrações (OpenAI, Gmail SMTP, X/Twitter, GitHub, Hugging Face). |
+| **`python -m unittest discover tests -v`** | Roda a suíte completa de 20 testes unitários automatizados em modo verboso (`-v`), exibindo cada assertiva e tempo de execução. |
+| **`python main.py`** | Execução oficial da pipeline diária. Respeita a trava antirrepetição e não envia duas vezes no mesmo dia. |
+| **`python main.py --force`** | Força a reexecução completa de todas as 5 etapas e reenvio de e-mail, ignorando a trava diária. |
+| **`python main.py --step <etapa>`** | Executa uma etapa específica isoladamente: `collect-github`, `collect-twitter`, `collect-papers`, `summarize` ou `email`. |
+| **`python main.py --status`** | Consulta no terminal a data do último envio registrado e o nome do arquivo mais recente em `reports/`. |

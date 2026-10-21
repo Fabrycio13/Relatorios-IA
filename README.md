@@ -63,13 +63,19 @@ python main.py --step summarize
 python main.py --step email
 ```
 
-### 4. Executar a Suíte de Testes Unitários
-Executa todos os testes automatizados da pasta `tests/` em milissegundos:
+### 4. Diagnóstico de Saúde e Conexões
+Verifica em menos de 5 segundos todas as credenciais e conexões ativas (OpenAI, Gmail SMTP, Twitter/X, GitHub, Hugging Face):
 ```powershell
-python -m unittest discover tests
+python main.py --check-auth
 ```
 
-### 4. Consultar Status do Envio
+### 5. Executar a Suíte de Testes Unitários
+Executa todos os testes automatizados da pasta `tests/` em modo verboso:
+```powershell
+python -m unittest discover tests -v
+```
+
+### 6. Consultar Status do Envio
 Exibe a data do último envio registrado e qual o último relatório disponível em `reports/`:
 ```powershell
 python main.py --status
