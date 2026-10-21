@@ -3,7 +3,8 @@ import sys
 import time
 from playwright.sync_api import sync_playwright
 
-SESSION_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".session")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SESSION_DIR = os.path.join(BASE_DIR, ".session")
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
 
 def main():

@@ -1,9 +1,17 @@
 # Credenciais e tokens sensíveis
-auth.json
-email_config.json
 .env
 *.env
+auth.json
+email_config.json
+
+# Dados em cache e estado de execução
+data/*.json
+data/ultimo_envio.txt
 ultimo_envio.txt
+
+# Logs
+logs/
+*.log
 
 # Sessões do Playwright / Chrome
 .session/

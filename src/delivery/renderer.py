@@ -1,27 +1,8 @@
-import json
-import os
 import re
-import smtplib
-import sys
-from datetime import datetime, timedelta
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+from datetime import datetime
+from src.core.config import HEADER_BANNER_URL, FOOTER_BANNER_URL
 
-if sys.stdout.encoding != 'utf-8':
-    try:
-        sys.stdout.reconfigure(encoding='utf-8')
-    except Exception:
-        pass
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_FILE = os.path.join(BASE_DIR, "email_config.json")
-CONFIG_EXAMPLE = os.path.join(BASE_DIR, "email_config.example.json")
-
-# URLs públicas dos banners hospedados no próprio repositório Relatorios-IA
-HEADER_BANNER_URL = "https://raw.githubusercontent.com/Fabrycio13/Relatorios-IA/main/assets/header_banner.jpg"
-FOOTER_BANNER_URL = "https://raw.githubusercontent.com/Fabrycio13/Relatorios-IA/main/assets/footer_banner.jpg"
-
-def format_inline(text):
+def format_inline(text: str) -> str:
     """Aplica formatação inline básica em markdown (links, negrito, itálico, código)."""
     # Links
     t = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" style="color: #2563eb; text-decoration: none; font-weight: 600;">\1</a>', text)
@@ -33,14 +14,14 @@ def format_inline(text):
     t = re.sub(r'`([^`]+)`', r'<code style="background-color: #f1f5f9; color: #0f172a; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 85%; border: 1px solid #e2e8f0;">\1</code>', t)
     return t
 
-def render_bento_email(md_text):
+def render_bento_email(md_text: str) -> str:
     """
     Renderizador Bento Grid Modular estilo Apple Dashboard (Light Premium).
     100% responsivo para mobile (iPhone, Android) e desktop (Outlook, Gmail).
     """
     sections = []
     current_section = None
-    
+
     # Divide o markdown por seções ##
     for raw_line in md_text.splitlines():
         line = raw_line.strip()
@@ -53,11 +34,11 @@ def render_bento_email(md_text):
                 current_section["lines"].append(raw_line)
 
     cards_html = []
-    
+
     for sec in sections:
         title = sec["title"]
         lines = sec["lines"]
-        
+
         # 1. Card Hero: Destaques Principais do Dia
         if "Destaques Principais" in title:
             bullets_html = []
@@ -70,7 +51,7 @@ def render_bento_email(md_text):
                         {conteudo}
                     </li>
                     """)
-            
+
             cards_html.append(f"""
             <!-- HERO CARD: DESTAQUES DO DIA -->
             <div class="bento-card" style="background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.08);">
@@ -84,12 +65,12 @@ def render_bento_email(md_text):
             </div>
             """)
             continue
-            
+
         # 2. Card Especial: GitHub Trending
         if "GitHub Trending" in title:
             gh_items = []
             curr_repo = None
-            
+
             for l in lines:
                 l_str = l.strip()
                 if l_str.startswith("* **[") or l_str.startswith("- **["):
@@ -150,15 +131,15 @@ def render_bento_email(md_text):
         # 3. Cards Temáticos Padrão (Tópicos 1 a 7)
         items_html = []
         curr_item = None
-        
+
         for l in lines:
             l_str = l.strip()
             if not l_str:
                 continue
-                
+
             if (l_str.startswith("* **") or l_str.startswith("- **")) and not l.startswith("  "):
                 item_header = format_inline(l_str[2:])
-                
+
                 # Substitui badge 🔥 capturando até o final ou dois-pontos
                 if "🔥" in item_header:
                     item_header = re.sub(
@@ -166,7 +147,7 @@ def render_bento_email(md_text):
                         r'<span style="display: inline-block; white-space: nowrap; background-color: #ffedd5; color: #c2410c; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 6px; margin-top: 2px; vertical-align: middle;">\1</span>',
                         item_header
                     )
-                
+
                 curr_item = {
                     "header": item_header,
                     "bullets": []
@@ -213,7 +194,7 @@ def render_bento_email(md_text):
 
     body_content = "\n".join(cards_html)
     hoje_formatada = datetime.now().strftime("%d/%m/%Y")
-    
+
     full_html = f"""
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -311,90 +292,3 @@ def render_bento_email(md_text):
     </html>
     """
     return full_html
-
-def carregar_config():
-    config = {
-        "remetente": os.environ.get("GMAIL_USER", "bermudes.fbc@gmail.com"),
-        "senha_app": os.environ.get("GMAIL_APP_PASSWORD", ""),
-        "destinatario": os.environ.get("GMAIL_TO", "fabrycio.bermudes@usabit.com.br")
-    }
-
-    if os.path.exists(CONFIG_FILE):
-        try:
-            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-                loaded = json.load(f)
-                config.update(loaded)
-        except Exception as e:
-            print(f"Aviso ao ler {CONFIG_FILE}: {e}")
-
-    return config
-
-def obter_ultimo_relatorio():
-    arquivos = [f for f in os.listdir(BASE_DIR) if f.startswith("Resumo_IA_") and f.endswith(".md")]
-    if not arquivos:
-        return None
-    arquivos.sort(reverse=True)
-    return os.path.join(BASE_DIR, arquivos[0])
-
-def enviar_relatorio_email(destinatario=None, caminho_relatorio=None):
-    config = carregar_config()
-
-    if destinatario:
-        config["destinatario"] = destinatario
-
-    remetente = config.get("remetente")
-    senha_app = config.get("senha_app")
-    destinatario_final = config.get("destinatario")
-
-    if not caminho_relatorio:
-        caminho_relatorio = obter_ultimo_relatorio()
-
-    if not caminho_relatorio or not os.path.exists(caminho_relatorio):
-        print(f"[ERRO] Nenhum arquivo de relatório encontrado em {BASE_DIR}")
-        return False
-
-    with open(caminho_relatorio, "r", encoding="utf-8") as f:
-        md_content = f.read()
-
-    hoje = datetime.now()
-    ontem = hoje - timedelta(days=1)
-    hora_envio = hoje.strftime("%H:%M")
-    assunto = f"🧠 Resumo Diário de IA (Destaques de {ontem.strftime('%d/%m/%Y')}) • {hora_envio}"
-
-    # Renderiza com o Bento Grid Modular 100% responsivo para mobile
-    html_content = render_bento_email(md_content)
-
-    if not senha_app or senha_app.strip() == "sua_senha_de_app_aqui" or len(senha_app.strip()) < 8:
-        print("[ERRO] Senha de app não configurada.")
-        return False
-
-    # Estrutura MIME 'alternative' limpa (sem anexos binários, elimina chips de anexo no Gmail)
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = assunto
-    msg["From"] = remetente
-    msg["To"] = destinatario_final
-
-    part_text = MIMEText(md_content, "plain", "utf-8")
-    part_html = MIMEText(html_content, "html", "utf-8")
-
-    msg.attach(part_text)
-    msg.attach(part_html)
-
-    print(f"Conectando ao servidor SMTP do Gmail para enviar para {destinatario_final}...")
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=20) as server:
-            senha_limpa = senha_app.replace(" ", "")
-            server.login(remetente, senha_limpa)
-            server.sendmail(remetente, [destinatario_final], msg.as_string())
-
-        print(f"✅ E-mail enviado com sucesso para {destinatario_final}!")
-        return True
-    except Exception as e:
-        print(f"\n❌ Erro ao enviar e-mail: {e}")
-        return False
-
-if __name__ == "__main__":
-    dest = sys.argv[1] if len(sys.argv) > 1 else None
-    arquivo = sys.argv[2] if len(sys.argv) > 2 else None
-    sucesso = enviar_relatorio_email(destinatario=dest, caminho_relatorio=arquivo)
-    sys.exit(0 if sucesso else 1)

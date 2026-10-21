@@ -5,23 +5,86 @@ import time
 import urllib.request
 import urllib.error
 from datetime import datetime, timedelta
+from pathlib import Path
 
-if sys.stdout.encoding != 'utf-8':
-    try:
-        sys.stdout.reconfigure(encoding='utf-8')
-    except Exception:
-        pass
+from src.core.config import (
+    BASE_DIR,
+    DATA_DIR,
+    REPORTS_DIR,
+    GITHUB_DATA_FILE,
+    TWEETS_DATA_FILE,
+    config
+)
+from src.core.logger import get_logger
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-INPUT_JSON = os.path.join(BASE_DIR, "tweets_coletados.json")
-DATE_STR = datetime.now().strftime("%Y-%m-%d")
-hoje = datetime.now()
-ontem = hoje - timedelta(days=1)
-data_hoje_str = hoje.strftime("%d/%m/%Y")
-data_ontem_str = ontem.strftime("%d/%m/%Y")
-OUTPUT_MD = os.path.join(BASE_DIR, f"Resumo_IA_{DATE_STR}.md")
+logger = get_logger("ai_summarizer")
 
-PROMPT_SISTEMA = f"""Você é um analista sênior de tecnologia e Inteligência Artificial encarregado de criar o relatório diário oficial de novidades do X (Twitter).
+def chamar_gemini(api_key, tweets, prompt_sistema):
+    logger.info("Chamando Gemini API (gemini-2.5-flash)...")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+    prompt_completo = f"{prompt_sistema}\n\nTWEETS COLETADOS:\n{json.dumps(tweets, ensure_ascii=False, indent=2)}"
+
+    payload = {
+        "contents": [{"parts": [{"text": prompt_completo}]}],
+        "generationConfig": {"temperature": 0.2, "maxOutputTokens": 8192}
+    }
+
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"}
+    )
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        res = json.loads(resp.read().decode("utf-8"))
+        return res["candidates"][0]["content"]["parts"][0]["text"]
+
+def chamar_openai(api_key, tweets, prompt_sistema):
+    logger.info("Chamando OpenAI API (gpt-6-luna)...")
+    url = "https://api.openai.com/v1/chat/completions"
+    prompt_completo = f"{prompt_sistema}\n\nTWEETS COLETADOS:\n{json.dumps(tweets, ensure_ascii=False, indent=2)}"
+
+    payload = {
+        "model": "gpt-6-luna",
+        "messages": [
+            {"role": "system", "content": "Você é um analista sênior de Inteligência Artificial e Engenharia de Software."},
+            {"role": "user", "content": prompt_completo}
+        ]
+    }
+
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+    )
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        res = json.loads(resp.read().decode("utf-8"))
+        return res["choices"][0]["message"]["content"]
+
+def gerar_resumo_ia() -> Path | None:
+    hoje = datetime.now()
+    ontem = hoje - timedelta(days=1)
+    data_hoje_str = hoje.strftime("%d/%m/%Y")
+    data_ontem_str = ontem.strftime("%d/%m/%Y")
+    date_str = hoje.strftime("%Y-%m-%d")
+    output_md = REPORTS_DIR / f"Resumo_IA_{date_str}.md"
+
+    logger.info("=" * 60)
+    logger.info(f"Iniciando síntese inteligente com IA para {data_hoje_str}...")
+    logger.info("=" * 60)
+
+    if not TWEETS_DATA_FILE.exists():
+        logger.error(f"Arquivo de tweets não encontrado em {TWEETS_DATA_FILE}")
+        return None
+
+    with open(TWEETS_DATA_FILE, "r", encoding="utf-8") as f:
+        tweets = json.load(f)
+
+    logger.info(f"Carregados {len(tweets)} tweets de {TWEETS_DATA_FILE}")
+
+    prompt_sistema = f"""Você é um analista sênior de tecnologia e Inteligência Artificial encarregado de criar o relatório diário oficial de novidades do X (Twitter).
 
 Este relatório consolida as principais novidades de IA gerado em {data_hoje_str} (focando no ciclo recente das últimas 24h a 48h, incluindo os destaques de {data_ontem_str} e publicações recentes dos autores VIPs no X).
 Abaixo está uma lista de tweets coletados recentemente em formato JSON, contendo autor, texto, link e métricas de engajamento (likes, reposts, replies, views).
@@ -58,148 +121,30 @@ Sua missão é selecionar, filtrar e consolidar as publicações em um relatóri
 ATENÇÃO À FORMATAÇÃO DOS TÍTULOS:
 - Use sempre `## ` (dois sustenidos) para os números das seções (ex: `## 1. 🚀 Ferramentas Open-Source...`, `## 5. 🎯 Radar Perfis de Referência...`). NUNCA use `### ` para seções principais.
 - Cada uma das 7 seções deve ser separada da anterior por uma linha contendo apenas `---`.
-
-Para cada publicação destacada dentro do seu respectivo tópico:
-- Crie um título conciso destacando a ferramenta/inovação, seguido do autor e arroba com link markdown para o tweet original:
-  `* **Nome da Novidade ([@handle](url)):**`
-  (Se o tweet tiver métricas notáveis de engajamento, adicione ao lado, ex: `* **Nome da Novidade ([@handle](url)) — 🔥 1.4k likes:**`)
-- Adicione 2 a 3 sub-bullets detalhados e concisos explicando:
-  - O que é, o que faz e como funciona
-  - Características técnicas principais (ex: licença open-source, modelo usado, métricas de benchmark, links para repositórios GitHub, papers ArXiv ou artigos detalhados quando disponíveis)
-  - Impacto ou relevância prática para desenvolvedores e empresas
-
-Cabeçalho padrão a ser incluído no topo:
-# 🧠 Relatório Diário de IA - X (Twitter)
-**Data de Emissão:** {data_hoje_str} (Referente ao dia {data_ontem_str})  
-**Período Analisado:** Ciclo de 24h do dia anterior  
-**Fonte:** Feed "Seguindo" (@Fabrycio)  
-**Total de Publicações Analisadas:** <coloque a quantidade de tweets considerados>  
-
----
-
-## 📌 Destaques Principais do Dia
-
-(Liste aqui os 3 a 5 pontos mais importantes do dia em bullets `- **Nome**: resumo`)
-
-Retorne APENAS o código Markdown pronto, sem blocos ```markdown ``` envolvendo a resposta."""
-
-def chamar_gemini(api_key, dados_tweets):
-    print("Enviando dados para a API do Google Gemini...")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-    
-    prompt_completo = f"{PROMPT_SISTEMA}\n\nTWEETS COLETADOS:\n{json.dumps(dados_tweets, ensure_ascii=False, indent=2)}"
-    payload = {
-        "contents": [
-            {
-                "parts": [{"text": prompt_completo}]
-            }
-        ]
-    }
-    
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"}
-    )
-    
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        result = json.loads(resp.read().decode("utf-8"))
-        texto = result["candidates"][0]["content"]["parts"][0]["text"]
-        return texto
-
-def chamar_openai(api_key, dados_tweets):
-    print("Enviando dados para a API da OpenAI (gpt-6-luna)...")
-    url = "https://api.openai.com/v1/chat/completions"
-    
-    # Envia apenas os campos úteis para a IA não ter sobrecarga de dados desnecessários
-    tweets_limpos = []
-    for t in dados_tweets:
-        item = {
-            "autor": f"{t.get('author_name')} ({t.get('author_handle')})",
-            "data": t.get("timestamp"),
-            "texto": t.get("text"),
-            "url": t.get("url"),
-            "engajamento": f"{t.get('likes', '0')} likes, {t.get('reposts', '0')} reposts, {t.get('replies', '0')} replies"
-        }
-        if t.get("external_links"):
-            item["links_externos"] = t["external_links"]
-        tweets_limpos.append(item)
-
-    prompt_completo = f"{PROMPT_SISTEMA}\n\nTWEETS COLETADOS:\n{json.dumps(tweets_limpos, ensure_ascii=False, indent=2)}"
-    payload = {
-        "model": "gpt-6-luna",
-        "messages": [
-            {"role": "user", "content": prompt_completo}
-        ]
-    }
-    
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
-        }
-    )
-    
-    for tentativa in range(2):
-        try:
-            with urllib.request.urlopen(req, timeout=180) as resp:
-                result = json.loads(resp.read().decode("utf-8"))
-                texto = result["choices"][0]["message"]["content"]
-                return texto
-        except Exception as err:
-            if tentativa == 0:
-                print(f"Tentativa 1 falhou ({err}), tentando novamente em 5s...")
-                time.sleep(5)
-            else:
-                raise err
-
-def gerar_relatorio():
-    if not os.path.exists(INPUT_JSON):
-        print(f"[ERRO] Arquivo de tweets não encontrado: {INPUT_JSON}")
-        return False
-        
-    with open(INPUT_JSON, "r", encoding="utf-8") as f:
-        tweets = json.load(f)
-        
-    if not tweets:
-        print("[AVISO] Nenhum tweet coletado no JSON.")
-        return False
-
-    env_file = os.path.join(BASE_DIR, ".env")
-    if os.path.exists(env_file):
-        try:
-            with open(env_file, "r", encoding="utf-8") as f:
-                for line in f:
-                    if "=" in line and not line.strip().startswith("#"):
-                        k, v = line.strip().split("=", 1)
-                        os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
-        except Exception:
-            pass
+"""
 
     gemini_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-    openai_key = os.environ.get("OPENAI_API_KEY")
-    
+    openai_key = config.OPENAI_API_KEY
+
     relatorio_md = None
-    
+
     if gemini_key:
         try:
-            relatorio_md = chamar_gemini(gemini_key, tweets)
+            relatorio_md = chamar_gemini(gemini_key, tweets, prompt_sistema)
         except Exception as e:
-            print(f"Erro ao chamar Gemini API: {e}")
-            
+            logger.warning(f"Erro ao chamar Gemini API: {e}")
+
     if not relatorio_md and openai_key:
         try:
-            relatorio_md = chamar_openai(openai_key, tweets)
+            relatorio_md = chamar_openai(openai_key, tweets, prompt_sistema)
         except Exception as e:
-            print(f"Erro ao chamar OpenAI API: {e}")
-            
-    if not relatorio_md:
-        print("[ERRO] Nenhuma chave de IA (GEMINI_API_KEY ou OPENAI_API_KEY) configurada ou todas falharam.")
-        return False
+            logger.warning(f"Erro ao chamar OpenAI API: {e}")
 
-    # Limpeza de eventuais backticks de markdown que o modelo possa ter inserido
+    if not relatorio_md:
+        logger.error("Nenhuma chave de IA configurada ou todas falharam.")
+        return None
+
+    # Limpeza de backticks
     relatorio_md = relatorio_md.strip()
     if relatorio_md.startswith("```markdown"):
         relatorio_md = relatorio_md[len("```markdown"):].strip()
@@ -208,14 +153,13 @@ def gerar_relatorio():
     if relatorio_md.endswith("```"):
         relatorio_md = relatorio_md[:-3].strip()
 
-    # Anexa a seção de GitHub Trending no final do relatório se houver dados coletados
-    gh_file = os.path.join(BASE_DIR, "github_trending.json")
-    if os.path.exists(gh_file):
+    # Anexa GitHub Trending se disponível
+    if GITHUB_DATA_FILE.exists():
         try:
-            with open(gh_file, "r", encoding="utf-8") as f:
+            with open(GITHUB_DATA_FILE, "r", encoding="utf-8") as f:
                 trending_repos = json.load(f)
             if trending_repos:
-                print("Traduzindo e resumindo repositórios do GitHub em Português com gpt-6-luna...")
+                logger.info("Traduzindo e resumindo repositórios do GitHub em Português com gpt-6-luna...")
                 prompt_gh = (
                     "Você é um engenheiro de IA sênior. Abaixo estão repositórios em alta no GitHub em formato JSON.\n"
                     "Traduza e gere um resumo conciso, didático e em PORTUGUÊS DO BRASIL para cada um, explicando:\n"
@@ -227,7 +171,7 @@ def gerar_relatorio():
                     "Retorne APENAS a lista em markdown dos repositórios, sem cabeçalhos nem blocos ```markdown.\n\n"
                     f"DADOS DOS REPOSITÓRIOS:\n{json.dumps(trending_repos, ensure_ascii=False, indent=2)}"
                 )
-                
+
                 payload_gh = {
                     "model": "gpt-6-luna",
                     "messages": [{"role": "user", "content": prompt_gh}]
@@ -245,7 +189,7 @@ def gerar_relatorio():
                         res_gh = json.loads(resp_gh.read().decode("utf-8"))
                         gh_markdown = res_gh["choices"][0]["message"]["content"].strip()
                 except Exception as e_gh:
-                    print(f"Erro ao sintetizar GitHub em PT-BR: {e_gh}")
+                    logger.warning(f"Erro ao sintetizar GitHub em PT-BR: {e_gh}")
                     gh_markdown = None
 
                 secao_gh = ["\n\n---\n\n## 🔥 GitHub Trending: Repositórios de IA em Alta no Dia\n"]
@@ -258,17 +202,16 @@ def gerar_relatorio():
                         lang = r.get("language", "N/A")
                         secao_gh.append(f"* **[{r['full_name']}]({r['url']})** — ⭐ **{stars_str} stars** ({lang})")
                         secao_gh.append(f"  - {desc}")
-                
+
                 relatorio_md += "\n".join(secao_gh)
         except Exception as e:
-            print(f"Aviso ao anexar GitHub Trending: {e}")
+            logger.warning(f"Aviso ao anexar GitHub Trending: {e}")
 
-    with open(OUTPUT_MD, "w", encoding="utf-8") as f:
+    with open(output_md, "w", encoding="utf-8") as f:
         f.write(relatorio_md)
-        
-    print(f"✅ Relatório estruturado gerado com sucesso em: {OUTPUT_MD}")
-    return True
+
+    logger.info(f"Relatório gerado com sucesso em: {output_md}")
+    return output_md
 
 if __name__ == "__main__":
-    sucesso = gerar_relatorio()
-    sys.exit(0 if sucesso else 1)
+    gerar_resumo_ia()
