@@ -13,6 +13,8 @@ if sys.stdout.encoding != 'utf-8':
 
 from src.core.config import STATUS_FILE, config
 from src.core.logger import get_logger
+from src.core.healthcheck import executar_healthcheck
+from src.core.notifier import notificar_windows
 from src.collectors.github import coletar_github_trending
 from src.collectors.twitter import coletar_tweets_vip
 from src.collectors.huggingface import coletar_papers_huggingface
@@ -47,6 +49,11 @@ def parse_args():
         action="store_true",
         help="Exibe o status do último envio e encerra."
     )
+    parser.add_argument(
+        "--check-auth",
+        action="store_true",
+        help="Executa diagnóstico de saúde e autenticação de todas as integrações em 5 segundos."
+    )
     return parser.parse_args()
 
 def verificar_status_envio() -> str | None:
@@ -78,6 +85,11 @@ def main():
         print(f"Último relatório gerado: {ultimo_rel.name if ultimo_rel else 'Nenhum'}")
         sys.exit(0)
 
+    # Flag --check-auth
+    if args.check_auth:
+        sucesso = executar_healthcheck()
+        sys.exit(0 if sucesso else 1)
+
     # Verificação de trava diária (evita envios repetidos ao reiniciar PC)
     if args.step == "all" and not args.force:
         ultimo_envio = verificar_status_envio()
@@ -90,50 +102,58 @@ def main():
     logger.info(f"INICIANDO PIPELINE DIÁRIO DE IA - {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
     logger.info("=" * 70)
 
-    # Etapa 1: Coleta Twitter / X
-    if args.step in ["all", "collect", "collect-twitter"]:
-        logger.info("\n▶️  [ETAPA 1/5] Coleta de Posts no X (Seguindo + Radar VIP)...")
-        tweets = coletar_tweets_vip(headless=True)
-        if not tweets and args.step != "all":
-            logger.warning("Nenhum tweet novo coletado nesta execução.")
+    try:
+        # Etapa 1: Coleta Twitter / X
+        if args.step in ["all", "collect", "collect-twitter"]:
+            logger.info("\n▶️  [ETAPA 1/5] Coleta de Posts no X (Seguindo + Radar VIP)...")
+            tweets = coletar_tweets_vip(headless=True)
+            if not tweets and args.step != "all":
+                logger.warning("Nenhum tweet novo coletado nesta execução.")
 
-    # Etapa 2: Coleta GitHub Trending
-    if args.step in ["all", "collect", "collect-github"]:
-        logger.info("\n▶️  [ETAPA 2/5] Coleta de Repositórios em Alta no GitHub...")
-        repos = coletar_github_trending(dias_atras=7, limite_top=6)
-        logger.info(f"Repositórios coletados: {len(repos)}")
+        # Etapa 2: Coleta GitHub Trending
+        if args.step in ["all", "collect", "collect-github"]:
+            logger.info("\n▶️  [ETAPA 2/5] Coleta de Repositórios em Alta no GitHub...")
+            repos = coletar_github_trending(dias_atras=7, limite_top=6)
+            logger.info(f"Repositórios coletados: {len(repos)}")
 
-    # Etapa 3: Coleta Hugging Face Daily Papers
-    if args.step in ["all", "collect", "collect-papers"]:
-        logger.info("\n▶️  [ETAPA 3/5] Coleta de Papers em Destaque no Hugging Face...")
-        papers = coletar_papers_huggingface(limite_top=3)
-        logger.info(f"Papers científicos coletados: {len(papers)}")
+        # Etapa 3: Coleta Hugging Face Daily Papers
+        if args.step in ["all", "collect", "collect-papers"]:
+            logger.info("\n▶️  [ETAPA 3/5] Coleta de Papers em Destaque no Hugging Face...")
+            papers = coletar_papers_huggingface(limite_top=3)
+            logger.info(f"Papers científicos coletados: {len(papers)}")
 
-    # Etapa 4: Síntese Inteligente com IA
-    caminho_md = None
-    if args.step in ["all", "summarize"]:
-        logger.info("\n▶️  [ETAPA 4/5] Síntese e Tradução Técnica com IA (OpenAI)...")
-        caminho_md = gerar_resumo_ia()
-        if not caminho_md:
-            logger.error("❌ Falha na geração do relatório de IA. Abortando envio de e-mail.")
-            sys.exit(1)
+        # Etapa 4: Síntese Inteligente com IA
+        caminho_md = None
+        if args.step in ["all", "summarize"]:
+            logger.info("\n▶️  [ETAPA 4/5] Síntese e Tradução Técnica com IA (OpenAI)...")
+            caminho_md = gerar_resumo_ia()
+            if not caminho_md:
+                logger.error("❌ Falha na geração do relatório de IA. Abortando envio de e-mail.")
+                notificar_windows("⚠️ Falha no Diário de IA", "Falha na síntese com OpenAI. Veja logs/execucao.log.")
+                sys.exit(1)
 
-    # Etapa 5: Envio de E-mail
-    if args.step in ["all", "email"]:
-        logger.info("\n▶️  [ETAPA 5/5] Renderização e Envio por E-mail...")
-        relatorio_para_envio = caminho_md or config.obter_ultimo_relatorio()
-        sucesso_email = enviar_relatorio_email(destinatario=args.to, caminho_relatorio=relatorio_para_envio)
-        if not sucesso_email:
-            logger.error("❌ Falha ao enviar o e-mail.")
-            sys.exit(1)
+        # Etapa 5: Envio de E-mail
+        if args.step in ["all", "email"]:
+            logger.info("\n▶️  [ETAPA 5/5] Renderização e Envio por E-mail...")
+            relatorio_para_envio = caminho_md or config.obter_ultimo_relatorio()
+            sucesso_email = enviar_relatorio_email(destinatario=args.to, caminho_relatorio=relatorio_para_envio)
+            if not sucesso_email:
+                logger.error("❌ Falha ao enviar o e-mail.")
+                notificar_windows("⚠️ Falha no Diário de IA", "Falha ao enviar relatório por e-mail. Veja logs/execucao.log.")
+                sys.exit(1)
 
-        if args.step == "all":
-            registrar_envio_sucesso(hoje_str)
+            if args.step == "all":
+                registrar_envio_sucesso(hoje_str)
 
-    tempo_total = time.time() - inicio
-    logger.info("\n" + "=" * 70)
-    logger.info(f"✅ PIPELINE CONCLUÍDO COM SUCESSO EM {tempo_total:.1f}s!")
-    logger.info("=" * 70)
+        tempo_total = time.time() - inicio
+        logger.info("\n" + "=" * 70)
+        logger.info(f"✅ PIPELINE CONCLUÍDO COM SUCESSO EM {tempo_total:.1f}s!")
+        logger.info("=" * 70)
+
+    except Exception as e:
+        logger.exception(f"❌ Erro crítico inesperado no pipeline: {e}")
+        notificar_windows("⚠️ Erro Crítico no Diário de IA", f"Exceção: {str(e)[:100]}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
