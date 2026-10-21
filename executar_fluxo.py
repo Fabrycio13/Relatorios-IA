@@ -55,13 +55,16 @@ def main():
     if not run_step("Coleta de Tweets do X", ["coletar_tweets.py"]):
         log("Fluxo interrompido devido a erro na coleta de tweets.")
         sys.exit(1)
+
+    # Etapa 2: Coletar repositórios em alta de IA no GitHub
+    run_step("Coleta de Repositórios em Alta do GitHub", ["coletar_github.py"])
         
-    # Etapa 2: Gerar Resumo estruturado com IA
+    # Etapa 3: Gerar Resumo estruturado com IA
     if not run_step("Geração do Resumo Inteligente com IA", ["gerar_resumo_ia.py"]):
         log("Fluxo interrompido devido a erro na geração com IA.")
         sys.exit(1)
         
-    # Etapa 3: Enviar E-mail formatado
+    # Etapa 4: Enviar E-mail formatado
     if not run_step("Envio do E-mail Formatado", ["enviar_email.py"]):
         log("Fluxo interrompido devido a erro no envio de e-mail.")
         sys.exit(1)

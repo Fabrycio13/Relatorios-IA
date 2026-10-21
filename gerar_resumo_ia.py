@@ -46,8 +46,8 @@ Sua missão é selecionar, filtrar e consolidar as publicações em um relatóri
 ### 3. 🧪 Harness Engineering, Evals & RAG Avançado
 (Dedique este tópico a evals de modelos/agentes, frameworks de harness, testes automatizados de agentes, recuperação semântica, RAG, embeddings e benchmarks práticos de confiabilidade).
 ### 4. 💻 Desenvolvimento, Claude Code & Eficiência de Custos
-### 5. 🎯 Radar Matt Pocock (@mattpocockuk)
-(Destaque exclusivo para as postagens, threads, dicas de engenharia de software com IA, evals e novidades compartilhadas por Matt Pocock no período).
+### 5. 🎯 Radar Perfis de Referência (Matt Pocock, Karpathy, Swyx, Jason Liu, Chip Huyen, Santiago)
+(Destaque exclusivo para posts, threads, análises de engenharia, evals e novidades compartilhadas por esses criadores e líderes técnicos de IA no período).
 ### 6. 🏆 Capacitação Profissional, Cursos & Hackathons
 ### 7. 🌐 Economia, Modelos de Negócio & Mercado Global de IA
 
@@ -199,6 +199,24 @@ def gerar_relatorio():
         relatorio_md = relatorio_md[3:].strip()
     if relatorio_md.endswith("```"):
         relatorio_md = relatorio_md[:-3].strip()
+
+    # Anexa a seção de GitHub Trending no final do relatório se houver dados coletados
+    gh_file = os.path.join(BASE_DIR, "github_trending.json")
+    if os.path.exists(gh_file):
+        try:
+            with open(gh_file, "r", encoding="utf-8") as f:
+                trending_repos = json.load(f)
+            if trending_repos:
+                secao_gh = ["\n\n---\n\n## 🔥 GitHub Trending: Repositórios de IA em Alta no Dia\n"]
+                for r in trending_repos:
+                    stars_str = f"{r['stars']:,}".replace(",", ".")
+                    desc = r.get("description", "Sem descrição disponível").strip()
+                    lang = r.get("language", "N/A")
+                    secao_gh.append(f"* **[{r['full_name']}]({r['url']})** — ⭐ **{stars_str} stars** ({lang})")
+                    secao_gh.append(f"  - {desc}")
+                relatorio_md += "\n".join(secao_gh)
+        except Exception as e:
+            print(f"Aviso ao anexar GitHub Trending: {e}")
 
     with open(OUTPUT_MD, "w", encoding="utf-8") as f:
         f.write(relatorio_md)
