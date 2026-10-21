@@ -4,6 +4,7 @@ import re
 import smtplib
 import sys
 from datetime import datetime, timedelta
+from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -69,7 +70,7 @@ def render_bento_email(md_text):
             
             cards_html.append(f"""
             <!-- HERO CARD: DESTAQUES DO DIA -->
-            <div style="background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.08);">
+            <div class="bento-card" style="background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.08);">
                 <div style="display: flex; align-items: center; margin-bottom: 12px;">
                     <span style="font-size: 18px; margin-right: 8px;">📌</span>
                     <h2 style="color: #1e40af; font-size: 16px; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Destaques Principais do Dia</h2>
@@ -133,7 +134,7 @@ def render_bento_email(md_text):
 
             cards_html.append(f"""
             <!-- GITHUB TRENDING CARD -->
-            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
+            <div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
                 <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 14px;">
                     <h2 style="color: #0f172a; font-size: 16px; margin: 0; font-weight: 700;">🔥 GitHub Trending: Repositórios de IA em Alta no Dia</h2>
                     <p style="color: #64748b; font-size: 12px; margin: 3px 0 0 0;">Projetos em destaque com resumo e aplicabilidade em português</p>
@@ -198,7 +199,7 @@ def render_bento_email(md_text):
 
         cards_html.append(f"""
         <!-- BENTO CARD -->
-        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
+        <div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
             <div style="display: flex; align-items: center; border-bottom: 2px solid #f8fafc; padding-bottom: 10px; margin-bottom: 14px;">
                 <div style="width: 4px; height: 16px; background-color: {accent_color}; border-radius: 2px; margin-right: 8px;"></div>
                 <h2 style="color: #0f172a; font-size: 15.5px; margin: 0; font-weight: 700; letter-spacing: -0.2px;">{title}</h2>
@@ -226,15 +227,23 @@ def render_bento_email(md_text):
                     max-width: 100% !important;
                 }}
                 .header-card {{
-                    padding: 20px 16px !important;
                     border-radius: 14px !important;
                 }}
+                .header-content {{
+                    padding: 16px 14px !important;
+                }}
                 .header-title {{
-                    font-size: 20px !important;
+                    font-size: 19px !important;
                 }}
                 .bento-card {{
                     padding: 16px 14px !important;
                     border-radius: 12px !important;
+                }}
+                .footer-card {{
+                    border-radius: 14px !important;
+                }}
+                .footer-content {{
+                    padding: 16px 14px !important;
                 }}
             }}
         </style>
@@ -242,27 +251,46 @@ def render_bento_email(md_text):
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px 12px; color: #0f172a; -webkit-font-smoothing: antialiased;">
         <div class="main-container" style="max-width: 680px; margin: 0 auto;">
             
-            <!-- HEADER CLEAN & TECH LEAD (LIGHT PREMIUM) -->
-            <div class="header-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 22px 26px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="display: inline-block; background-color: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                        Curadoria Diária
-                    </span>
-                    <span style="color: #64748b; font-size: 12px; font-weight: 500;">
-                        {hoje_formatada} • 08:00
-                    </span>
+            <!-- HEADER COM BANNER PANORÂMICO -->
+            <div class="header-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
+                <div style="width: 100%; line-height: 0; background-color: #0f172a;">
+                    <img src="cid:header_banner" alt="Diário de Engenharia: IA &amp; Coding Agents" style="display: block; width: 100%; max-width: 680px; height: auto; border: 0;" />
                 </div>
-                <h1 class="header-title" style="color: #0f172a; margin: 8px 0 4px 0; font-size: 21px; font-weight: 800; letter-spacing: -0.4px;">Diário de Engenharia: IA & Coding Agents</h1>
-                <p style="color: #64748b; font-size: 13px; margin: 0; font-weight: 400; line-height: 1.4;">Curadoria técnica do ecossistema de software, agentes autônomos e modelos open-source.</p>
+                <div class="header-content" style="padding: 22px 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="display: inline-block; background-color: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            Curadoria Diária
+                        </span>
+                        <span style="color: #64748b; font-size: 12px; font-weight: 500;">
+                            {hoje_formatada} • 08:00
+                        </span>
+                    </div>
+                    <h1 class="header-title" style="color: #0f172a; margin: 8px 0 4px 0; font-size: 21px; font-weight: 800; letter-spacing: -0.4px;">Diário de Engenharia: IA & Coding Agents</h1>
+                    <p style="color: #64748b; font-size: 13.5px; margin: 0; font-weight: 400; line-height: 1.4;">Curadoria técnica por <strong>Fabrycio Bermudes</strong> • Ecossistema de software, agentes autônomos e LLMs.</p>
+                </div>
             </div>
 
             <!-- BENTO GRID CONTAINER -->
             {body_content}
 
-            <!-- FOOTER -->
-            <div style="text-align: center; color: #94a3b8; font-size: 11.5px; margin-top: 28px; padding-top: 14px;">
-                Relatório Automatizado de Engenharia de IA • Enviado para fabrycio.bermudes@usabit.com.br<br>
-                Gerado com gpt-6-luna • Agendado diariamente às 08:00
+            <!-- FOOTER COM BANNER ARTE 4 E ASSINATURA -->
+            <div class="footer-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-top: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
+                <div style="width: 100%; line-height: 0; background-color: #0f172a;">
+                    <img src="cid:footer_banner" alt="Curadoria de Engenharia" style="display: block; width: 100%; max-width: 680px; height: auto; border: 0;" />
+                </div>
+                <div class="footer-content" style="padding: 20px 24px; text-align: center; background-color: #ffffff;">
+                    <p style="color: #0f172a; font-size: 13.5px; font-weight: 700; margin: 0 0 4px 0; letter-spacing: -0.2px;">
+                        Curadoria & Automação por Fabrycio Bermudes
+                    </p>
+                    <p style="color: #64748b; font-size: 12px; margin: 0 0 10px 0;">
+                        Desenvolvido para Usabit • Relatório diário de IA e Coding Agents
+                    </p>
+                    <div style="border-top: 1px solid #f1f5f9; padding-top: 10px; margin-top: 6px;">
+                        <span style="color: #94a3b8; font-size: 11px;">
+                            Enviado para fabrycio.bermudes@usabit.com.br • Agendado diariamente às 08:00 BRT
+                        </span>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -327,16 +355,38 @@ def enviar_relatorio_email(destinatario=None, caminho_relatorio=None):
         print("[ERRO] Senha de app não configurada.")
         return False
 
-    msg = MIMEMultipart("alternative")
+    # Estrutura MIME 'related' contendo 'alternative' e imagens embutidas (CID)
+    msg = MIMEMultipart("related")
     msg["Subject"] = assunto
     msg["From"] = remetente
     msg["To"] = destinatario_final
 
+    msg_alt = MIMEMultipart("alternative")
+    msg.attach(msg_alt)
+
     part_text = MIMEText(md_content, "plain", "utf-8")
     part_html = MIMEText(html_content, "html", "utf-8")
 
-    msg.attach(part_text)
-    msg.attach(part_html)
+    msg_alt.attach(part_text)
+    msg_alt.attach(part_html)
+
+    # Anexa o banner do cabeçalho (Arte 2) via CID
+    header_img_path = os.path.join(BASE_DIR, "assets", "header_banner.jpg")
+    if os.path.exists(header_img_path):
+        with open(header_img_path, "rb") as f:
+            img_header = MIMEImage(f.read(), _subtype="jpeg")
+            img_header.add_header("Content-ID", "<header_banner>")
+            img_header.add_header("Content-Disposition", "inline", filename="header_banner.jpg")
+            msg.attach(img_header)
+
+    # Anexa o banner do rodapé (Arte 4) via CID
+    footer_img_path = os.path.join(BASE_DIR, "assets", "footer_banner.jpg")
+    if os.path.exists(footer_img_path):
+        with open(footer_img_path, "rb") as f:
+            img_footer = MIMEImage(f.read(), _subtype="jpeg")
+            img_footer.add_header("Content-ID", "<footer_banner>")
+            img_footer.add_header("Content-Disposition", "inline", filename="footer_banner.jpg")
+            msg.attach(img_footer)
 
     print(f"Conectando ao servidor SMTP do Gmail para enviar para {destinatario_final}...")
     try:
