@@ -29,7 +29,7 @@ def enviar_relatorio_email(destinatario: str | None = None, caminho_relatorio: s
     hoje = datetime.now()
     ontem = hoje - timedelta(days=1)
     hora_envio = hoje.strftime("%H:%M")
-    assunto = f"🧠 Resumo Diário de IA (Destaques de {ontem.strftime('%d/%m/%Y')}) • {hora_envio}"
+    assunto = f"🤖 Resumo Diário de IA (Destaques de {ontem.strftime('%d/%m/%Y')}) • {hora_envio}"
 
     # Renderiza HTML Bento Grid
     html_content = render_bento_email(md_content)

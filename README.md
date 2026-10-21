@@ -1,4 +1,4 @@
-# 🧠 Diário de Engenharia: IA & Coding Agents
+# 🤖 Diário de Engenharia: IA & Coding Agents
 
 Automação ponta a ponta para curadoria, síntese analítica por IA e entrega diária por e-mail dos principais acontecimentos, papers, ferramentas open-source, discussões técnicas do X (Twitter) e repositórios em alta no GitHub.
 
