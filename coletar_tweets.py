@@ -157,7 +157,7 @@ def coletar_tweets(max_scrolls=25, headless=True):
 
             for art in articles:
                 try:
-                    text_elem = art.locator("div[data-testid='tweetText']")
+                    text_elem = art.locator("div[data-testid='tweetText']").first
                     if text_elem.count() == 0:
                         continue
                     tweet_text = text_elem.inner_text().strip()
@@ -271,7 +271,7 @@ def coletar_tweets(max_scrolls=25, headless=True):
                 artigos_vip = page.locator("article[data-testid='tweet']").all()
                 for art in artigos_vip[:4]:
                     try:
-                        text_elem = art.locator("div[data-testid='tweetText']")
+                        text_elem = art.locator("div[data-testid='tweetText']").first
                         if text_elem.count() == 0:
                             continue
                         tweet_text = text_elem.inner_text().strip()

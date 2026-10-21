@@ -207,13 +207,50 @@ def gerar_relatorio():
             with open(gh_file, "r", encoding="utf-8") as f:
                 trending_repos = json.load(f)
             if trending_repos:
+                print("Traduzindo e resumindo repositórios do GitHub em Português com gpt-6-luna...")
+                prompt_gh = (
+                    "Você é um engenheiro de IA sênior. Abaixo estão repositórios em alta no GitHub em formato JSON.\n"
+                    "Traduza e gere um resumo conciso, didático e em PORTUGUÊS DO BRASIL para cada um, explicando:\n"
+                    "1. O que é o projeto e qual problema ele resolve.\n"
+                    "2. Por que ele é útil na prática para quem trabalha com IA, agentes ou automação.\n\n"
+                    "Formate cada repositório exatamente assim:\n"
+                    "* **[autor/repo](url)** — ⭐ **X stars** (Linguagem)\n"
+                    "  - Resumo em português de 2 a 3 linhas explicando o projeto e seu valor prático.\n\n"
+                    "Retorne APENAS a lista em markdown dos repositórios, sem cabeçalhos nem blocos ```markdown.\n\n"
+                    f"DADOS DOS REPOSITÓRIOS:\n{json.dumps(trending_repos, ensure_ascii=False, indent=2)}"
+                )
+                
+                payload_gh = {
+                    "model": "gpt-6-luna",
+                    "messages": [{"role": "user", "content": prompt_gh}]
+                }
+                req_gh = urllib.request.Request(
+                    "https://api.openai.com/v1/chat/completions",
+                    data=json.dumps(payload_gh).encode("utf-8"),
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {openai_key}"
+                    }
+                )
+                try:
+                    with urllib.request.urlopen(req_gh, timeout=60) as resp_gh:
+                        res_gh = json.loads(resp_gh.read().decode("utf-8"))
+                        gh_markdown = res_gh["choices"][0]["message"]["content"].strip()
+                except Exception as e_gh:
+                    print(f"Erro ao sintetizar GitHub em PT-BR: {e_gh}")
+                    gh_markdown = None
+
                 secao_gh = ["\n\n---\n\n## 🔥 GitHub Trending: Repositórios de IA em Alta no Dia\n"]
-                for r in trending_repos:
-                    stars_str = f"{r['stars']:,}".replace(",", ".")
-                    desc = r.get("description", "Sem descrição disponível").strip()
-                    lang = r.get("language", "N/A")
-                    secao_gh.append(f"* **[{r['full_name']}]({r['url']})** — ⭐ **{stars_str} stars** ({lang})")
-                    secao_gh.append(f"  - {desc}")
+                if gh_markdown:
+                    secao_gh.append(gh_markdown)
+                else:
+                    for r in trending_repos:
+                        stars_str = f"{r['stars']:,}".replace(",", ".")
+                        desc = r.get("description", "Sem descrição disponível").strip()
+                        lang = r.get("language", "N/A")
+                        secao_gh.append(f"* **[{r['full_name']}]({r['url']})** — ⭐ **{stars_str} stars** ({lang})")
+                        secao_gh.append(f"  - {desc}")
+                
                 relatorio_md += "\n".join(secao_gh)
         except Exception as e:
             print(f"Aviso ao anexar GitHub Trending: {e}")
