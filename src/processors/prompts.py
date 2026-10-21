@@ -70,3 +70,19 @@ def get_prompt_papers(papers_json: str) -> str:
         "Retorne APENAS a lista em markdown dos papers, sem cabeçalhos nem blocos ```markdown.\n\n"
         f"DADOS DOS PAPERS:\n{papers_json}"
     )
+
+def get_prompt_takeaway(relatorio_completo_md: str) -> str:
+    """Prompt para sintetizar o takeaway prático e acionável de engenharia do dia."""
+    return (
+        "Você é o Chief AI Architect e Engenheiro de Software Sênior da Usabit.\n"
+        "Com base em todo o relatório diário fornecido abaixo (discussões do X, repositórios em alta no GitHub e artigos científicos do Hugging Face), sintetize de 2 a 3 conclusões e recomendações práticas e diretas para desenvolvedores e times de tecnologia.\n\n"
+        "Explique de forma objetiva:\n"
+        "1. Padrão/Tendência Emergente: O que o conjunto de novidades de hoje indica que está mudando na prática.\n"
+        "2. Recomendação Prática: Uma sugestão acionável para quem constrói software, agentes ou integra LLMs (o que testar, adotar ou evitar hoje).\n\n"
+        "Formate EXATAMENTE assim:\n"
+        "- **Padrão em Foco:** [Explicação concisa e didática em 2 linhas]\n"
+        "- **Recomendação Prática:** [Sugestão acionável para engenheiros em 2 linhas]\n\n"
+        "Retorne APENAS os bullets em markdown, sem títulos nem blocos ```markdown.\n\n"
+        f"CONTEÚDO DO RELATÓRIO:\n{relatorio_completo_md[:12000]}"
+    )
+

@@ -3,8 +3,8 @@ from datetime import datetime
 from src.core.config import HEADER_BANNER_URL, FOOTER_BANNER_URL
 
 def format_inline(text: str) -> str:
-    """Aplica formatação inline básica em markdown (links, negrito, itálico, código)."""
-    # Links
+    """Aplica formatação inline básica em markdown (links, negrito, itálico, código, micro-badges)."""
+    # Links primeiro
     t = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" style="color: #2563eb; text-decoration: none; font-weight: 600;">\1</a>', text)
     # Negrito
     t = re.sub(r'\*\*([^*]+)\*\*', r'<strong style="color: #0f172a; font-weight: 600;">\1</strong>', t)
@@ -12,6 +12,28 @@ def format_inline(text: str) -> str:
     t = re.sub(r'\*([^*]+)\*', r'<em style="color: #64748b;">\1</em>', t)
     # Código inline
     t = re.sub(r'`([^`]+)`', r'<code style="background-color: #f1f5f9; color: #0f172a; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 85%; border: 1px solid #e2e8f0;">\1</code>', t)
+
+    # Micro-badges visuais (Q4)
+    badge_colors = {
+        "MCP": "background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;",
+        "NOVO": "background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;",
+        "NOVA": "background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;",
+        "CÓDIGO": "background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;",
+        "CODIGO": "background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;",
+        "GITHUB": "background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;",
+        "PAPER": "background-color: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8;",
+        "DEMO": "background-color: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff;",
+        "TENDÊNCIA": "background-color: #fff7ed; color: #c2410c; border: 1px solid #ffedd5;",
+        "TENDENCIA": "background-color: #fff7ed; color: #c2410c; border: 1px solid #ffedd5;",
+    }
+
+    def _badge_replace(match):
+        raw_tag = match.group(1).strip()
+        tag_key = raw_tag.upper()
+        style = badge_colors.get(tag_key, "background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;")
+        return f'<span style="display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; {style} vertical-align: middle; margin-right: 4px; text-transform: uppercase;">{tag_key}</span>'
+
+    t = re.sub(r'\[(MCP|NOVO|Novo|NOVA|Nova|CÓDIGO|Código|CODIGO|Codigo|GITHUB|GitHub|PAPER|Paper|DEMO|Demo|TENDÊNCIA|Tendência|TENDENCIA|Tendencia)\]', _badge_replace, t)
     return t
 
 def render_bento_email(md_text: str) -> str:
@@ -54,7 +76,7 @@ def render_bento_email(md_text: str) -> str:
 
             cards_html.append(f"""
             <!-- HERO CARD: DESTAQUES DO DIA -->
-            <div class="bento-card" style="background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.08);">
+            <div id="destaques" class="bento-card" style="background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.08);">
                 <div style="display: flex; align-items: center; margin-bottom: 12px;">
                     <span style="font-size: 18px; margin-right: 8px;">📌</span>
                     <h2 style="color: #1e40af; font-size: 16px; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Destaques Principais do Dia</h2>
@@ -118,12 +140,99 @@ def render_bento_email(md_text: str) -> str:
 
             cards_html.append(f"""
             <!-- GITHUB TRENDING CARD -->
-            <div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
+            <div id="github-trending" class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
                 <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 14px;">
                     <h2 style="color: #0f172a; font-size: 16px; margin: 0; font-weight: 700;">🔥 GitHub Trending: Repositórios de IA em Alta no Dia</h2>
                     <p style="color: #64748b; font-size: 12px; margin: 3px 0 0 0;">Projetos em destaque com resumo e aplicabilidade em português</p>
                 </div>
                 {''.join(repos_cards)}
+            </div>
+            """)
+            continue
+
+        # 3. Card Especial: Papers em Destaque
+        if "Papers em Destaque" in title:
+            paper_items = []
+            curr_paper = None
+
+            for l in lines:
+                l_str = l.strip()
+                if l_str.startswith("* **[") or l_str.startswith("- **["):
+                    match_header = re.match(r'[\*\-]\s+\*\*\[([^\]]+)\]\(([^)]+)\)\*\*\s+—\s+📄\s+\*\*ArXiv:\s*([^\*]+)\*\*', l_str)
+                    if match_header:
+                        p_title, p_url, p_arxiv = match_header.groups()
+                        curr_paper = {
+                            "title": p_title,
+                            "url": p_url,
+                            "arxiv": p_arxiv.strip(),
+                            "desc": []
+                        }
+                        paper_items.append(curr_paper)
+                    else:
+                        curr_paper = {
+                            "raw_title": format_inline(l_str[2:]),
+                            "desc": []
+                        }
+                        paper_items.append(curr_paper)
+                elif curr_paper is not None and (l_str.startswith("- ") or l_str.startswith("* ")):
+                    curr_paper["desc"].append(format_inline(l_str[2:]))
+
+            paper_cards = []
+            for p in paper_items:
+                if "title" in p:
+                    desc_text = " ".join(p["desc"])
+                    paper_cards.append(f"""
+                    <div style="background-color: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;">
+                        <div style="margin-bottom: 6px;">
+                            <a href="{p['url']}" style="color: #0f172a; font-weight: 700; text-decoration: none; font-size: 14px; margin-right: 8px; word-break: break-word;">{p['title']}</a>
+                            <span style="display: inline-block; white-space: nowrap; background-color: #fce7f3; color: #be185d; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; margin-top: 2px;">📄 ArXiv: {p['arxiv']}</span>
+                        </div>
+                        <p style="color: #475569; font-size: 13px; line-height: 1.5; margin: 0;">{desc_text}</p>
+                    </div>
+                    """)
+                else:
+                    paper_cards.append(f"""
+                    <div style="background-color: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;">
+                        <p style="margin: 0; font-size: 14px; word-break: break-word;">{p.get('raw_title', '')}</p>
+                        <p style="color: #475569; font-size: 13px; line-height: 1.5; margin: 4px 0 0 0;">{' '.join(p.get('desc', []))}</p>
+                    </div>
+                    """)
+
+            cards_html.append(f"""
+            <!-- PAPERS CARD -->
+            <div id="papers" class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
+                <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 14px;">
+                    <h2 style="color: #0f172a; font-size: 16px; margin: 0; font-weight: 700;">📄 Papers em Destaque: Pesquisa &amp; Estado da Arte</h2>
+                    <p style="color: #64748b; font-size: 12px; margin: 3px 0 0 0;">Curadoria dos artigos científicos mais votados no Hugging Face / ArXiv</p>
+                </div>
+                {''.join(paper_cards)}
+            </div>
+            """)
+            continue
+
+        # 4. Card Especial: Takeaway Prático de Engenharia
+        if "Takeaway" in title or "💡" in title:
+            bullets_html = []
+            for l in lines:
+                l_str = l.strip()
+                if l_str.startswith("- ") or l_str.startswith("* "):
+                    conteudo = format_inline(l_str[2:])
+                    bullets_html.append(f"""
+                    <li style="margin-bottom: 8px; line-height: 1.55; color: #713f12; font-size: 13.5px;">
+                        {conteudo}
+                    </li>
+                    """)
+
+            cards_html.append(f"""
+            <!-- TAKEAWAY PRÁTICO CARD -->
+            <div id="takeaway" class="bento-card" style="background: linear-gradient(135deg, #fefce8 0%, #ffffff 100%); border: 1px solid #fef08a; border-left: 4px solid #eab308; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px -2px rgba(234, 179, 8, 0.08);">
+                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                    <span style="font-size: 18px; margin-right: 8px;">💡</span>
+                    <h2 style="color: #854d0e; font-size: 15px; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Takeaway Prático de Engenharia do Dia</h2>
+                </div>
+                <ul style="padding-left: 20px; margin: 0;">
+                    {''.join(bullets_html)}
+                </ul>
             </div>
             """)
             continue
@@ -182,9 +291,11 @@ def render_bento_email(md_text: str) -> str:
         elif "Ferramentas" in title: accent_color = "#f59e0b"
         elif "Papers" in title: accent_color = "#ec4899"
 
+        card_id = ' id="radar-x"' if ("1." in title or "Ferramentas" in title or "Agentes" in title) and not any('id="radar-x"' in c for c in cards_html) else ""
+
         cards_html.append(f"""
         <!-- BENTO CARD -->
-        <div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
+        <div{card_id} class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
             <div style="display: flex; align-items: center; border-bottom: 2px solid #f8fafc; padding-bottom: 10px; margin-bottom: 14px;">
                 <div style="width: 4px; height: 16px; background-color: {accent_color}; border-radius: 2px; margin-right: 8px;"></div>
                 <h2 style="color: #0f172a; font-size: 15.5px; margin: 0; font-weight: 700; letter-spacing: -0.2px;">{title}</h2>
@@ -257,6 +368,15 @@ def render_bento_email(md_text: str) -> str:
                     </div>
                     <h1 class="header-title" style="color: #0f172a; margin: 8px 0 4px 0; font-size: 21px; font-weight: 800; letter-spacing: -0.4px;">Diário de Engenharia: IA & Coding Agents</h1>
                     <p style="color: #64748b; font-size: 13.5px; margin: 0; font-weight: 400; line-height: 1.4;">Curadoria técnica por <strong>Fabrycio Bermudes</strong> • Ecossistema de software, agentes autônomos e LLMs.</p>
+
+                    <!-- NAVEGAÇÃO RÁPIDA (ÂNCORAS) -->
+                    <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #f1f5f9; display: flex; flex-wrap: wrap; gap: 6px;">
+                        <a href="#destaques" style="display: inline-block; background-color: #eff6ff; color: #1e40af; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 4px 10px; border-radius: 999px; border: 1px solid #dbeafe;">📌 Destaques</a>
+                        <a href="#radar-x" style="display: inline-block; background-color: #f5f3ff; color: #6d28d9; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 4px 10px; border-radius: 999px; border: 1px solid #ede9fe;">🤖 Radar &amp; X</a>
+                        <a href="#github-trending" style="display: inline-block; background-color: #fff7ed; color: #c2410c; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 4px 10px; border-radius: 999px; border: 1px solid #ffedd5;">🔥 GitHub</a>
+                        <a href="#papers" style="display: inline-block; background-color: #fdf2f8; color: #be185d; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 4px 10px; border-radius: 999px; border: 1px solid #fce7f3;">📄 Papers</a>
+                        <a href="#takeaway" style="display: inline-block; background-color: #fefce8; color: #a16207; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 4px 10px; border-radius: 999px; border: 1px solid #fef08a;">💡 Takeaway</a>
+                    </div>
                 </div>
             </div>
 

@@ -14,7 +14,7 @@ from src.core.config import (
 from src.core.logger import get_logger
 from src.core.models import Tweet, GitHubRepo, ResearchPaper
 from src.core.retry import retry_with_backoff
-from .prompts import get_prompt_resumo_ia, get_prompt_github, get_prompt_papers
+from .prompts import get_prompt_resumo_ia, get_prompt_github, get_prompt_papers, get_prompt_takeaway
 
 logger = get_logger("ai_summarizer")
 
@@ -104,6 +104,26 @@ def _anexar_secao_papers(relatorio_md: str, openai_key: str) -> str:
         logger.warning(f"Aviso ao anexar Papers: {e}")
         return relatorio_md
 
+def _anexar_secao_takeaway(relatorio_md: str, openai_key: str) -> str:
+    try:
+        logger.info("Sintetizando Takeaway Prático de Engenharia do Dia com gpt-6-luna...")
+        payload_takeaway = {
+            "model": "gpt-6-luna",
+            "messages": [{"role": "user", "content": get_prompt_takeaway(relatorio_md)}]
+        }
+        takeaway_markdown = retry_with_backoff(
+            lambda: _executar_chamada_openai(openai_key, payload_takeaway),
+            max_retries=3,
+            initial_delay=2.0,
+            operation_name="OpenAI Síntese de Takeaway"
+        ).strip()
+
+        secao = ["\n\n---\n\n## 💡 Takeaway Prático de Engenharia do Dia\n", takeaway_markdown]
+        return relatorio_md + "\n".join(secao)
+    except Exception as e:
+        logger.warning(f"Aviso ao anexar Takeaway: {e}")
+        return relatorio_md
+
 def gerar_resumo_ia() -> Path | None:
     hoje = datetime.now()
     ontem = hoje - timedelta(days=1)
@@ -152,9 +172,10 @@ def gerar_resumo_ia() -> Path | None:
     if relatorio_md.endswith("```"):
         relatorio_md = relatorio_md[:-3].strip()
 
-    # Anexa GitHub Trending e Papers
+    # Anexa GitHub Trending, Papers e Takeaway Prático
     relatorio_md = _anexar_secao_github(relatorio_md, config.OPENAI_API_KEY)
     relatorio_md = _anexar_secao_papers(relatorio_md, config.OPENAI_API_KEY)
+    relatorio_md = _anexar_secao_takeaway(relatorio_md, config.OPENAI_API_KEY)
 
     with open(output_md, "w", encoding="utf-8") as f:
         f.write(relatorio_md)
