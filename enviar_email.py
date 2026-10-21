@@ -17,9 +17,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, "email_config.json")
 CONFIG_EXAMPLE = os.path.join(BASE_DIR, "email_config.example.json")
 
-# URLs públicas dos banners hospedados no CDN do GitHub (eliminam chips de anexo no Gmail)
-HEADER_BANNER_URL = "https://raw.githubusercontent.com/Fabrycio13/newsletter-assets/main/header_banner.jpg"
-FOOTER_BANNER_URL = "https://raw.githubusercontent.com/Fabrycio13/newsletter-assets/main/footer_banner.jpg"
+# URLs públicas dos banners hospedados no próprio repositório Relatorios-IA
+HEADER_BANNER_URL = "https://raw.githubusercontent.com/Fabrycio13/Relatorios-IA/main/assets/header_banner.jpg"
+FOOTER_BANNER_URL = "https://raw.githubusercontent.com/Fabrycio13/Relatorios-IA/main/assets/footer_banner.jpg"
 
 def format_inline(text):
     """Aplica formatação inline básica em markdown (links, negrito, itálico, código)."""
