@@ -388,6 +388,15 @@ def render_bento_email(md_text: str) -> str:
                 .header-title {{
                     font-size: 19px !important;
                 }}
+                .nav-container {{
+                    text-align: center !important;
+                    line-height: 2.3 !important;
+                }}
+                .nav-pill {{
+                    padding: 5px 9px !important;
+                    font-size: 11px !important;
+                    margin: 3px 3px !important;
+                }}
                 .bento-card {{
                     padding: 16px 14px !important;
                     border-radius: 12px !important;
@@ -432,12 +441,12 @@ def render_bento_email(md_text: str) -> str:
                     <p style="color: #64748b; font-size: 13.5px; margin: 0; font-weight: 400; line-height: 1.45;">Curadoria técnica por <strong>Fabrycio Bermudes</strong> • Ecossistema de software, agentes autônomos e LLMs.</p>
 
                     <!-- NAVEGAÇÃO RÁPIDA (ÂNCORAS) -->
-                    <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #f1f5f9; line-height: 2.2;">
-                        <a href="#destaques" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #eff6ff; color: #1e40af; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #dbeafe; margin-right: 8px; margin-bottom: 6px;">📌 Destaques</a>
-                        <a href="#radar-x" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #f5f3ff; color: #6d28d9; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #ede9fe; margin-right: 8px; margin-bottom: 6px;">🤖 Radar &amp; X</a>
-                        <a href="#github-trending" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #fff7ed; color: #c2410c; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #ffedd5; margin-right: 8px; margin-bottom: 6px;">🔥 GitHub</a>
-                        <a href="#papers" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #fdf2f8; color: #be185d; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #fce7f3; margin-right: 8px; margin-bottom: 6px;">📄 Papers</a>
-                        <a href="#takeaway" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #fefce8; color: #a16207; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #fef08a; margin-bottom: 6px;">💡 Takeaway</a>
+                    <div class="nav-container" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #f1f5f9; line-height: 2.2; text-align: center;">
+                        <a href="#destaques" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #eff6ff; color: #1e40af; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #dbeafe; margin: 3px 4px;">📌 Destaques</a>
+                        <a href="#radar-x" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #f5f3ff; color: #6d28d9; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #ede9fe; margin: 3px 4px;">🤖 Radar &amp; X</a>
+                        <a href="#github-trending" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #fff7ed; color: #c2410c; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #ffedd5; margin: 3px 4px;">🔥 GitHub</a>
+                        <a href="#papers" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #fdf2f8; color: #be185d; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #fce7f3; margin: 3px 4px;">📄 Papers</a>
+                        <a href="#takeaway" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #fefce8; color: #a16207; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #fef08a; margin: 3px 4px;">💡 Takeaway</a>
                     </div>
                 </div>
             </div>
