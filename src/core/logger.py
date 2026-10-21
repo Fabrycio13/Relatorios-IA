@@ -3,6 +3,13 @@ import sys
 from logging.handlers import RotatingFileHandler
 from .config import LOG_FILE
 
+# Garante suporte seguro a emojis e UTF-8 no Windows Console
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 _logger = None
 
 def get_logger(name: str = "relatorios_ia") -> logging.Logger:

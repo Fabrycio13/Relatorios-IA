@@ -180,6 +180,7 @@ def render_bento_email(md_text: str) -> str:
         elif "Harness" in title: accent_color = "#06b6d4"
         elif "Desenvolvimento" in title: accent_color = "#10b981"
         elif "Ferramentas" in title: accent_color = "#f59e0b"
+        elif "Papers" in title: accent_color = "#ec4899"
 
         cards_html.append(f"""
         <!-- BENTO CARD -->

@@ -18,6 +18,7 @@ for d in [DATA_DIR, REPORTS_DIR, LOGS_DIR, SCRIPTS_DIR, ASSETS_DIR]:
 # Arquivos de dados e logs
 GITHUB_DATA_FILE = DATA_DIR / "github_trending.json"
 TWEETS_DATA_FILE = DATA_DIR / "tweets_coletados.json"
+PAPERS_DATA_FILE = DATA_DIR / "hf_papers.json"
 STATUS_FILE = DATA_DIR / "ultimo_envio.txt"
 LOG_FILE = LOGS_DIR / "execucao.log"
 

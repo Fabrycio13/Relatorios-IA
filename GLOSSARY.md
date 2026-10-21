@@ -86,10 +86,13 @@ _Evitar_: Modelo fechado / API-only.
 | **`src/core/models.py`** | Modelos tipados (`Tweet`, `GitHubRepo`) com sanitização ativa contra prompt injection. |
 | **`src/core/retry.py`** | Mecanismo de resiliência com retries automáticos e backoff exponencial com jitter para APIs externas. |
 | **`src/collectors/twitter.py`** | Robô Playwright headless que coleta tweets do feed e dos perfis do Radar VIP. |
-| **`src/collectors/github.py`** | Coletor HTTP via API do GitHub que filtra os top repositórios recentes de IA. |
+| **`src/collectors/github.py`** | Coletor nativo HTTP via API do GitHub que filtra os top repositórios recentes de IA. |
+| **`src/collectors/huggingface.py`** | Coletor HTTP que busca os artigos científicos mais votados do dia no Hugging Face Daily Papers. |
+| **`src/processors/prompts.py`** | Módulo isolado contendo os prompts mestres de curadoria, tradução e blindagem de IA. |
 | **`src/processors/ai_summarizer.py`** | Módulo de síntese técnica: envia dados ao `gpt-6-luna`, traduz e gera o relatório `.md`. |
 | **`src/delivery/renderer.py`** | Transforma o Markdown bruto no HTML Bento Grid responsivo para mobile e desktop. |
 | **`src/delivery/sender.py`** | Conecta ao Gmail via SMTP SSL (porta 465) e envia o e-mail em formato limpo. |
+| **`tests/`** | Suíte de testes unitários automatizados cobrindo modelos, renderização, retries e configurações. |
 | **`reports/`** | Pasta que armazena o histórico permanente dos relatórios (`Resumo_IA_YYYY-MM-DD.md`). |
 | **`data/`** | Pasta de trabalho temporária para JSONs de coleta bruta e trava de estado diário. |
 | **`logs/`** | Pasta onde são gravados e rotacionados os históricos de execução (`execucao.log`). |

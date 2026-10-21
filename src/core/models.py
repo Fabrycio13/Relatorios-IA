@@ -71,3 +71,28 @@ class GitHubRepo:
             created_at=str(data.get("created_at") or ""),
             topics=list(data.get("topics") or [])
         )
+
+@dataclass
+class ResearchPaper:
+    """Modelo de dados tipado para representar um artigo científico em alta (Hugging Face / ArXiv)."""
+    title: str
+    arxiv_id: str
+    summary: str
+    authors: list[str]
+    upvotes: int
+    url: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ResearchPaper":
+        return cls(
+            title=str(data.get("title") or "Sem título"),
+            arxiv_id=str(data.get("arxiv_id") or ""),
+            summary=str(data.get("summary") or "Sem resumo disponível"),
+            authors=list(data.get("authors") or []),
+            upvotes=int(data.get("upvotes") or 0),
+            url=str(data.get("url") or f"https://huggingface.co/papers/{data.get('arxiv_id', '')}")
+        )
+

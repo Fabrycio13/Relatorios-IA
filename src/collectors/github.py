@@ -1,5 +1,5 @@
 import json
-import subprocess
+import urllib.request
 from datetime import datetime, timedelta
 from src.core.config import GITHUB_DATA_FILE
 from src.core.logger import get_logger
@@ -9,14 +9,12 @@ from src.core.retry import retry_with_backoff
 logger = get_logger("github_collector")
 
 def _consultar_api_github(url: str) -> dict:
-    cmd = ["curl.exe", "-s", "-H", "User-Agent: Mozilla/5.0", url]
-    res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=25)
-    if res.returncode != 0:
-        raise RuntimeError(f"Erro na execução do curl: {res.stderr.decode('utf-8', errors='replace')}")
-    if not res.stdout:
-        raise ValueError("Resposta vazia da API do GitHub")
-    texto_json = res.stdout.decode("utf-8", errors="replace")
-    return json.loads(texto_json)
+    req = urllib.request.Request(
+        url,
+        headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+    )
+    with urllib.request.urlopen(req, timeout=25) as resp:
+        return json.loads(resp.read().decode("utf-8"))
 
 def coletar_github_trending(dias_atras: int = 7, limite_top: int = 6) -> list[GitHubRepo]:
     """

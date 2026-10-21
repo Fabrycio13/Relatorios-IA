@@ -17,10 +17,11 @@ O projeto adota uma arquitetura modular com separação estrita de responsabilid
 ├── reports/                    # Histórico versionado de relatórios diários Markdown
 ├── scripts/                    # Scripts utilitários (login interativo no X, launcher silencioso)
 ├── src/
-│   ├── collectors/             # Coleta de dados (github.py, twitter.py)
-│   ├── core/                   # Configurações centralizadas (.env), logger rotativo e caminhos
+│   ├── collectors/             # Ingestão de dados (github.py, twitter.py, huggingface.py)
+│   ├── core/                   # Config (.env), logger rotativo, models (Tweet, Repo, Paper) e retry
 │   ├── delivery/               # Renderizador Bento Grid HTML e envio seguro via Gmail SMTP
-│   └── processors/             # Síntese analítica e tradução técnica com LLM (OpenAI)
+│   └── processors/             # Síntese analítica (ai_summarizer.py) e prompts isolados (prompts.py)
+├── tests/                      # Suíte de testes unitários automatizados (unittest)
 ├── .env.example                # Modelo de variáveis de ambiente
 ├── executar.bat                # Gatilho compatível com o Agendador de Tarefas do Windows
 ├── main.py                     # Ponto de entrada CLI unificado
@@ -52,11 +53,20 @@ python main.py --step collect-github
 # Apenas coleta de tweets no X (Radar VIP + Seguindo)
 python main.py --step collect-twitter
 
+# Apenas coleta de Papers em alta no Hugging Face
+python main.py --step collect-papers
+
 # Apenas síntese do relatório com IA
 python main.py --step summarize
 
 # Apenas renderização e envio do e-mail com o último relatório
 python main.py --step email
+```
+
+### 4. Executar a Suíte de Testes Unitários
+Executa todos os testes automatizados da pasta `tests/` em milissegundos:
+```powershell
+python -m unittest discover tests
 ```
 
 ### 4. Consultar Status do Envio
