@@ -17,99 +17,239 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, "email_config.json")
 CONFIG_EXAMPLE = os.path.join(BASE_DIR, "email_config.example.json")
 
-def markdown_to_html(md_text):
-    """
-    Converte markdown simplificado em HTML formatado com estilo elegante para e-mails.
-    """
-    html_lines = []
-    in_list = False
+def format_inline(text):
+    """Aplica formatação inline básica em markdown (links, negrito, itálico, código)."""
+    # Links
+    t = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" style="color: #2563eb; text-decoration: none; font-weight: 600;">\1</a>', text)
+    # Negrito
+    t = re.sub(r'\*\*([^*]+)\*\*', r'<strong style="color: #0f172a; font-weight: 600;">\1</strong>', t)
+    # Itálico
+    t = re.sub(r'\*([^*]+)\*', r'<em style="color: #64748b;">\1</em>', t)
+    # Código inline
+    t = re.sub(r'`([^`]+)`', r'<code style="background-color: #f1f5f9; color: #0f172a; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 85%; border: 1px solid #e2e8f0;">\1</code>', t)
+    return t
 
+def render_bento_email(md_text):
+    """
+    Renderizador Bento Grid Modular estilo Apple Dashboard (Light Premium).
+    Transforma as seções em cards flutuantes com sombras suaves, bordas e badges.
+    """
+    sections = []
+    current_section = None
+    
+    # Divide o markdown por seções ##
     for raw_line in md_text.splitlines():
         line = raw_line.strip()
+        if line.startswith("## "):
+            title = line[3:].strip()
+            current_section = {"title": title, "lines": []}
+            sections.append(current_section)
+        elif current_section is not None:
+            if line != "---":
+                current_section["lines"].append(raw_line)
 
-        if not line:
-            if in_list:
-                html_lines.append("</ul>")
-                in_list = False
+    cards_html = []
+    
+    # Processa cada seção identificada
+    for sec in sections:
+        title = sec["title"]
+        lines = sec["lines"]
+        
+        # 1. Card Hero: Destaques Principais do Dia
+        if "Destaques Principais" in title:
+            bullets_html = []
+            for l in lines:
+                l_str = l.strip()
+                if l_str.startswith("- ") or l_str.startswith("* "):
+                    conteudo = format_inline(l_str[2:])
+                    bullets_html.append(f"""
+                    <li style="margin-bottom: 8px; line-height: 1.5; color: #1e293b; font-size: 14px;">
+                        {conteudo}
+                    </li>
+                    """)
+            
+            cards_html.append(f"""
+            <!-- HERO CARD: DESTAQUES DO DIA -->
+            <div style="background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 20px 24px; margin-bottom: 24px; box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.08);">
+                <div style="display: flex; align-items: center; margin-bottom: 14px;">
+                    <span style="font-size: 20px; margin-right: 8px;">📌</span>
+                    <h2 style="color: #1e40af; font-size: 17px; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Destaques Principais do Dia</h2>
+                </div>
+                <ul style="padding-left: 20px; margin: 0;">
+                    {''.join(bullets_html)}
+                </ul>
+            </div>
+            """)
+            continue
+            
+        # 2. Card Especial: GitHub Trending
+        if "GitHub Trending" in title:
+            gh_items = []
+            curr_repo = None
+            
+            for l in lines:
+                l_str = l.strip()
+                if l_str.startswith("* **[") or l_str.startswith("- **["):
+                    match_header = re.match(r'[\*\-]\s+\*\*\[([^\]]+)\]\(([^)]+)\)\*\*\s+—\s+⭐\s+\*\*([^\*]+)\*\*\s+\(([^)]+)\)', l_str)
+                    if match_header:
+                        repo_name, repo_url, stars, lang = match_header.groups()
+                        curr_repo = {
+                            "name": repo_name,
+                            "url": repo_url,
+                            "stars": stars.strip(),
+                            "lang": lang.strip(),
+                            "desc": []
+                        }
+                        gh_items.append(curr_repo)
+                    else:
+                        # Fallback se formato for ligeiramente diferente
+                        curr_repo = {
+                            "raw_title": format_inline(l_str[2:]),
+                            "desc": []
+                        }
+                        gh_items.append(curr_repo)
+                elif curr_repo is not None and (l_str.startswith("- ") or l_str.startswith("* ")):
+                    curr_repo["desc"].append(format_inline(l_str[2:]))
+
+            repos_cards = []
+            for r in gh_items:
+                if "name" in r:
+                    desc_text = " ".join(r["desc"])
+                    repos_cards.append(f"""
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;">
+                        <div style="margin-bottom: 6px;">
+                            <a href="{r['url']}" style="color: #0f172a; font-weight: 700; text-decoration: none; font-size: 15px; margin-right: 8px;">{r['name']}</a>
+                            <span style="background-color: #fef08a; color: #854d0e; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-right: 6px;">⭐ {r['stars']}</span>
+                            <span style="background-color: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;">{r['lang']}</span>
+                        </div>
+                        <p style="color: #475569; font-size: 13px; line-height: 1.5; margin: 0;">{desc_text}</p>
+                    </div>
+                    """)
+                else:
+                    repos_cards.append(f"""
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;">
+                        <p style="margin: 0; font-size: 14px;">{r.get('raw_title', '')}</p>
+                        <p style="color: #475569; font-size: 13px; line-height: 1.5; margin: 4px 0 0 0;">{' '.join(r.get('desc', []))}</p>
+                    </div>
+                    """)
+
+            cards_html.append(f"""
+            <!-- GITHUB TRENDING CARD -->
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
+                <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
+                    <h2 style="color: #0f172a; font-size: 17px; margin: 0; font-weight: 700;">🔥 GitHub Trending: Repositórios de IA em Alta no Dia</h2>
+                    <p style="color: #64748b; font-size: 12px; margin: 4px 0 0 0;">Projetos em destaque com resumo e aplicabilidade em português</p>
+                </div>
+                {''.join(repos_cards)}
+            </div>
+            """)
             continue
 
-        # Títulos
-        if line.startswith("# "):
-            if in_list: html_lines.append("</ul>"); in_list = False
-            html_lines.append(f"<h1 style='color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;'>{line[2:]}</h1>")
-            continue
-        elif line.startswith("## "):
-            if in_list: html_lines.append("</ul>"); in_list = False
-            html_lines.append(f"<h2 style='color: #0f172a; margin-top: 24px; margin-bottom: 12px; font-size: 20px;'>{line[3:]}</h2>")
-            continue
-        elif line.startswith("### "):
-            if in_list: html_lines.append("</ul>"); in_list = False
-            html_lines.append(f"<h3 style='color: #2563eb; margin-top: 18px; margin-bottom: 8px; font-size: 16px;'>{line[4:]}</h3>")
-            continue
+        # 3. Cards Temáticos Padrão (Tópicos 1 a 7)
+        items_html = []
+        curr_item = None
+        
+        for l in lines:
+            l_str = l.strip()
+            if not l_str:
+                continue
+                
+            # Item principal (* **Título ([@autor](url)) — 🔥 engajamento:**)
+            if (l_str.startswith("* **") or l_str.startswith("- **")) and not l.startswith("  "):
+                item_header = format_inline(l_str[2:])
+                # Converte 🔥 badge
+                if "🔥" in item_header:
+                    item_header = re.sub(r'—\s*(🔥\s*[^<*\n:]+)', r'<span style="background-color: #ffedd5; color: #c2410c; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 6px;">\1</span>', item_header)
+                
+                curr_item = {
+                    "header": item_header,
+                    "bullets": []
+                }
+                items_html.append(curr_item)
+            elif curr_item is not None and (l.startswith("  ") or l_str.startswith("- ") or l_str.startswith("* ")):
+                bullet_text = format_inline(l_str.lstrip("-* "))
+                curr_item["bullets"].append(f"<li style='margin-bottom: 5px; color: #475569; font-size: 13.5px; line-height: 1.55;'>{bullet_text}</li>")
+            else:
+                # Texto genérico ou nota de tópico vazio
+                if not items_html:
+                    items_html.append({"raw_p": format_inline(l_str)})
 
-        # Separador
-        if line == "---":
-            if in_list: html_lines.append("</ul>"); in_list = False
-            html_lines.append("<hr style='border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;'>")
-            continue
+        rendered_items = []
+        for it in items_html:
+            if "raw_p" in it:
+                rendered_items.append(f"<p style='color: #64748b; font-size: 13.5px; font-style: italic; margin: 4px 0;'>{it['raw_p']}</p>")
+            else:
+                bullets_str = f"<ul style='margin: 6px 0 0 0; padding-left: 20px;'>{''.join(it['bullets'])}</ul>" if it['bullets'] else ""
+                rendered_items.append(f"""
+                <div style="margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px dashed #f1f5f9;">
+                    <div style="font-size: 15px; margin-bottom: 4px; color: #0f172a;">
+                        {it['header']}
+                    </div>
+                    {bullets_str}
+                </div>
+                """)
 
-        # Sub-bullet / listas
-        is_subbullet = raw_line.startswith("  * ") or raw_line.startswith("    * ")
-        is_bullet = line.startswith("* ") or line.startswith("- ")
+        # Cores e estilos de cabeçalho por tópico
+        accent_color = "#3b82f6"
+        if "Radar Perfis" in title: accent_color = "#8b5cf6" # Roxo
+        elif "Harness" in title: accent_color = "#06b6d4" # Ciano
+        elif "Desenvolvimento" in title: accent_color = "#10b981" # Esmeralda
+        elif "Ferramentas" in title: accent_color = "#f59e0b" # Âmbar
 
-        # Formatação inline: links [texto](url)
-        formatted_line = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" style="color: #2563eb; text-decoration: none; font-weight: 500;">\1</a>', line)
-        # Negrito **texto**
-        formatted_line = re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', formatted_line)
-        # Itálico *texto*
-        formatted_line = re.sub(r'\*([^*]+)\*', r'<em>\1</em>', formatted_line)
-        # Código inline `código`
-        formatted_line = re.sub(r'`([^`]+)`', r'<code style="background-color: #f1f5f9; padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 90%;">\1</code>', formatted_line)
+        cards_html.append(f"""
+        <!-- BENTO CARD -->
+        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 22px 24px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
+            <div style="display: flex; align-items: center; border-bottom: 2px solid #f8fafc; padding-bottom: 10px; margin-bottom: 14px;">
+                <div style="width: 4px; height: 18px; background-color: {accent_color}; border-radius: 2px; margin-right: 10px;"></div>
+                <h2 style="color: #0f172a; font-size: 16px; margin: 0; font-weight: 700; letter-spacing: -0.2px;">{title}</h2>
+            </div>
+            {''.join(rendered_items)}
+        </div>
+        """)
 
-        if is_subbullet:
-            content = formatted_line.replace("* ", "", 1) if formatted_line.startswith("* ") else formatted_line
-            html_lines.append(f"<li style='margin-left: 20px; color: #475569; margin-bottom: 4px;'>{content}</li>")
-        elif is_bullet:
-            if not in_list:
-                html_lines.append("<ul style='padding-left: 20px; margin: 8px 0;'>")
-                in_list = True
-            content = formatted_line[2:]
-            html_lines.append(f"<li style='margin-bottom: 6px; color: #334155;'>{content}</li>")
-        else:
-            if in_list:
-                html_lines.append("</ul>")
-                in_list = False
-            html_lines.append(f"<p style='color: #334155; line-height: 1.6; margin: 6px 0;'>{formatted_line}</p>")
+    body_content = "\n".join(cards_html)
 
-    if in_list:
-        html_lines.append("</ul>")
-
-    content_html = "\n".join(html_lines)
-
-    full_template = f"""
+    hoje_formatada = datetime.now().strftime("%d/%m/%Y")
+    
+    full_html = f"""
     <!DOCTYPE html>
-    <html>
+    <html lang="pt-BR">
     <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Resumo Diário de IA</title>
     </head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
-        <div style="max-width: 680px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 32px; border: 1px solid #e2e8f0;">
-            <div style="text-align: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #3b82f6;">
-                <span style="font-size: 28px;">🧠</span>
-                <h1 style="color: #0f172a; margin: 8px 0 4px 0; font-size: 22px;">Resumo Diário de Inteligência Artificial</h1>
-                <p style="color: #64748b; font-size: 13px; margin: 0;">Relatório Automatizado do X (Twitter) • Feed Especializado</p>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 32px 16px; color: #0f172a; -webkit-font-smoothing: antialiased;">
+        <div style="max-width: 720px; margin: 0 auto;">
+            
+            <!-- WALLPAPER HEADER / DASHBOARD TOP -->
+            <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 20px; padding: 28px 32px; margin-bottom: 24px; color: #ffffff; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="display: inline-block; background-color: rgba(255, 255, 255, 0.12); color: #93c5fd; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 4px 10px; border-radius: 999px;">
+                        Dashboard Diário de IA
+                    </div>
+                    <div style="color: #94a3b8; font-size: 13px; font-weight: 500;">
+                        {hoje_formatada} • 08:00
+                    </div>
+                </div>
+                <h1 style="color: #ffffff; margin: 12px 0 6px 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Radar Executivo de Inteligência Artificial</h1>
+                <p style="color: #94a3b8; font-size: 13px; margin: 0; font-weight: 400; line-height: 1.4;">Feed Especializado do X (Twitter) • Radar de Líderes VIPs • GitHub Trending</p>
             </div>
-            <div style="font-size: 14px; line-height: 1.6;">
-                {content_html}
+
+            <!-- BENTO GRID CONTAINER -->
+            {body_content}
+
+            <!-- FOOTER -->
+            <div style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 32px; padding-top: 16px;">
+                Relatório Automatizado de Engenharia de IA • Enviado para fabrycio.bermudes@usabit.com.br<br>
+                Gerado com gpt-6-luna • Agendado diariamente às 08:00
             </div>
-            <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 12px;">
-                Gerado automaticamente pelo agente de relatórios de IA em {datetime.now().strftime('%d/%m/%Y às %H:%M')}.
-            </div>
+
         </div>
     </body>
     </html>
     """
-    return full_template
+    return full_html
 
 def carregar_config():
     config = {
@@ -160,33 +300,11 @@ def enviar_relatorio_email(destinatario=None, caminho_relatorio=None):
     hora_envio = hoje.strftime("%H:%M")
     assunto = f"🧠 Resumo Diário de IA (Destaques de {ontem.strftime('%d/%m/%Y')}) • {hora_envio}"
 
-    html_content = markdown_to_html(md_content)
+    # Renderiza com o novo Bento Grid Modular (Light Premium)
+    html_content = render_bento_email(md_content)
 
     if not senha_app or senha_app.strip() == "sua_senha_de_app_aqui" or len(senha_app.strip()) < 8:
-        print("\n" + "=" * 60)
-        print("⚠️  CONFIGURAÇÃO DE E-MAIL DO GMAIL NECESSÁRIA")
-        print("=" * 60)
-        print("Para enviar e-mails diretamente pelo Gmail com segurança, o Google")
-        print("exige uma 'Senha de Aplicativo' (App Password de 16 caracteres).")
-        print("\nPasso a passo rápido:")
-        print(" 1. Acesse: https://myaccount.google.com/apppasswords")
-        print(" 2. Dê um nome (ex: 'Relatorios IA') e gere a senha de 16 letras.")
-        print(f" 3. Salve a senha no arquivo '{CONFIG_FILE}' como mostrado abaixo:\n")
-        
-        exemplo_conteudo = {
-            "remetente": remetente,
-            "senha_app": "xxxx xxxx xxxx xxxx",
-            "destinatario": destinatario_final
-        }
-        print(json.dumps(exemplo_conteudo, indent=2))
-        print("=" * 60)
-
-        # Cria ou atualiza template se não existir
-        if not os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-                json.dump(exemplo_conteudo, f, indent=2, ensure_ascii=False)
-            print(f"\n[OK] Criado arquivo modelo em: {CONFIG_FILE}")
-
+        print("[ERRO] Senha de app não configurada.")
         return False
 
     msg = MIMEMultipart("alternative")
@@ -202,7 +320,6 @@ def enviar_relatorio_email(destinatario=None, caminho_relatorio=None):
 
     print(f"Conectando ao servidor SMTP do Gmail para enviar para {destinatario_final}...")
     try:
-        # Usa SSL na porta 465 ou TLS na 587
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=20) as server:
             senha_limpa = senha_app.replace(" ", "")
             server.login(remetente, senha_limpa)
@@ -210,11 +327,6 @@ def enviar_relatorio_email(destinatario=None, caminho_relatorio=None):
 
         print(f"✅ E-mail enviado com sucesso para {destinatario_final}!")
         return True
-    except smtplib.SMTPAuthenticationError:
-        print("\n❌ Erro de Autenticação no Gmail!")
-        print("A senha de aplicativo inserida não foi aceita pelo Google.")
-        print("Verifique se gerou a senha em https://myaccount.google.com/apppasswords")
-        return False
     except Exception as e:
         print(f"\n❌ Erro ao enviar e-mail: {e}")
         return False
