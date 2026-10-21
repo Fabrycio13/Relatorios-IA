@@ -8,6 +8,7 @@ from playwright.sync_api import sync_playwright
 
 from src.core.config import BASE_DIR, TWEETS_DATA_FILE, config
 from src.core.logger import get_logger
+from src.core.models import Tweet
 
 logger = get_logger("twitter_collector")
 SESSION_DIR = BASE_DIR / ".session"
@@ -188,18 +189,18 @@ def coletar_tweets_vip(max_scrolls=25, headless=True):
                     except Exception:
                         pass
 
-                    tweets_coletados.append({
-                        "author_name": author_name,
-                        "author_handle": author_handle,
-                        "timestamp": timestamp,
-                        "text": tweet_text,
-                        "url": tweet_url,
-                        "likes": likes,
-                        "reposts": reposts,
-                        "replies": replies,
-                        "views": views,
-                        "external_links": list(set(card_links))
-                    })
+                    tweets_coletados.append(Tweet(
+                        author_name=author_name,
+                        author_handle=author_handle,
+                        timestamp=timestamp,
+                        text=tweet_text,
+                        url=tweet_url,
+                        likes=likes,
+                        reposts=reposts,
+                        replies=replies,
+                        views=views,
+                        external_links=list(set(card_links))
+                    ))
                 except Exception:
                     continue
 
@@ -284,18 +285,18 @@ def coletar_tweets_vip(max_scrolls=25, headless=True):
                         except Exception:
                             pass
 
-                        tweets_coletados.append({
-                            "author_name": nome_vip,
-                            "author_handle": f"@{handle}",
-                            "timestamp": timestamp,
-                            "text": tweet_text,
-                            "url": tweet_url,
-                            "likes": likes,
-                            "reposts": reposts,
-                            "replies": replies,
-                            "views": views,
-                            "external_links": list(set(card_links))
-                        })
+                        tweets_coletados.append(Tweet(
+                            author_name=nome_vip,
+                            author_handle=f"@{handle}",
+                            timestamp=timestamp,
+                            text=tweet_text,
+                            url=tweet_url,
+                            likes=likes,
+                            reposts=reposts,
+                            replies=replies,
+                            views=views,
+                            external_links=list(set(card_links))
+                        ))
                     except Exception:
                         continue
             except Exception as e:
@@ -309,7 +310,7 @@ def coletar_tweets_vip(max_scrolls=25, headless=True):
 
     logger.info(f"Total de tweets coletados: {len(tweets_coletados)}")
     with open(TWEETS_DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(tweets_coletados, f, ensure_ascii=False, indent=2)
+        json.dump([t.to_dict() for t in tweets_coletados], f, ensure_ascii=False, indent=2)
 
     logger.info(f"Arquivo gerado em: {TWEETS_DATA_FILE}")
     return tweets_coletados

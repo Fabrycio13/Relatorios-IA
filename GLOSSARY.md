@@ -83,6 +83,8 @@ _Evitar_: Modelo fechado / API-only.
 | **`executar.bat`** | Script de disparo matinal chamado diariamente às 08:00 pelo Agendador do Windows. |
 | **`src/core/config.py`** | Central de configuração: lê `.env`, valida credenciais e expõe caminhos absolutos. |
 | **`src/core/logger.py`** | Gerenciador de logs unificado com rotação de arquivos (`logs/execucao.log`) e saída no console. |
+| **`src/core/models.py`** | Modelos tipados (`Tweet`, `GitHubRepo`) com sanitização ativa contra prompt injection. |
+| **`src/core/retry.py`** | Mecanismo de resiliência com retries automáticos e backoff exponencial com jitter para APIs externas. |
 | **`src/collectors/twitter.py`** | Robô Playwright headless que coleta tweets do feed e dos perfis do Radar VIP. |
 | **`src/collectors/github.py`** | Coletor HTTP via API do GitHub que filtra os top repositórios recentes de IA. |
 | **`src/processors/ai_summarizer.py`** | Módulo de síntese técnica: envia dados ao `gpt-6-luna`, traduz e gera o relatório `.md`. |
