@@ -249,12 +249,17 @@ def render_bento_email(md_text):
         </style>
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px 12px; color: #0f172a; -webkit-font-smoothing: antialiased;">
+        <!--[if mso]>
+        <table role="presentation" width="680" align="center" style="width:680px;" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+        <td>
+        <![endif]-->
         <div class="main-container" style="max-width: 680px; margin: 0 auto;">
             
             <!-- HEADER COM BANNER PANORÂMICO -->
             <div class="header-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
-                <div style="width: 100%; line-height: 0; background-color: #0f172a;">
-                    <img src="cid:header_banner" alt="Diário de Engenharia: IA &amp; Coding Agents" style="display: block; width: 100%; max-width: 680px; height: auto; border: 0;" />
+                <div style="width: 100%; line-height: 0; font-size: 0; background-color: #0f172a;">
+                    <img src="cid:header_banner" alt="Diário de Engenharia: IA &amp; Coding Agents" width="680" style="display: block; width: 100%; max-width: 680px; height: auto; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
                 </div>
                 <div class="header-content" style="padding: 22px 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -275,8 +280,8 @@ def render_bento_email(md_text):
 
             <!-- FOOTER COM BANNER ARTE 4 E ASSINATURA -->
             <div class="footer-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-top: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
-                <div style="width: 100%; line-height: 0; background-color: #0f172a;">
-                    <img src="cid:footer_banner" alt="Curadoria de Engenharia" style="display: block; width: 100%; max-width: 680px; height: auto; border: 0;" />
+                <div style="width: 100%; line-height: 0; font-size: 0; background-color: #0f172a;">
+                    <img src="cid:footer_banner" alt="Curadoria de Engenharia" width="680" style="display: block; width: 100%; max-width: 680px; height: auto; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
                 </div>
                 <div class="footer-content" style="padding: 20px 24px; text-align: center; background-color: #ffffff;">
                     <p style="color: #0f172a; font-size: 13.5px; font-weight: 700; margin: 0 0 4px 0; letter-spacing: -0.2px;">
@@ -294,6 +299,11 @@ def render_bento_email(md_text):
             </div>
 
         </div>
+        <!--[if mso]>
+        </td>
+        </tr>
+        </table>
+        <![endif]-->
     </body>
     </html>
     """
@@ -376,7 +386,8 @@ def enviar_relatorio_email(destinatario=None, caminho_relatorio=None):
         with open(header_img_path, "rb") as f:
             img_header = MIMEImage(f.read(), _subtype="jpeg")
             img_header.add_header("Content-ID", "<header_banner>")
-            img_header.add_header("Content-Disposition", "inline", filename="header_banner.jpg")
+            img_header.add_header("X-Attachment-Id", "header_banner")
+            img_header.add_header("Content-Disposition", "inline")
             msg.attach(img_header)
 
     # Anexa o banner do rodapé (Arte 4) via CID
@@ -385,7 +396,8 @@ def enviar_relatorio_email(destinatario=None, caminho_relatorio=None):
         with open(footer_img_path, "rb") as f:
             img_footer = MIMEImage(f.read(), _subtype="jpeg")
             img_footer.add_header("Content-ID", "<footer_banner>")
-            img_footer.add_header("Content-Disposition", "inline", filename="footer_banner.jpg")
+            img_footer.add_header("X-Attachment-Id", "footer_banner")
+            img_footer.add_header("Content-Disposition", "inline")
             msg.attach(img_footer)
 
     print(f"Conectando ao servidor SMTP do Gmail para enviar para {destinatario_final}...")
