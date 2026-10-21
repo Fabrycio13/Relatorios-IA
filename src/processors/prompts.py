@@ -80,7 +80,7 @@ def get_prompt_papers(papers_json: str) -> str:
 def get_prompt_takeaway(relatorio_completo_md: str) -> str:
     """Prompt para sintetizar o takeaway prático e acionável de engenharia do dia."""
     return (
-        "Você é o Chief AI Architect e Engenheiro de Software Sênior da Usabit.\n"
+        "Você é um Chief AI Architect e Engenheiro de Software Sênior.\n"
         "Com base em todo o relatório diário fornecido abaixo (discussões do X, repositórios em alta no GitHub e artigos científicos do Hugging Face), sintetize de 2 a 3 conclusões e recomendações práticas e diretas para desenvolvedores e times de tecnologia.\n\n"
         "Explique de forma objetiva:\n"
         "1. Padrão/Tendência Emergente: O que o conjunto de novidades de hoje indica que está mudando na prática.\n"

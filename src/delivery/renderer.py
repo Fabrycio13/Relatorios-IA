@@ -460,11 +460,8 @@ def render_bento_email(md_text: str) -> str:
                     <img src="{FOOTER_BANNER_URL}" alt="Curadoria de Engenharia" width="680" height="150" style="display: block; width: 100%; max-width: 680px; max-height: 150px; height: auto; object-fit: cover; object-position: center; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
                 </div>
                 <div class="footer-content" style="padding: 22px 24px; text-align: center; background-color: #ffffff;">
-                    <p style="color: #0f172a; font-size: 14px; font-weight: 700; margin: 0 0 4px 0; letter-spacing: -0.2px;">
-                        Curadoria & Automação por Fabrycio Bermudes
-                    </p>
-                    <p style="color: #64748b; font-size: 12.5px; margin: 0; line-height: 1.45;">
-                        Desenvolvido para Usabit • Relatório diário de IA e Coding Agents
+                    <p style="font-family: Georgia, Cambria, 'Times New Roman', serif; font-style: italic; font-size: 15px; color: #334155; margin: 0; line-height: 1.5; letter-spacing: 0.2px;">
+                        <strong style="color: #0f172a; font-weight: 700; font-style: italic;">Fabrycio Bermudes</strong> • Software Engineer &amp; AI Builder
                     </p>
                 </div>
             </div>
