@@ -242,18 +242,18 @@ def render_bento_email(md_text):
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px 12px; color: #0f172a; -webkit-font-smoothing: antialiased;">
         <div class="main-container" style="max-width: 680px; margin: 0 auto;">
             
-            <!-- WALLPAPER HEADER / DASHBOARD TOP -->
-            <div class="header-card" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 18px; padding: 24px 28px; margin-bottom: 20px; color: #ffffff; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.18);">
+            <!-- HEADER CLEAN & TECH LEAD (LIGHT PREMIUM) -->
+            <div class="header-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 22px 26px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <div style="display: inline-block; background-color: rgba(255, 255, 255, 0.12); color: #93c5fd; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; padding: 3px 9px; border-radius: 999px;">
-                        Dashboard Diário de IA
-                    </div>
-                    <div style="color: #94a3b8; font-size: 12px; font-weight: 500;">
+                    <span style="display: inline-block; background-color: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                        Curadoria Diária
+                    </span>
+                    <span style="color: #64748b; font-size: 12px; font-weight: 500;">
                         {hoje_formatada} • 08:00
-                    </div>
+                    </span>
                 </div>
-                <h1 class="header-title" style="color: #ffffff; margin: 10px 0 6px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">Radar Executivo de IA</h1>
-                <p style="color: #94a3b8; font-size: 12.5px; margin: 0; font-weight: 400; line-height: 1.4;">Feed Especializado do X • Radar VIP • GitHub Trending</p>
+                <h1 class="header-title" style="color: #0f172a; margin: 8px 0 4px 0; font-size: 21px; font-weight: 800; letter-spacing: -0.4px;">Diário de Engenharia: IA & Coding Agents</h1>
+                <p style="color: #64748b; font-size: 13px; margin: 0; font-weight: 400; line-height: 1.4;">Curadoria técnica do ecossistema de software, agentes autônomos e modelos open-source.</p>
             </div>
 
             <!-- BENTO GRID CONTAINER -->
