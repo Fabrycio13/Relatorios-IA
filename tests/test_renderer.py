@@ -61,11 +61,15 @@ class TestRenderer(unittest.TestCase):
         self.assertIn('href="#papers"', html)
         self.assertIn('href="#takeaway"', html)
 
-        # Valida cards Bento Grid com IDs
+        # Valida cards Bento Grid com IDs e Names (compatibilidade máxima com e-mails)
         self.assertIn('id="destaques"', html)
+        self.assertIn('name="destaques"', html)
         self.assertIn('id="radar-x"', html)
+        self.assertIn('name="radar-x"', html)
         self.assertIn('id="papers"', html)
+        self.assertIn('name="papers"', html)
         self.assertIn('id="takeaway"', html)
+        self.assertIn('name="takeaway"', html)
         self.assertIn("Takeaway Prático de Engenharia do Dia", html)
         self.assertIn("Destaques Principais do Dia", html)
         self.assertIn("Ferramentas Open-Source", html)

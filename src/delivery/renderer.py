@@ -78,7 +78,8 @@ def render_bento_email(md_text: str) -> str:
 
             cards_html.append(f"""
             <!-- HERO CARD: DESTAQUES DO DIA -->
-            <div id="destaques" class="bento-card" style="background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.08);">
+            <a name="destaques" id="destaques" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>
+            <div class="bento-card" style="background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.08);">
                 <div style="display: flex; align-items: center; margin-bottom: 12px;">
                     <span style="font-size: 18px; margin-right: 8px;">📌</span>
                     <h2 style="color: #1e40af; font-size: 16px; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Destaques Principais do Dia</h2>
@@ -142,7 +143,8 @@ def render_bento_email(md_text: str) -> str:
 
             cards_html.append(f"""
             <!-- GITHUB TRENDING CARD -->
-            <div id="github-trending" class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
+            <a name="github-trending" id="github-trending" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>
+            <div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
                 <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 14px;">
                     <h2 style="color: #0f172a; font-size: 16px; margin: 0; font-weight: 700;">🔥 GitHub Trending: Repositórios de IA em Alta no Dia</h2>
                     <p style="color: #64748b; font-size: 12px; margin: 3px 0 0 0;">Projetos em destaque com resumo e aplicabilidade em português</p>
@@ -202,7 +204,8 @@ def render_bento_email(md_text: str) -> str:
 
             cards_html.append(f"""
             <!-- PAPERS CARD -->
-            <div id="papers" class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
+            <a name="papers" id="papers" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>
+            <div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
                 <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 14px;">
                     <h2 style="color: #0f172a; font-size: 16px; margin: 0; font-weight: 700;">📄 Papers em Destaque: Pesquisa &amp; Estado da Arte</h2>
                     <p style="color: #64748b; font-size: 12px; margin: 3px 0 0 0;">Curadoria dos artigos científicos mais votados no Hugging Face / ArXiv</p>
@@ -227,7 +230,8 @@ def render_bento_email(md_text: str) -> str:
 
             cards_html.append(f"""
             <!-- TAKEAWAY PRÁTICO CARD -->
-            <div id="takeaway" class="bento-card" style="background: linear-gradient(135deg, #fefce8 0%, #ffffff 100%); border: 1px solid #fef08a; border-left: 4px solid #eab308; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px -2px rgba(234, 179, 8, 0.08);">
+            <a name="takeaway" id="takeaway" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>
+            <div class="bento-card" style="background: linear-gradient(135deg, #fefce8 0%, #ffffff 100%); border: 1px solid #fef08a; border-left: 4px solid #eab308; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px -2px rgba(234, 179, 8, 0.08);">
                 <div style="display: flex; align-items: center; margin-bottom: 12px;">
                     <span style="font-size: 18px; margin-right: 8px;">💡</span>
                     <h2 style="color: #854d0e; font-size: 15px; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Takeaway Prático de Engenharia do Dia</h2>
@@ -293,11 +297,12 @@ def render_bento_email(md_text: str) -> str:
         elif "Ferramentas" in title: accent_color = "#f59e0b"
         elif "Papers" in title: accent_color = "#ec4899"
 
-        card_id = ' id="radar-x"' if ("1." in title or "Ferramentas" in title or "Agentes" in title) and not any('id="radar-x"' in c for c in cards_html) else ""
+        is_radar = ("1." in title or "Ferramentas" in title or "Agentes" in title or "Radar" in title) and not any('name="radar-x"' in c for c in cards_html)
+        radar_anchor = '<a name="radar-x" id="radar-x" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>\n        ' if is_radar else ''
 
         cards_html.append(f"""
         <!-- BENTO CARD -->
-        <div{card_id} class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
+        {radar_anchor}<div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
             <div style="display: flex; align-items: center; border-bottom: 2px solid #f8fafc; padding-bottom: 10px; margin-bottom: 14px;">
                 <div style="width: 4px; height: 16px; background-color: {accent_color}; border-radius: 2px; margin-right: 8px;"></div>
                 <h2 style="color: #0f172a; font-size: 15.5px; margin: 0; font-weight: 700; letter-spacing: -0.2px;">{title}</h2>
@@ -317,6 +322,16 @@ def render_bento_email(md_text: str) -> str:
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Resumo Diário de IA</title>
         <style>
+            html {{
+                scroll-behavior: smooth;
+            }}
+            .nav-pill {{
+                transition: transform 0.15s ease, opacity 0.15s ease;
+            }}
+            .nav-pill:hover {{
+                opacity: 0.85;
+                transform: translateY(-1px);
+            }}
             @media only screen and (max-width: 600px) {{
                 body {{
                     padding: 12px 8px !important;
@@ -378,11 +393,11 @@ def render_bento_email(md_text: str) -> str:
 
                     <!-- NAVEGAÇÃO RÁPIDA (ÂNCORAS) -->
                     <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #f1f5f9; line-height: 2.2;">
-                        <a href="#destaques" style="display: inline-block; background-color: #eff6ff; color: #1e40af; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #dbeafe; margin-right: 8px; margin-bottom: 6px;">📌 Destaques</a>
-                        <a href="#radar-x" style="display: inline-block; background-color: #f5f3ff; color: #6d28d9; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #ede9fe; margin-right: 8px; margin-bottom: 6px;">🤖 Radar &amp; X</a>
-                        <a href="#github-trending" style="display: inline-block; background-color: #fff7ed; color: #c2410c; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #ffedd5; margin-right: 8px; margin-bottom: 6px;">🔥 GitHub</a>
-                        <a href="#papers" style="display: inline-block; background-color: #fdf2f8; color: #be185d; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #fce7f3; margin-right: 8px; margin-bottom: 6px;">📄 Papers</a>
-                        <a href="#takeaway" style="display: inline-block; background-color: #fefce8; color: #a16207; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #fef08a; margin-bottom: 6px;">💡 Takeaway</a>
+                        <a href="#destaques" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #eff6ff; color: #1e40af; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #dbeafe; margin-right: 8px; margin-bottom: 6px;">📌 Destaques</a>
+                        <a href="#radar-x" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #f5f3ff; color: #6d28d9; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #ede9fe; margin-right: 8px; margin-bottom: 6px;">🤖 Radar &amp; X</a>
+                        <a href="#github-trending" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #fff7ed; color: #c2410c; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #ffedd5; margin-right: 8px; margin-bottom: 6px;">🔥 GitHub</a>
+                        <a href="#papers" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #fdf2f8; color: #be185d; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #fce7f3; margin-right: 8px; margin-bottom: 6px;">📄 Papers</a>
+                        <a href="#takeaway" class="nav-pill" style="cursor: pointer; display: inline-block; background-color: #fefce8; color: #a16207; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #fef08a; margin-bottom: 6px;">💡 Takeaway</a>
                     </div>
                 </div>
             </div>
