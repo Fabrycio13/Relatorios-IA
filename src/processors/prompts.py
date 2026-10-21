@@ -38,9 +38,10 @@ Sua missão é selecionar, filtrar e consolidar as publicações em um relatóri
 ## 6. 🏆 Capacitação Profissional, Cursos & Hackathons
 ## 7. 🌐 Economia, Modelos de Negócio & Mercado Global de IA
 
-ATENÇÃO À FORMATAÇÃO DOS TÍTULOS:
+ATENÇÃO À FORMATAÇÃO DOS TÍTULOS E PONTUAÇÃO:
 - Use sempre `## ` (dois sustenidos) para os números das seções (ex: `## 1. 🚀 Ferramentas Open-Source...`, `## 5. 🎯 Radar Perfis de Referência...`). NUNCA use `### ` para seções principais.
 - Cada uma das 7 seções deve ser separada da anterior por uma linha contendo apenas `---`.
+- REGRA ESTRITA DE PONTUAÇÃO: NUNCA use travessão longo ' — ' (em-dash) em qualquer parte do texto! O uso de ' — ' é terminantemente proibido. Use dois-pontos ':', parênteses '()' ou vírgulas. Exemplo: formate sempre '**Nome (Subtítulo):**' ou '**Autor (Tema):**', NUNCA '**Nome — Subtítulo:**'.
 """
 
 def get_prompt_github(trending_repos_json: str) -> str:
@@ -50,9 +51,10 @@ def get_prompt_github(trending_repos_json: str) -> str:
         "Traduza e gere um resumo conciso, didático e em PORTUGUÊS DO BRASIL para cada um, explicando:\n"
         "1. O que é o projeto e qual problema ele resolve.\n"
         "2. Por que ele é útil na prática para quem trabalha com IA, agentes ou automação.\n\n"
-        "Formate cada repositório exatamente assim:\n"
-        "* **[autor/repo](url)** — ⭐ **X stars** (Linguagem)\n"
+        "Formate cada repositório exatamente assim (SEM travessão ' — '):\n"
+        "* **[autor/repo](url)** ⭐ **X stars** (Linguagem)\n"
         "  - Resumo em português de 2 a 3 linhas explicando o projeto e seu valor prático.\n\n"
+        "REGRA ESTRITA: NUNCA use travessão longo ' — ' em nenhuma parte do texto.\n\n"
         "Retorne APENAS a lista em markdown dos repositórios, sem cabeçalhos nem blocos ```markdown.\n\n"
         f"DADOS DOS REPOSITÓRIOS:\n{trending_repos_json}"
     )
@@ -64,9 +66,10 @@ def get_prompt_papers(papers_json: str) -> str:
         "Gere um resumo em PORTUGUÊS DO BRASIL para cada um, explicando de forma clara e direta:\n"
         "1. O avanço técnico ou arquitetura proposta pelo artigo.\n"
         "2. Qual o impacto prático dessa pesquisa para o desenvolvimento de modelos, agentes ou engenharia de software.\n\n"
-        "Formate cada paper exatamente assim:\n"
-        "* **[{titulo}](url)** — 📄 **ArXiv: {id}**\n"
+        "Formate cada paper exatamente assim (SEM travessão ' — '):\n"
+        "* **[{titulo}](url)** 📄 **ArXiv: {id}**\n"
         "  - Resumo em português de 2 a 3 linhas explicando a proposta e o impacto do paper.\n\n"
+        "REGRA ESTRITA: NUNCA use travessão longo ' — ' em nenhuma parte do texto.\n\n"
         "Retorne APENAS a lista em markdown dos papers, sem cabeçalhos nem blocos ```markdown.\n\n"
         f"DADOS DOS PAPERS:\n{papers_json}"
     )
@@ -79,6 +82,7 @@ def get_prompt_takeaway(relatorio_completo_md: str) -> str:
         "Explique de forma objetiva:\n"
         "1. Padrão/Tendência Emergente: O que o conjunto de novidades de hoje indica que está mudando na prática.\n"
         "2. Recomendação Prática: Uma sugestão acionável para quem constrói software, agentes ou integra LLMs (o que testar, adotar ou evitar hoje).\n\n"
+        "REGRA ESTRITA: NUNCA use travessão longo ' — ' em hipótese alguma.\n\n"
         "Formate EXATAMENTE assim:\n"
         "- **Padrão em Foco:** [Explicação concisa e didática em 2 linhas]\n"
         "- **Recomendação Prática:** [Sugestão acionável para engenheiros em 2 linhas]\n\n"

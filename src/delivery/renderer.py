@@ -34,6 +34,8 @@ def format_inline(text: str) -> str:
         return f'<span style="display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; {style} vertical-align: middle; margin-right: 4px; text-transform: uppercase;">{tag_key}</span>'
 
     t = re.sub(r'\[(MCP|NOVO|Novo|NOVA|Nova|CÓDIGO|Código|CODIGO|Codigo|GITHUB|GitHub|PAPER|Paper|DEMO|Demo|TENDÊNCIA|Tendência|TENDENCIA|Tendencia)\]', _badge_replace, t)
+    # Higienização contra travessão longo artificial ' — '
+    t = t.replace(" — ", " - ").replace("—", "-")
     return t
 
 def render_bento_email(md_text: str) -> str:
@@ -96,7 +98,7 @@ def render_bento_email(md_text: str) -> str:
             for l in lines:
                 l_str = l.strip()
                 if l_str.startswith("* **[") or l_str.startswith("- **["):
-                    match_header = re.match(r'[\*\-]\s+\*\*\[([^\]]+)\]\(([^)]+)\)\*\*\s+—\s+⭐\s+\*\*([^\*]+)\*\*\s+\(([^)]+)\)', l_str)
+                    match_header = re.match(r'[\*\-]\s+\*\*\[([^\]]+)\]\(([^)]+)\)\*\*[:\s—\-]*\s*⭐\s+\*\*([^\*]+)\*\*\s+[\(|\|]?\s*([^)\n]+)[\)]?', l_str)
                     if match_header:
                         repo_name, repo_url, stars, lang = match_header.groups()
                         curr_repo = {
@@ -158,7 +160,7 @@ def render_bento_email(md_text: str) -> str:
             for l in lines:
                 l_str = l.strip()
                 if l_str.startswith("* **[") or l_str.startswith("- **["):
-                    match_header = re.match(r'[\*\-]\s+\*\*\[([^\]]+)\]\(([^)]+)\)\*\*\s+—\s+📄\s+\*\*ArXiv:\s*([^\*]+)\*\*', l_str)
+                    match_header = re.match(r'[\*\-]\s+\*\*\[([^\]]+)\]\(([^)]+)\)\*\*[:\s—\-]*\s*📄\s+\*\*ArXiv:\s*([^\*]+)\*\*', l_str)
                     if match_header:
                         p_title, p_url, p_arxiv = match_header.groups()
                         curr_paper = {

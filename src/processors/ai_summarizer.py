@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -124,6 +125,18 @@ def _anexar_secao_takeaway(relatorio_md: str, openai_key: str) -> str:
         logger.warning(f"Aviso ao anexar Takeaway: {e}")
         return relatorio_md
 
+def remover_travessoes(md: str) -> str:
+    """Higieniza o markdown substituindo travessões longos (' — ') por formatos naturais (dois-pontos, parênteses ou hífen)."""
+    # 1. **Nome — Subtítulo:** -> **Nome (Subtítulo):**
+    md = re.sub(r'\*\*([^*]+?)\s+—\s+([^*]+?):\*\*', r'**\1 (\2):**', md)
+    md = re.sub(r'\*\*([^*]+?)\s+—\s+([^*]+?)\*\*', r'**\1 (\2)**', md)
+    # 2. **[link](url)** — ⭐ ou 📄 -> **[link](url)** ⭐ / 📄
+    md = re.sub(r'(\*\*\[[^\]]+\]\([^)]+\)\*\*)\s+—\s+', r'\1 ', md)
+    # 3. Qualquer outro ' — ' solto -> substitui por ' - ' (hífen simples)
+    md = re.sub(r'\s+—\s+', ' - ', md)
+    md = md.replace('—', '-')
+    return md
+
 def gerar_resumo_ia() -> Path | None:
     hoje = datetime.now()
     ontem = hoje - timedelta(days=1)
@@ -176,6 +189,9 @@ def gerar_resumo_ia() -> Path | None:
     relatorio_md = _anexar_secao_github(relatorio_md, config.OPENAI_API_KEY)
     relatorio_md = _anexar_secao_papers(relatorio_md, config.OPENAI_API_KEY)
     relatorio_md = _anexar_secao_takeaway(relatorio_md, config.OPENAI_API_KEY)
+
+    # Higienização de pontuação: elimina travessões artificiais (' — ')
+    relatorio_md = remover_travessoes(relatorio_md)
 
     with open(output_md, "w", encoding="utf-8") as f:
         f.write(relatorio_md)
