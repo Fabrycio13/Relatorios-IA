@@ -4,7 +4,6 @@ import re
 import smtplib
 import sys
 from datetime import datetime, timedelta
-from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -17,6 +16,10 @@ if sys.stdout.encoding != 'utf-8':
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, "email_config.json")
 CONFIG_EXAMPLE = os.path.join(BASE_DIR, "email_config.example.json")
+
+# URLs públicas dos banners hospedados no CDN do GitHub (eliminam chips de anexo no Gmail)
+HEADER_BANNER_URL = "https://raw.githubusercontent.com/Fabrycio13/newsletter-assets/main/header_banner.jpg"
+FOOTER_BANNER_URL = "https://raw.githubusercontent.com/Fabrycio13/newsletter-assets/main/footer_banner.jpg"
 
 def format_inline(text):
     """Aplica formatação inline básica em markdown (links, negrito, itálico, código)."""
@@ -259,7 +262,7 @@ def render_bento_email(md_text):
             <!-- HEADER COM BANNER PANORÂMICO -->
             <div class="header-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
                 <div style="width: 100%; line-height: 0; font-size: 0; background-color: #0f172a;">
-                    <img src="cid:header_banner" alt="Diário de Engenharia: IA &amp; Coding Agents" width="680" style="display: block; width: 100%; max-width: 680px; height: auto; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
+                    <img src="{HEADER_BANNER_URL}" alt="Diário de Engenharia: IA &amp; Coding Agents" width="680" style="display: block; width: 100%; max-width: 680px; height: auto; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
                 </div>
                 <div class="header-content" style="padding: 22px 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -281,7 +284,7 @@ def render_bento_email(md_text):
             <!-- FOOTER COM BANNER ARTE 4 E ASSINATURA -->
             <div class="footer-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-top: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
                 <div style="width: 100%; line-height: 0; font-size: 0; background-color: #0f172a;">
-                    <img src="cid:footer_banner" alt="Curadoria de Engenharia" width="680" style="display: block; width: 100%; max-width: 680px; height: auto; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
+                    <img src="{FOOTER_BANNER_URL}" alt="Curadoria de Engenharia" width="680" style="display: block; width: 100%; max-width: 680px; height: auto; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
                 </div>
                 <div class="footer-content" style="padding: 20px 24px; text-align: center; background-color: #ffffff;">
                     <p style="color: #0f172a; font-size: 13.5px; font-weight: 700; margin: 0 0 4px 0; letter-spacing: -0.2px;">
@@ -365,40 +368,17 @@ def enviar_relatorio_email(destinatario=None, caminho_relatorio=None):
         print("[ERRO] Senha de app não configurada.")
         return False
 
-    # Estrutura MIME 'related' contendo 'alternative' e imagens embutidas (CID)
-    msg = MIMEMultipart("related")
+    # Estrutura MIME 'alternative' limpa (sem anexos binários, elimina chips de anexo no Gmail)
+    msg = MIMEMultipart("alternative")
     msg["Subject"] = assunto
     msg["From"] = remetente
     msg["To"] = destinatario_final
 
-    msg_alt = MIMEMultipart("alternative")
-    msg.attach(msg_alt)
-
     part_text = MIMEText(md_content, "plain", "utf-8")
     part_html = MIMEText(html_content, "html", "utf-8")
 
-    msg_alt.attach(part_text)
-    msg_alt.attach(part_html)
-
-    # Anexa o banner do cabeçalho (Arte 2) via CID
-    header_img_path = os.path.join(BASE_DIR, "assets", "header_banner.jpg")
-    if os.path.exists(header_img_path):
-        with open(header_img_path, "rb") as f:
-            img_header = MIMEImage(f.read(), _subtype="jpeg")
-            img_header.add_header("Content-ID", "<header_banner>")
-            img_header.add_header("X-Attachment-Id", "header_banner")
-            img_header.add_header("Content-Disposition", "inline")
-            msg.attach(img_header)
-
-    # Anexa o banner do rodapé (Arte 4) via CID
-    footer_img_path = os.path.join(BASE_DIR, "assets", "footer_banner.jpg")
-    if os.path.exists(footer_img_path):
-        with open(footer_img_path, "rb") as f:
-            img_footer = MIMEImage(f.read(), _subtype="jpeg")
-            img_footer.add_header("Content-ID", "<footer_banner>")
-            img_footer.add_header("X-Attachment-Id", "footer_banner")
-            img_footer.add_header("Content-Disposition", "inline")
-            msg.attach(img_footer)
+    msg.attach(part_text)
+    msg.attach(part_html)
 
     print(f"Conectando ao servidor SMTP do Gmail para enviar para {destinatario_final}...")
     try:
