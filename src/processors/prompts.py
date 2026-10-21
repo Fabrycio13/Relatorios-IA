@@ -28,20 +28,23 @@ Sua missão é selecionar, filtrar e consolidar as publicações em um relatóri
 
 ---
 
-## 1. 🚀 Ferramentas Open-Source, Visão & Ambientes 3D
-## 2. 🤖 Agentes Autônomos, MCP & Infraestrutura de Execução
-## 3. 🧪 Harness Engineering, Evals & RAG Avançado
+## 🚀 Ferramentas Open-Source, Visão & Ambientes 3D
+## 🤖 Agentes Autônomos, MCP & Infraestrutura de Execução
+## 🧪 Harness Engineering, Evals & RAG Avançado
 (Dedique este tópico a evals de modelos/agentes, frameworks de harness, testes automatizados de agentes, recuperação semântica, RAG, embeddings e benchmarks práticos de confiabilidade).
-## 4. 💻 Desenvolvimento, Claude Code & Eficiência de Custos
-## 5. 🎯 Radar Perfis de Referência (Matt Pocock, Karpathy, Swyx, Jason Liu, Chip Huyen, Santiago)
-(Destaque para posts, reflexões técnicas, evals e discussões desses criadores presentes no arquivo, contextualizando o valor de suas ideias para engenharia de software com IA).
-## 6. 🏆 Capacitação Profissional, Cursos & Hackathons
-## 7. 🌐 Economia, Modelos de Negócio & Mercado Global de IA
+## 💻 Desenvolvimento, Claude Code & Eficiência de Custos
+## 🎯 Radar Perfis de Referência
+(Destaque para posts, reflexões técnicas, evals e discussões dos criadores presentes no arquivo, contextualizando o valor de suas ideias para engenharia de software com IA. NUNCA mencione autores ausentes que não publicaram nada).
+## 🏆 Capacitação Profissional, Cursos & Hackathons
+## 🌐 Economia, Modelos de Negócio & Mercado Global de IA
 
 ATENÇÃO À FORMATAÇÃO DOS TÍTULOS E PONTUAÇÃO:
-- Use sempre `## ` (dois sustenidos) para os números das seções (ex: `## 1. 🚀 Ferramentas Open-Source...`, `## 5. 🎯 Radar Perfis de Referência...`). NUNCA use `### ` para seções principais.
-- Cada uma das 7 seções deve ser separada da anterior por uma linha contendo apenas `---`.
-- REGRA ESTRITA DE PONTUAÇÃO: NUNCA use travessão longo ' — ' (em-dash) em qualquer parte do texto! O uso de ' — ' é terminantemente proibido. Use dois-pontos ':', parênteses '()' ou vírgulas. Exemplo: formate sempre '**Nome (Subtítulo):**' ou '**Autor (Tema):**', NUNCA '**Nome — Subtítulo:**'.
+- Use sempre `## ` (dois sustenidos) para os títulos das seções (ex: `## 🚀 Ferramentas Open-Source...`, `## 🎯 Radar Perfis de Referência`). Não utilize números como '1.', '2.' nos títulos. NUNCA use `### ` para seções principais.
+- Cada uma das seções deve ser separada da anterior por uma linha contendo apenas `---`.
+- FILTRO DE AUTORES AUSENTES: No 'Radar Perfis de Referência', liste EXCLUSIVAMENTE quem publicou conteúdo técnico relevante. NUNCA inclua linhas negativas de ausência como 'Chip Huyen: não há publicação deste perfil' ou comentários sobre posts irrelevantes. Se um autor não postou nada sobre IA, simplesmente ignore-o.
+- REGRA ESTRITA DE PONTUAÇÃO E SINTAXE:
+  * NUNCA inicie bullets com parênteses soltos como '- )' ou '- )**'. Formate sempre '- **Título:** ...'.
+  * NUNCA use travessão longo ' — ' (em-dash) em qualquer parte do texto! O uso de ' — ' é terminantemente proibido. Use dois-pontos ':', parênteses '()' ou vírgulas. Exemplo: formate sempre '**Nome (Subtítulo):**' ou '**Autor (Tema):**', NUNCA '**Nome — Subtítulo:**'.
 """
 
 def get_prompt_github(trending_repos_json: str) -> str:

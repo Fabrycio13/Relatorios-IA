@@ -4,6 +4,10 @@ from src.core.config import HEADER_BANNER_URL, FOOTER_BANNER_URL
 
 def format_inline(text: str) -> str:
     """Aplica formatação inline básica em markdown (links, negrito, itálico, código, micro-badges)."""
+    # Remove eventuais parênteses soltos no início ou resíduos de bug ')Palavra'
+    text = re.sub(r'^[)\s]+', '', text)
+    text = text.replace(" )**", " **").replace(")**", "**")
+
     # Links primeiro
     t = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" style="color: #2563eb; text-decoration: none; font-weight: 600;">\1</a>', text)
     # Negrito
@@ -146,8 +150,7 @@ def render_bento_email(md_text: str) -> str:
             <a name="github-trending" id="github-trending" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>
             <div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #ea580c; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
                 <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 14px;">
-                    <h2 style="color: #0f172a; font-size: 16px; margin: 0; font-weight: 700;">🔥 GitHub Trending: Repositórios de IA em Alta no Dia</h2>
-                    <p style="color: #64748b; font-size: 12px; margin: 3px 0 0 0;">Projetos em destaque com resumo e aplicabilidade em português</p>
+                    <h2 style="color: #c2410c; font-size: 15px; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.4;">🔥 GitHub Trending: Repositórios de IA em Alta no Dia</h2>
                 </div>
                 {''.join(repos_cards)}
             </div>
@@ -207,8 +210,7 @@ def render_bento_email(md_text: str) -> str:
             <a name="papers" id="papers" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>
             <div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #db2777; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
                 <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 14px;">
-                    <h2 style="color: #0f172a; font-size: 16px; margin: 0; font-weight: 700;">📄 Papers em Destaque: Pesquisa &amp; Estado da Arte</h2>
-                    <p style="color: #64748b; font-size: 12px; margin: 3px 0 0 0;">Curadoria dos artigos científicos mais votados no Hugging Face / ArXiv</p>
+                    <h2 style="color: #be185d; font-size: 15px; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.4;">📄 Papers em Destaque: Pesquisa &amp; Estado da Arte</h2>
                 </div>
                 {''.join(paper_cards)}
             </div>
@@ -252,6 +254,21 @@ def render_bento_email(md_text: str) -> str:
             if not l_str:
                 continue
 
+            # Remove bug de parênteses soltos como '- )**' ou '- )'
+            l_str = re.sub(r'^[\*\-]\s*\)\s*', '- ', l_str)
+            l_str = re.sub(r'^[\*\-]\s*\)\*\*', '- **', l_str)
+
+            # Filtro de itens de ausência ou meta-comentários negativos sobre autores
+            l_lower = l_str.lower()
+            if any(term in l_lower for term in [
+                "não há publicação",
+                "não ha publicação",
+                "não há publicações",
+                "não publicou",
+                "não foi tratado como notícia"
+            ]):
+                continue
+
             if (l_str.startswith("* **") or l_str.startswith("- **")) and not l.startswith("  "):
                 item_header = format_inline(l_str[2:])
 
@@ -291,20 +308,35 @@ def render_bento_email(md_text: str) -> str:
                 """)
 
         accent_color = "#3b82f6"
+        title_color = "#1d4ed8"
+
         if "1." in title or "Ferramentas" in title or "Visão" in title or "Visao" in title:
             accent_color = "#f97316"  # Laranja Âmbar (Tópico 1: Ferramentas & Visão)
+            title_color = "#c2410c"
         elif "2." in title or "Agentes" in title or "MCP" in title:
             accent_color = "#8b5cf6"  # Roxo Violeta (Tópico 2: Agentes & MCP)
+            title_color = "#6d28d9"
         elif "3." in title or "Harness" in title or "Evals" in title:
             accent_color = "#06b6d4"  # Ciano / Teal (Tópico 3: Harness & RAG)
+            title_color = "#0e7490"
         elif "4." in title or "Desenvolvimento" in title or "Claude" in title:
             accent_color = "#10b981"  # Verde Esmeralda (Tópico 4: Dev & Claude Code)
+            title_color = "#047857"
         elif "5." in title or "Radar" in title or "Perfis" in title:
             accent_color = "#4f46e5"  # Índigo / Azul Royal (Tópico 5: Radar VIP)
+            title_color = "#4338ca"
         elif "6." in title or "Capacitação" in title or "Capacitacao" in title or "Hackathons" in title:
             accent_color = "#ec4899"  # Rosa Magenta (Tópico 6: Capacitação & Hackathons)
+            title_color = "#be185d"
         elif "7." in title or "Economia" in title or "Mercado" in title:
             accent_color = "#d97706"  # Dourado Ocre (Tópico 7: Economia & Negócios)
+            title_color = "#b45309"
+
+        # Remove numeração 1...2...3 do início do título
+        title_clean = re.sub(r'^\d+\.\s*', '', title).strip()
+        # Se for Radar de Referência, remove nomes entre parênteses (Matt Pocock, Karpathy, etc.)
+        if "Radar Perfis" in title_clean or "Radar" in title_clean:
+            title_clean = re.sub(r'\s*\(.*?\)', '', title_clean).strip()
 
         is_radar = ("1." in title or "Ferramentas" in title or "Agentes" in title or "Radar" in title) and not any('name="radar-x"' in c for c in cards_html)
         radar_anchor = '<a name="radar-x" id="radar-x" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>\n        ' if is_radar else ''
@@ -313,7 +345,7 @@ def render_bento_email(md_text: str) -> str:
         <!-- BENTO CARD -->
         {radar_anchor}<div class="bento-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid {accent_color}; border-radius: 16px; padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 14px;">
-                <h2 style="color: #0f172a; font-size: 15.5px; margin: 0; font-weight: 700; letter-spacing: -0.2px; line-height: 1.4;">{title}</h2>
+                <h2 style="color: {title_color}; font-size: 15px; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.4;">{title_clean}</h2>
             </div>
             {''.join(rendered_items)}
         </div>
