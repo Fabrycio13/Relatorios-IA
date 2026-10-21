@@ -157,7 +157,8 @@ def enviar_relatorio_email(destinatario=None, caminho_relatorio=None):
 
     hoje = datetime.now()
     ontem = hoje - timedelta(days=1)
-    assunto = f"🧠 Resumo de IA - Feed do X (Destaques de {ontem.strftime('%d/%m/%Y')})"
+    hora_envio = hoje.strftime("%H:%M")
+    assunto = f"🧠 Resumo Diário de IA (Destaques de {ontem.strftime('%d/%m/%Y')}) • {hora_envio}"
 
     html_content = markdown_to_html(md_content)
 
