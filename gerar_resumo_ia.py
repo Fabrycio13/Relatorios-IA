@@ -38,17 +38,26 @@ CRITÉRIOS DE SELEÇÃO E DISTRIBUIÇÃO DINÂMICA:
    - Use o número de curtidas (likes), comentários (replies) e reposts para ranquear e priorizar as discussões que mais repercutiram no dia.
    - Se o tweet mencionar ou contiver link para GitHub, ArXiv, artigos externos (`external_links`) ou demonstração direta, SEMPRE inclua esse link formatado em markdown nos sub-bullets!
 
-Sua missão é selecionar, filtrar e consolidar as publicações em um relatório Markdown estruturado nos seguintes TÓPICOS TEMÁTICOS:
+Sua missão é selecionar, filtrar e consolidar as publicações em um relatório Markdown estruturado OBRIGATORIAMENTE com a seguinte hierarquia visual:
 
-### 1. 🚀 Ferramentas Open-Source, Visão & Ambientes 3D
-### 2. 🤖 Agentes Autônomos, MCP & Infraestrutura de Execução
-### 3. 🧪 Harness Engineering, Evals & RAG Avançado
+## 📌 Destaques Principais do Dia
+(Liste de 3 a 5 bullets diretos com as notícias mais impactantes e relevantes de todo o relatório)
+
+---
+
+## 1. 🚀 Ferramentas Open-Source, Visão & Ambientes 3D
+## 2. 🤖 Agentes Autônomos, MCP & Infraestrutura de Execução
+## 3. 🧪 Harness Engineering, Evals & RAG Avançado
 (Dedique este tópico a evals de modelos/agentes, frameworks de harness, testes automatizados de agentes, recuperação semântica, RAG, embeddings e benchmarks práticos de confiabilidade).
-### 4. 💻 Desenvolvimento, Claude Code & Eficiência de Custos
-### 5. 🎯 Radar Perfis de Referência (Matt Pocock, Karpathy, Swyx, Jason Liu, Chip Huyen, Santiago)
-(Destaque para posts, reflexões técnicas, evals e discussões desses criadores nos últimos 2 a 3 dias recentes, contextualizando o valor de suas ideias para engenharia de software com IA).
-### 6. 🏆 Capacitação Profissional, Cursos & Hackathons
-### 7. 🌐 Economia, Modelos de Negócio & Mercado Global de IA
+## 4. 💻 Desenvolvimento, Claude Code & Eficiência de Custos
+## 5. 🎯 Radar Perfis de Referência (Matt Pocock, Karpathy, Swyx, Jason Liu, Chip Huyen, Santiago)
+(Destaque para posts, reflexões técnicas, evals e discussões desses criadores presentes no arquivo, contextualizando o valor de suas ideias para engenharia de software com IA).
+## 6. 🏆 Capacitação Profissional, Cursos & Hackathons
+## 7. 🌐 Economia, Modelos de Negócio & Mercado Global de IA
+
+ATENÇÃO À FORMATAÇÃO DOS TÍTULOS:
+- Use sempre `## ` (dois sustenidos) para os números das seções (ex: `## 1. 🚀 Ferramentas Open-Source...`, `## 5. 🎯 Radar Perfis de Referência...`). NUNCA use `### ` para seções principais.
+- Cada uma das 7 seções deve ser separada da anterior por uma linha contendo apenas `---`.
 
 Para cada publicação destacada dentro do seu respectivo tópico:
 - Crie um título conciso destacando a ferramenta/inovação, seguido do autor e arroba com link markdown para o tweet original:
@@ -70,7 +79,7 @@ Cabeçalho padrão a ser incluído no topo:
 
 ## 📌 Destaques Principais do Dia
 
-(Siga com os 5 tópicos acima, separando cada tópico com ---)
+(Liste aqui os 3 a 5 pontos mais importantes do dia em bullets `- **Nome**: resumo`)
 
 Retorne APENAS o código Markdown pronto, sem blocos ```markdown ``` envolvendo a resposta."""
 
