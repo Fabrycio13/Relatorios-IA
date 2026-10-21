@@ -32,7 +32,7 @@ def format_inline(text):
 def render_bento_email(md_text):
     """
     Renderizador Bento Grid Modular estilo Apple Dashboard (Light Premium).
-    Transforma as seções em cards flutuantes com sombras suaves, bordas e badges.
+    100% responsivo para mobile (iPhone, Android) e desktop (Outlook, Gmail).
     """
     sections = []
     current_section = None
@@ -50,7 +50,6 @@ def render_bento_email(md_text):
 
     cards_html = []
     
-    # Processa cada seção identificada
     for sec in sections:
         title = sec["title"]
         lines = sec["lines"]
@@ -70,10 +69,10 @@ def render_bento_email(md_text):
             
             cards_html.append(f"""
             <!-- HERO CARD: DESTAQUES DO DIA -->
-            <div style="background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 20px 24px; margin-bottom: 24px; box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.08);">
-                <div style="display: flex; align-items: center; margin-bottom: 14px;">
-                    <span style="font-size: 20px; margin-right: 8px;">📌</span>
-                    <h2 style="color: #1e40af; font-size: 17px; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Destaques Principais do Dia</h2>
+            <div style="background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.08);">
+                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                    <span style="font-size: 18px; margin-right: 8px;">📌</span>
+                    <h2 style="color: #1e40af; font-size: 16px; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Destaques Principais do Dia</h2>
                 </div>
                 <ul style="padding-left: 20px; margin: 0;">
                     {''.join(bullets_html)}
@@ -102,7 +101,6 @@ def render_bento_email(md_text):
                         }
                         gh_items.append(curr_repo)
                     else:
-                        # Fallback se formato for ligeiramente diferente
                         curr_repo = {
                             "raw_title": format_inline(l_str[2:]),
                             "desc": []
@@ -116,29 +114,29 @@ def render_bento_email(md_text):
                 if "name" in r:
                     desc_text = " ".join(r["desc"])
                     repos_cards.append(f"""
-                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;">
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;">
                         <div style="margin-bottom: 6px;">
-                            <a href="{r['url']}" style="color: #0f172a; font-weight: 700; text-decoration: none; font-size: 15px; margin-right: 8px;">{r['name']}</a>
-                            <span style="background-color: #fef08a; color: #854d0e; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-right: 6px;">⭐ {r['stars']}</span>
-                            <span style="background-color: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;">{r['lang']}</span>
+                            <a href="{r['url']}" style="color: #0f172a; font-weight: 700; text-decoration: none; font-size: 14px; margin-right: 8px; word-break: break-word;">{r['name']}</a>
+                            <span style="display: inline-block; white-space: nowrap; background-color: #fef08a; color: #854d0e; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; margin-right: 4px; margin-top: 2px;">⭐ {r['stars']}</span>
+                            <span style="display: inline-block; white-space: nowrap; background-color: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 999px; margin-top: 2px;">{r['lang']}</span>
                         </div>
                         <p style="color: #475569; font-size: 13px; line-height: 1.5; margin: 0;">{desc_text}</p>
                     </div>
                     """)
                 else:
                     repos_cards.append(f"""
-                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;">
-                        <p style="margin: 0; font-size: 14px;">{r.get('raw_title', '')}</p>
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;">
+                        <p style="margin: 0; font-size: 14px; word-break: break-word;">{r.get('raw_title', '')}</p>
                         <p style="color: #475569; font-size: 13px; line-height: 1.5; margin: 4px 0 0 0;">{' '.join(r.get('desc', []))}</p>
                     </div>
                     """)
 
             cards_html.append(f"""
             <!-- GITHUB TRENDING CARD -->
-            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
-                <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
-                    <h2 style="color: #0f172a; font-size: 17px; margin: 0; font-weight: 700;">🔥 GitHub Trending: Repositórios de IA em Alta no Dia</h2>
-                    <p style="color: #64748b; font-size: 12px; margin: 4px 0 0 0;">Projetos em destaque com resumo e aplicabilidade em português</p>
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
+                <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 14px;">
+                    <h2 style="color: #0f172a; font-size: 16px; margin: 0; font-weight: 700;">🔥 GitHub Trending: Repositórios de IA em Alta no Dia</h2>
+                    <p style="color: #64748b; font-size: 12px; margin: 3px 0 0 0;">Projetos em destaque com resumo e aplicabilidade em português</p>
                 </div>
                 {''.join(repos_cards)}
             </div>
@@ -154,12 +152,15 @@ def render_bento_email(md_text):
             if not l_str:
                 continue
                 
-            # Item principal (* **Título ([@autor](url)) — 🔥 engajamento:**)
             if (l_str.startswith("* **") or l_str.startswith("- **")) and not l.startswith("  "):
                 item_header = format_inline(l_str[2:])
-                # Converte 🔥 badge
+                # Substitui badge 🔥 garantindo display: inline-block e white-space: nowrap para NUNCA QUEBRAR
                 if "🔥" in item_header:
-                    item_header = re.sub(r'—\s*(🔥\s*[^<*\n:]+)', r'<span style="background-color: #ffedd5; color: #c2410c; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 6px;">\1</span>', item_header)
+                    item_header = re.sub(
+                        r'—\s*(🔥\s*[^<*\n:]+)',
+                        r'<span style="display: inline-block; white-space: nowrap; background-color: #ffedd5; color: #c2410c; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 6px; margin-top: 2px; vertical-align: middle;">\1</span>',
+                        item_header
+                    )
                 
                 curr_item = {
                     "header": item_header,
@@ -170,7 +171,6 @@ def render_bento_email(md_text):
                 bullet_text = format_inline(l_str.lstrip("-* "))
                 curr_item["bullets"].append(f"<li style='margin-bottom: 5px; color: #475569; font-size: 13.5px; line-height: 1.55;'>{bullet_text}</li>")
             else:
-                # Texto genérico ou nota de tópico vazio
                 if not items_html:
                     items_html.append({"raw_p": format_inline(l_str)})
 
@@ -179,36 +179,34 @@ def render_bento_email(md_text):
             if "raw_p" in it:
                 rendered_items.append(f"<p style='color: #64748b; font-size: 13.5px; font-style: italic; margin: 4px 0;'>{it['raw_p']}</p>")
             else:
-                bullets_str = f"<ul style='margin: 6px 0 0 0; padding-left: 20px;'>{''.join(it['bullets'])}</ul>" if it['bullets'] else ""
+                bullets_str = f"<ul style='margin: 6px 0 0 0; padding-left: 18px;'>{''.join(it['bullets'])}</ul>" if it['bullets'] else ""
                 rendered_items.append(f"""
                 <div style="margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px dashed #f1f5f9;">
-                    <div style="font-size: 15px; margin-bottom: 4px; color: #0f172a;">
+                    <div style="font-size: 14.5px; margin-bottom: 4px; color: #0f172a; line-height: 1.45; word-break: break-word;">
                         {it['header']}
                     </div>
                     {bullets_str}
                 </div>
                 """)
 
-        # Cores e estilos de cabeçalho por tópico
         accent_color = "#3b82f6"
-        if "Radar Perfis" in title: accent_color = "#8b5cf6" # Roxo
-        elif "Harness" in title: accent_color = "#06b6d4" # Ciano
-        elif "Desenvolvimento" in title: accent_color = "#10b981" # Esmeralda
-        elif "Ferramentas" in title: accent_color = "#f59e0b" # Âmbar
+        if "Radar Perfis" in title: accent_color = "#8b5cf6"
+        elif "Harness" in title: accent_color = "#06b6d4"
+        elif "Desenvolvimento" in title: accent_color = "#10b981"
+        elif "Ferramentas" in title: accent_color = "#f59e0b"
 
         cards_html.append(f"""
         <!-- BENTO CARD -->
-        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 22px 24px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
+        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 20px; margin-bottom: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
             <div style="display: flex; align-items: center; border-bottom: 2px solid #f8fafc; padding-bottom: 10px; margin-bottom: 14px;">
-                <div style="width: 4px; height: 18px; background-color: {accent_color}; border-radius: 2px; margin-right: 10px;"></div>
-                <h2 style="color: #0f172a; font-size: 16px; margin: 0; font-weight: 700; letter-spacing: -0.2px;">{title}</h2>
+                <div style="width: 4px; height: 16px; background-color: {accent_color}; border-radius: 2px; margin-right: 8px;"></div>
+                <h2 style="color: #0f172a; font-size: 15.5px; margin: 0; font-weight: 700; letter-spacing: -0.2px;">{title}</h2>
             </div>
             {''.join(rendered_items)}
         </div>
         """)
 
     body_content = "\n".join(cards_html)
-
     hoje_formatada = datetime.now().strftime("%d/%m/%Y")
     
     full_html = f"""
@@ -218,29 +216,50 @@ def render_bento_email(md_text):
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Resumo Diário de IA</title>
+        <style>
+            @media only screen and (max-width: 600px) {{
+                body {{
+                    padding: 12px 8px !important;
+                }}
+                .main-container {{
+                    max-width: 100% !important;
+                }}
+                .header-card {{
+                    padding: 20px 16px !important;
+                    border-radius: 14px !important;
+                }}
+                .header-title {{
+                    font-size: 20px !important;
+                }}
+                .bento-card {{
+                    padding: 16px 14px !important;
+                    border-radius: 12px !important;
+                }}
+            }}
+        </style>
     </head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 32px 16px; color: #0f172a; -webkit-font-smoothing: antialiased;">
-        <div style="max-width: 720px; margin: 0 auto;">
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px 12px; color: #0f172a; -webkit-font-smoothing: antialiased;">
+        <div class="main-container" style="max-width: 680px; margin: 0 auto;">
             
             <!-- WALLPAPER HEADER / DASHBOARD TOP -->
-            <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 20px; padding: 28px 32px; margin-bottom: 24px; color: #ffffff; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);">
+            <div class="header-card" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 18px; padding: 24px 28px; margin-bottom: 20px; color: #ffffff; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.18);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <div style="display: inline-block; background-color: rgba(255, 255, 255, 0.12); color: #93c5fd; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 4px 10px; border-radius: 999px;">
+                    <div style="display: inline-block; background-color: rgba(255, 255, 255, 0.12); color: #93c5fd; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; padding: 3px 9px; border-radius: 999px;">
                         Dashboard Diário de IA
                     </div>
-                    <div style="color: #94a3b8; font-size: 13px; font-weight: 500;">
+                    <div style="color: #94a3b8; font-size: 12px; font-weight: 500;">
                         {hoje_formatada} • 08:00
                     </div>
                 </div>
-                <h1 style="color: #ffffff; margin: 12px 0 6px 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Radar Executivo de Inteligência Artificial</h1>
-                <p style="color: #94a3b8; font-size: 13px; margin: 0; font-weight: 400; line-height: 1.4;">Feed Especializado do X (Twitter) • Radar de Líderes VIPs • GitHub Trending</p>
+                <h1 class="header-title" style="color: #ffffff; margin: 10px 0 6px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">Radar Executivo de IA</h1>
+                <p style="color: #94a3b8; font-size: 12.5px; margin: 0; font-weight: 400; line-height: 1.4;">Feed Especializado do X • Radar VIP • GitHub Trending</p>
             </div>
 
             <!-- BENTO GRID CONTAINER -->
             {body_content}
 
             <!-- FOOTER -->
-            <div style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 32px; padding-top: 16px;">
+            <div style="text-align: center; color: #94a3b8; font-size: 11.5px; margin-top: 28px; padding-top: 14px;">
                 Relatório Automatizado de Engenharia de IA • Enviado para fabrycio.bermudes@usabit.com.br<br>
                 Gerado com gpt-6-luna • Agendado diariamente às 08:00
             </div>
@@ -300,7 +319,7 @@ def enviar_relatorio_email(destinatario=None, caminho_relatorio=None):
     hora_envio = hoje.strftime("%H:%M")
     assunto = f"🧠 Resumo Diário de IA (Destaques de {ontem.strftime('%d/%m/%Y')}) • {hora_envio}"
 
-    # Renderiza com o novo Bento Grid Modular (Light Premium)
+    # Renderiza com o Bento Grid Modular 100% responsivo para mobile
     html_content = render_bento_email(md_content)
 
     if not senha_app or senha_app.strip() == "sua_senha_de_app_aqui" or len(senha_app.strip()) < 8:
