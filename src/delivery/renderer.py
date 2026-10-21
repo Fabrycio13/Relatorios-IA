@@ -243,8 +243,8 @@ def render_bento_email(md_text: str) -> str:
             
             <!-- HEADER COM BANNER PANORÂMICO -->
             <div class="header-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
-                <div style="width: 100%; line-height: 0; font-size: 0; background-color: #0f172a;">
-                    <img src="{HEADER_BANNER_URL}" alt="Diário de Engenharia: IA &amp; Coding Agents" width="680" style="display: block; width: 100%; max-width: 680px; height: auto; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
+                <div style="width: 100%; line-height: 0; font-size: 0; background-color: #0f172a; max-height: 160px; overflow: hidden;">
+                    <img src="{HEADER_BANNER_URL}" alt="Diário de Engenharia: IA &amp; Coding Agents" width="680" height="160" style="display: block; width: 100%; max-width: 680px; max-height: 160px; height: auto; object-fit: cover; object-position: center; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
                 </div>
                 <div class="header-content" style="padding: 22px 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -265,8 +265,8 @@ def render_bento_email(md_text: str) -> str:
 
             <!-- FOOTER COM BANNER ARTE 4 E ASSINATURA -->
             <div class="footer-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-top: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
-                <div style="width: 100%; line-height: 0; font-size: 0; background-color: #0f172a;">
-                    <img src="{FOOTER_BANNER_URL}" alt="Curadoria de Engenharia" width="680" style="display: block; width: 100%; max-width: 680px; height: auto; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
+                <div style="width: 100%; line-height: 0; font-size: 0; background-color: #0f172a; max-height: 150px; overflow: hidden;">
+                    <img src="{FOOTER_BANNER_URL}" alt="Curadoria de Engenharia" width="680" height="150" style="display: block; width: 100%; max-width: 680px; max-height: 150px; height: auto; object-fit: cover; object-position: center; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
                 </div>
                 <div class="footer-content" style="padding: 20px 24px; text-align: center; background-color: #ffffff;">
                     <p style="color: #0f172a; font-size: 13.5px; font-weight: 700; margin: 0 0 4px 0; letter-spacing: -0.2px;">
