@@ -379,10 +379,10 @@ def render_bento_email(md_text: str) -> str:
             
             <!-- HEADER COM BANNER PANORÂMICO DO CASTELO -->
             <div class="header-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
-                <div style="width: 100%; line-height: 0; font-size: 0; background-color: #0f172a; max-height: 260px; overflow: hidden;">
-                    <img src="{HEADER_BANNER_URL}" alt="Castelo de IA &amp; Coding Agents" width="680" height="260" style="display: block; width: 100%; max-width: 680px; max-height: 260px; height: auto; object-fit: cover; object-position: center; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
+                <div style="width: 100%; line-height: 0; font-size: 0; background-color: #ffffff; max-height: 280px; overflow: hidden;">
+                    <img src="{HEADER_BANNER_URL}" alt="Castelo de IA &amp; Coding Agents" width="680" height="280" style="display: block; width: 100%; max-width: 680px; max-height: 280px; height: auto; object-fit: cover; object-position: center; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
                 </div>
-                <div class="header-content" style="padding: 20px 24px;">
+                <div class="header-content" style="padding: 10px 24px 20px 24px;">
                     <!-- TABELA ANTI-COLISÃO PARA BADGE E DATA -->
                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 8px;">
                         <tr>
