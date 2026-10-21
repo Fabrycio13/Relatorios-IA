@@ -122,3 +122,18 @@ Arquivo gerado em: D:\Projetos\Relatorios - IA\tweets_coletados.json
 [2026-10-21 09:31:57] 🎉 FLUXO COMPLETO CONCLUÍDO COM SUCESSO! E-mail entregue.
 [2026-10-21 09:31:57] ============================================================
 
+[2026-10-21 10:46:04] ============================================================
+[2026-10-21 10:46:04] 🚀 INICIANDO FLUXO COMPLETO DO RELATÓRIO DIÁRIO DE IA (D-1)
+[2026-10-21 10:46:04] ============================================================
+[2026-10-21 10:46:04] ▶️  INICIANDO ETAPA: Coleta de Tweets do X
+[2026-10-21 10:48:53] ✅ [SUCESSO] Etapa 'Coleta de Tweets do X' concluída com sucesso.
+[2026-10-21 10:48:53] ▶️  INICIANDO ETAPA: Coleta de Repositórios em Alta do GitHub
+[2026-10-21 10:48:56] ✅ [SUCESSO] Etapa 'Coleta de Repositórios em Alta do GitHub' concluída com sucesso.
+[2026-10-21 10:48:56] ▶️  INICIANDO ETAPA: Geração do Resumo Inteligente com IA
+[2026-10-21 10:50:09] ✅ [SUCESSO] Etapa 'Geração do Resumo Inteligente com IA' concluída com sucesso.
+[2026-10-21 10:50:09] ▶️  INICIANDO ETAPA: Envio do E-mail Formatado
+[2026-10-21 10:50:12] ✅ [SUCESSO] Etapa 'Envio do E-mail Formatado' concluída com sucesso.
+[2026-10-21 10:50:12] ============================================================
+[2026-10-21 10:50:12] 🎉 FLUXO COMPLETO CONCLUÍDO COM SUCESSO! E-mail entregue.
+[2026-10-21 10:50:12] ============================================================
+

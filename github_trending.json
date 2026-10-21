@@ -2,7 +2,7 @@
   {
     "name": "earshot",
     "full_name": "Leonxlnx/earshot",
-    "stars": 2028,
+    "stars": 2029,
     "description": "Ears for coding agents: let AI hear, review and make sound. CPU-only, open source.",
     "language": "Python",
     "url": "https://github.com/Leonxlnx/earshot",
@@ -18,7 +18,7 @@
   {
     "name": "blender-ai-mcp-addon",
     "full_name": "LiCinCan/blender-ai-mcp-addon",
-    "stars": 959,
+    "stars": 962,
     "description": "AI assistant and MCP server for Blender: visual chat, scene tools, multi-agent workflows. Works with OpenAI, ChatGPT, Claude, Gemini, Ollama, OpenCode. Blender AI addon and plugin, copilot for 3D, bpy Python scripting, MCP integration.",
     "language": "Python",
     "url": "https://github.com/LiCinCan/blender-ai-mcp-addon",
@@ -49,7 +49,7 @@
   {
     "name": "reason-network",
     "full_name": "reason-machines/reason-network",
-    "stars": 851,
+    "stars": 860,
     "description": "Reason Network: your team's coding agents, talking to each other. The engine behind `reason network`.",
     "language": "Rust",
     "url": "https://github.com/reason-machines/reason-network",
@@ -65,7 +65,7 @@
   {
     "name": "audio-studio-mcp",
     "full_name": "kanaworksai-hue/audio-studio-mcp",
-    "stars": 402,
+    "stars": 403,
     "description": "Local AI BGM and sound effects for Claude Code and any MCP client. Stable Audio 3 on Apple Silicon (MLX) and Windows NVIDIA GPUs (PyTorch). No cloud, no API key.",
     "language": "Python",
     "url": "https://github.com/kanaworksai-hue/audio-studio-mcp",

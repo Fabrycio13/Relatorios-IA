@@ -23,17 +23,16 @@ OUTPUT_MD = os.path.join(BASE_DIR, f"Resumo_IA_{DATE_STR}.md")
 
 PROMPT_SISTEMA = f"""Você é um analista sênior de tecnologia e Inteligência Artificial encarregado de criar o relatório diário oficial de novidades do X (Twitter).
 
-Este relatório cobre o ciclo de 24 horas consolidadas do DIA ANTERIOR ({data_ontem_str}), gerado e emitido em {data_hoje_str}.
+Este relatório consolida as principais novidades de IA gerado em {data_hoje_str} (focando no ciclo recente das últimas 24h a 48h, incluindo os destaques de {data_ontem_str} e publicações recentes dos autores VIPs no X).
 Abaixo está uma lista de tweets coletados recentemente em formato JSON, contendo autor, texto, link e métricas de engajamento (likes, reposts, replies, views).
 
 CRITÉRIOS DE SELEÇÃO E DISTRIBUIÇÃO DINÂMICA:
 1. FILTRO ESTRITO DE INTELIGÊNCIA ARTIFICIAL:
    - Inclua EXCLUSIVAMENTE publicações relacionadas a Inteligência Artificial, Modelos de Linguagem (LLMs), Agentes Autônomos, Coding Agents, MCP, Visão Computacional, 3D com IA, Infraestrutura/Hardware para IA e Negócios/Economia impulsionados por IA.
-   - DESCARTE OBRIGATORIAMENTE tweets fora do escopo de IA (ex: finanças tradicionais, jogos sem IA, marketing genérico, política ou notícias não relacionadas a IA).
-2. DISTRIBUIÇÃO DINÂMICA (SEM PREENCHIMENTO ARTIFICIAL):
-   - A quantidade de itens por tópico deve ser DINÂMICA e orgânica, refletindo o volume real de novidades do dia (de 0 a 5+ itens por categoria).
-   - Se um tópico (como 'Ferramentas' ou 'Agentes') teve 3, 4 ou mais novidades de alto impacto, inclua TODAS elas!
-   - Se um tópico não teve novidades genuínas de IA no período, deixe uma nota breve e elegante informando que não houve anúncios relevantes no ciclo, sem forçar itens irrelevantes.
+   - DESCARTE tweets fora do escopo de IA.
+2. RADAR PERFIS DE REFERÊNCIA (TÓPICO 5 OBRIGATÓRIO SE HOUVER TWEET NO ARQUIVO):
+   - O Tópico 5 ('Radar Perfis de Referência') NÃO deve ficar vazio se houver tweets de Matt Pocock (@mattpocockuk), Santiago Valdarrama (@svpino), Jason Liu (@jxnlco), Swyx ou Karpathy no JSON fornecido!
+   - Inclua as publicações recentes coletadas desses autores (mesmo postadas nas últimas horas), sintetizando o que eles defenderam sobre engenharia de software, determinismo, coding agents e custos de IA.
 3. PRIORIZAÇÃO POR RELEVÂNCIA TÉCNICA E ENGAJAMENTO:
    - Dê prioridade máxima a projetos open-source com repositórios reais (GitHub), lançamentos de modelos, papers (ArXiv) e ferramentas práticas.
    - Use o número de curtidas (likes), comentários (replies) e reposts para ranquear e priorizar as discussões que mais repercutiram no dia.
@@ -47,7 +46,7 @@ Sua missão é selecionar, filtrar e consolidar as publicações em um relatóri
 (Dedique este tópico a evals de modelos/agentes, frameworks de harness, testes automatizados de agentes, recuperação semântica, RAG, embeddings e benchmarks práticos de confiabilidade).
 ### 4. 💻 Desenvolvimento, Claude Code & Eficiência de Custos
 ### 5. 🎯 Radar Perfis de Referência (Matt Pocock, Karpathy, Swyx, Jason Liu, Chip Huyen, Santiago)
-(Destaque exclusivo para posts, threads, análises de engenharia, evals e novidades compartilhadas por esses criadores e líderes técnicos de IA no período).
+(Destaque para posts, reflexões técnicas, evals e discussões desses criadores nos últimos 2 a 3 dias recentes, contextualizando o valor de suas ideias para engenharia de software com IA).
 ### 6. 🏆 Capacitação Profissional, Cursos & Hackathons
 ### 7. 🌐 Economia, Modelos de Negócio & Mercado Global de IA
 
