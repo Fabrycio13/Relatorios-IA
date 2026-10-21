@@ -325,10 +325,23 @@ def render_bento_email(md_text: str) -> str:
                     max-width: 100% !important;
                 }}
                 .header-card {{
+                    padding: 16px 14px !important;
                     border-radius: 14px !important;
                 }}
-                .header-content {{
-                    padding: 16px 14px !important;
+                .header-col-text {{
+                    max-width: 100% !important;
+                    display: block !important;
+                }}
+                .header-col-img {{
+                    max-width: 100% !important;
+                    margin-left: 0 !important;
+                    margin-top: 14px !important;
+                    display: block !important;
+                    text-align: center !important;
+                }}
+                .header-col-img img {{
+                    max-width: 220px !important;
+                    margin: 0 auto !important;
                 }}
                 .header-title {{
                     font-size: 19px !important;
@@ -354,12 +367,14 @@ def render_bento_email(md_text: str) -> str:
         <![endif]-->
         <div class="main-container" style="max-width: 680px; margin: 0 auto;">
             
-            <!-- HEADER COM BANNER PANORÂMICO -->
-            <div class="header-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
-                <div style="width: 100%; line-height: 0; font-size: 0; background-color: #0f172a; max-height: 160px; overflow: hidden;">
-                    <img src="{HEADER_BANNER_URL}" alt="Diário de Engenharia: IA &amp; Coding Agents" width="680" height="160" style="display: block; width: 100%; max-width: 680px; max-height: 160px; height: auto; object-fit: cover; object-position: center; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
-                </div>
-                <div class="header-content" style="padding: 22px 24px;">
+            <!-- HEADER EDITORIAL SIDE-BY-SIDE -->
+            <div class="header-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03); padding: 22px 24px;">
+                <!--[if mso]>
+                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                <td width="410" valign="top">
+                <![endif]-->
+                <div class="header-col-text" style="display: inline-block; vertical-align: top; width: 100%; max-width: 410px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="display: inline-block; background-color: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
                             Curadoria Diária
@@ -368,11 +383,11 @@ def render_bento_email(md_text: str) -> str:
                             {hoje_formatada} • 08:00
                         </span>
                     </div>
-                    <h1 class="header-title" style="color: #0f172a; margin: 8px 0 4px 0; font-size: 21px; font-weight: 800; letter-spacing: -0.4px;">Diário de Engenharia: IA & Coding Agents</h1>
-                    <p style="color: #64748b; font-size: 13.5px; margin: 0; font-weight: 400; line-height: 1.4;">Curadoria técnica por <strong>Fabrycio Bermudes</strong> • Ecossistema de software, agentes autônomos e LLMs.</p>
+                    <h1 class="header-title" style="color: #0f172a; margin: 8px 0 6px 0; font-size: 21px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.25;">Diário de Engenharia: IA & Coding Agents</h1>
+                    <p style="color: #64748b; font-size: 13.5px; margin: 0 0 14px 0; font-weight: 400; line-height: 1.45;">Curadoria técnica por <strong>Fabrycio Bermudes</strong> • Ecossistema de software, agentes autônomos e LLMs.</p>
 
                     <!-- NAVEGAÇÃO RÁPIDA (ÂNCORAS) -->
-                    <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #f1f5f9; line-height: 2.2;">
+                    <div style="padding-top: 12px; border-top: 1px solid #f1f5f9; line-height: 2.2;">
                         <a href="#destaques" style="display: inline-block; background-color: #eff6ff; color: #1e40af; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #dbeafe; margin-right: 8px; margin-bottom: 6px;">📌 Destaques</a>
                         <a href="#radar-x" style="display: inline-block; background-color: #f5f3ff; color: #6d28d9; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #ede9fe; margin-right: 8px; margin-bottom: 6px;">🤖 Radar &amp; X</a>
                         <a href="#github-trending" style="display: inline-block; background-color: #fff7ed; color: #c2410c; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #ffedd5; margin-right: 8px; margin-bottom: 6px;">🔥 GitHub</a>
@@ -380,6 +395,21 @@ def render_bento_email(md_text: str) -> str:
                         <a href="#takeaway" style="display: inline-block; background-color: #fefce8; color: #a16207; font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 999px; border: 1px solid #fef08a; margin-bottom: 6px;">💡 Takeaway</a>
                     </div>
                 </div>
+                <!--[if mso]>
+                </td>
+                <td width="20" style="width:20px;">&nbsp;</td>
+                <td width="195" valign="top" align="center">
+                <![endif]-->
+                <div class="header-col-img" style="display: inline-block; vertical-align: top; width: 100%; max-width: 195px; margin-left: 18px; text-align: center;">
+                    <div style="border-radius: 14px; overflow: hidden; box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.12); border: 1px solid #e2e8f0; line-height: 0; background-color: #f8fafc;">
+                        <img src="{HEADER_BANNER_URL}" alt="Castelo Editorial" width="195" height="255" style="display: block; width: 100%; max-width: 195px; height: auto; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
+                    </div>
+                </div>
+                <!--[if mso]>
+                </td>
+                </tr>
+                </table>
+                <![endif]-->
             </div>
 
             <!-- BENTO GRID CONTAINER -->
