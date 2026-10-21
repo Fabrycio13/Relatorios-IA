@@ -2,6 +2,8 @@
 
 Automação ponta a ponta para curadoria, síntese analítica por IA e entrega diária por e-mail dos principais acontecimentos, papers, ferramentas open-source, discussões técnicas do X (Twitter) e repositórios em alta no GitHub.
 
+> 📖 **Consulte o [GLOSSARY.md](GLOSSARY.md)** para o dicionário canônico de termos do sistema, conceitos de IA e mapa de componentes.
+
 ---
 
 ## 🏛️ Arquitetura do Projeto (Clean Engineering)
