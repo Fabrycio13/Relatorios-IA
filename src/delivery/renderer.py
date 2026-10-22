@@ -2,7 +2,7 @@ import re
 import json
 from datetime import datetime
 from pathlib import Path
-from src.core.config import HEADER_BANNER_URL, FOOTER_BANNER_URL, DATA_DIR
+from src.core.config import HEADER_BANNER_URL, HEADER_FULL_HD_URL, FOOTER_BANNER_URL, DATA_DIR
 
 def obter_numero_edicao(data_str: str | None = None) -> str:
     """
@@ -511,7 +511,9 @@ def render_bento_email(md_text: str) -> str:
 
         <!-- FOTO PRINCIPAL COM MOLDURA DE GRAVURA E LEGENDA EXATA SOLICITADA -->
         <div class="newspaper-photo" style="margin: 18px 0 24px 0; border: 1px solid #1a1a1a; padding: 5px; background: #ffffff;">
-            <img src="{HEADER_BANNER_URL}" alt="Castelo de IA &amp; Coding Agents" width="680" style="display: block; width: 100%; max-height: 380px; height: auto; object-fit: cover; object-position: center bottom; border: 0;" />
+            <a href="{HEADER_FULL_HD_URL}" target="_blank" style="display: block; text-decoration: none; border: 0; outline: none;" title="Clique para abrir a arte original do castelo em alta resolução">
+                <img src="{HEADER_BANNER_URL}" alt="Castelo de IA &amp; Coding Agents" width="680" style="display: block; width: 100%; max-height: 380px; height: auto; object-fit: cover; object-position: center bottom; border: 0;" />
+            </a>
             <div class="photo-caption" style="font-size: 12.5px; font-style: italic; color: #444444; padding: 6px 4px 2px 4px; border-top: 1px solid #e2dac9; text-align: center; font-family: Georgia, serif;">
                 O Castelo da Engenharia de Agentes: Panorama da fronteira de desenvolvimento em IA contemporânea.
             </div>

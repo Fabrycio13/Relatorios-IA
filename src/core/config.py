@@ -22,8 +22,9 @@ PAPERS_DATA_FILE = DATA_DIR / "hf_papers.json"
 STATUS_FILE = DATA_DIR / "ultimo_envio.txt"
 LOG_FILE = LOGS_DIR / "execucao.log"
 
-# URLs públicas dos banners hospedados no próprio repositório
-HEADER_BANNER_URL = "https://raw.githubusercontent.com/Fabrycio13/Relatorios-IA/main/assets/header_banner.jpg"
+# URLs públicas dos banners hospedados no próprio repositório com anti-cache
+HEADER_BANNER_URL = "https://raw.githubusercontent.com/Fabrycio13/Relatorios-IA/main/assets/castelo_panoramica_v2.jpg?v=20261021_v2"
+HEADER_FULL_HD_URL = "https://raw.githubusercontent.com/Fabrycio13/Relatorios-IA/main/assets/castelo_full_hd.jpg?v=20261021_v2"
 FOOTER_BANNER_URL = "https://raw.githubusercontent.com/Fabrycio13/Relatorios-IA/main/assets/footer_banner.jpg"
 
 # Carrega variáveis do arquivo .env
