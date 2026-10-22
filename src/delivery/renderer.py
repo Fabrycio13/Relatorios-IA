@@ -419,8 +419,14 @@ def render_bento_email(md_text: str) -> str:
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
     <title>O Diário de Engenharia - Edição Impressa</title>
     <style>
+        :root {{
+            color-scheme: light;
+            supported-color-schemes: light;
+        }}
         html {{
             scroll-behavior: smooth;
         }}
@@ -461,7 +467,7 @@ def render_bento_email(md_text: str) -> str:
     <tr>
     <td>
     <![endif]-->
-    <div class="main-container" style="max-width: 680px; margin: 0 auto; background-color: #fbf8f1; border: 1px solid #d4cbb8; box-shadow: 0 4px 16px rgba(0,0,0,0.06); padding: 36px 32px; box-sizing: border-box;">
+    <div class="main-container" style="max-width: 680px; margin: 0 auto; background-color: #fbf8f1; background-image: linear-gradient(#fbf8f1, #fbf8f1); border: 1px solid #d4cbb8; box-shadow: 0 4px 16px rgba(0,0,0,0.06); padding: 36px 32px; box-sizing: border-box;">
         
         <!-- CABEÇALHO SUPERIOR DE IMPRENSA (TABELA ANTI-COLISÃO PARA CLIENTES DE EMAIL) -->
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-bottom: 1px solid #1a1a1a; margin-bottom: 12px; font-family: -apple-system, Arial, sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #555555;">
