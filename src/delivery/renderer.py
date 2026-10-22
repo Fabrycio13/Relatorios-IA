@@ -472,13 +472,13 @@ def render_bento_email(md_text: str) -> str:
         <!-- CABEÇALHO SUPERIOR DE IMPRENSA (TABELA ANTI-COLISÃO PARA CLIENTES DE EMAIL) -->
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-bottom: 1px solid #1a1a1a; margin-bottom: 12px; font-family: -apple-system, Arial, sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #555555;">
             <tr>
-                <td align="left" class="top-meta-td" style="padding-bottom: 4px; white-space: nowrap;">
+                <td align="left" width="38%" class="top-meta-td" style="padding-bottom: 4px; white-space: nowrap; text-align: left;">
                     EDIÇÃO DIÁRIA DE TECNOLOGIA &amp; IA
                 </td>
-                <td align="center" class="top-meta-td" style="padding-bottom: 4px; white-space: nowrap; padding: 0 6px;">
+                <td align="center" width="36%" class="top-meta-td" style="padding-bottom: 4px; white-space: nowrap; padding: 0 4px; text-align: center;">
                     CIRCULAÇÃO DE ENGENHARIA
                 </td>
-                <td align="right" class="top-meta-td" style="padding-bottom: 4px; white-space: nowrap;">
+                <td align="right" width="26%" class="top-meta-td" style="padding-bottom: 4px; white-space: nowrap; text-align: right;">
                     ANO I - Nº {numero_edicao}
                 </td>
             </tr>
@@ -492,10 +492,10 @@ def render_bento_email(md_text: str) -> str:
             <!-- BARRA DE DATAÇÃO (TABELA ANTI-COLISÃO) -->
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-top: 1px solid #1a1a1a; border-bottom: 1px solid #1a1a1a; margin-bottom: 10px; font-family: -apple-system, Arial, sans-serif; font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: #222222;">
                 <tr>
-                    <td align="left" class="issue-bar-td" style="padding: 4px 0; white-space: nowrap;">
+                    <td align="left" width="55%" class="issue-bar-td" style="padding: 4px 0; white-space: nowrap; text-align: left;">
                         {dia_semana_nome}, {hoje_formatada}
                     </td>
-                    <td align="right" class="issue-bar-td" style="padding: 4px 0; white-space: nowrap;">
+                    <td align="right" width="45%" class="issue-bar-td" style="padding: 4px 0; white-space: nowrap; text-align: right;">
                         CURADORIA: FABRYCIO BERMUDES
                     </td>
                 </tr>
