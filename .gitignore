@@ -28,6 +28,9 @@ venv/
 env/
 .env/
 
+# Scratch e arquivos temporários de desenvolvimento
+.scratch/
+
 # Arquivos temporários de SO
 Thumbs.db
 .DS_Store
