@@ -41,10 +41,10 @@ def format_inline(text: str) -> str:
     text = re.sub(r'^[)\s]+', '', text)
     text = text.replace(" )**", " **").replace(")**", "**")
 
-    # Links primeiro (Azul Safira clássico com sublinhado nítido para destaque imediato)
+    # Links primeiro (Azul Safira clássico com sublinhado nítido para destaque imediato e abertura segura em nova aba)
     t = re.sub(
         r'\[([^\]]+)\]\(([^)]+)\)',
-        r'<a href="\2" style="color: #1d4ed8; text-decoration: underline; font-weight: 600;">\1</a>',
+        r'<a href="\2" target="_blank" rel="noopener noreferrer" style="color: #1d4ed8; text-decoration: underline; font-weight: 600;">\1</a>',
         text
     )
     # Negrito (Apenas o termo em destaque em negrito preto nítido)

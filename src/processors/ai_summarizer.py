@@ -150,6 +150,20 @@ def remover_travessoes(md: str) -> str:
     md = md.replace('—', '-')
     return md
 
+def montar_payload_tweets_xml(tweets: list[Tweet]) -> str:
+    """Monta o payload XML estruturado e blindado para envio dos tweets ao modelo de IA."""
+    formatted_tweets = []
+    for i, t in enumerate(tweets, 1):
+        links_str = " | ".join(t.external_links) if t.external_links else "Nenhum"
+        formatted_tweets.append(
+            f'<tweet_item id="{i}" author="{t.author_name} ({t.author_handle})" metrics="Likes: {t.likes}, Reposts: {t.reposts}">\n'
+            f'  <content>{t.sanitized_text()}</content>\n'
+            f'  <url>{t.url}</url>\n'
+            f'  <external_links>{links_str}</external_links>\n'
+            f'</tweet_item>'
+        )
+    return "<tweets_feed>\n" + "\n".join(formatted_tweets) + "\n</tweets_feed>"
+
 def gerar_resumo_ia(
     batch: DailyIngestionBatch | None = None,
     output_path: Path | None = None
@@ -174,19 +188,7 @@ def gerar_resumo_ia(
     tweets = batch.tweets
     if tweets:
         logger.info(f"Processando {len(tweets)} tweets em memória para síntese inteligente...")
-        # Blindagem e higienização em tags XML
-        formatted_tweets = []
-        for i, t in enumerate(tweets, 1):
-            links_str = " | ".join(t.external_links) if t.external_links else "Nenhum"
-            formatted_tweets.append(
-                f'<tweet_item id="{i}" author="{t.author_name} ({t.author_handle})" metrics="Likes: {t.likes}, Reposts: {t.reposts}">\n'
-                f'  <content>{t.sanitized_text()}</content>\n'
-                f'  <url>{t.url}</url>\n'
-                f'  <external_links>{links_str}</external_links>\n'
-                f'</tweet_item>'
-            )
-
-        tweets_xml = "<tweets_feed>\n" + "\n".join(formatted_tweets) + "\n</tweets_feed>"
+        tweets_xml = montar_payload_tweets_xml(tweets)
         prompt_sistema = get_prompt_resumo_ia(hoje.strftime("%d/%m/%Y"), ontem.strftime("%d/%m/%Y"))
 
         try:
