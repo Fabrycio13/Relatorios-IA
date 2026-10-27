@@ -16,10 +16,14 @@ CRITÉRIOS DE SELEÇÃO E DISTRIBUIÇÃO DINÂMICA:
 2. RADAR PERFIS DE REFERÊNCIA (TÓPICO 5 OBRIGATÓRIO SE HOUVER TWEET NO ARQUIVO):
    - O Tópico 5 ('Radar Perfis de Referência') NÃO deve ficar vazio se houver tweets de Matt Pocock (@mattpocockuk), Santiago Valdarrama (@svpino), Jason Liu (@jxnlco), Swyx ou Karpathy fornecidos!
    - Inclua as publicações recentes coletadas desses autores (mesmo postadas nas últimas horas), sintetizando o que eles defenderam sobre engenharia de software, determinismo, coding agents e custos de IA.
-3. PRIORIZAÇÃO POR RELEVÂNCIA TÉCNICA E ENGAJAMENTO:
+3. PRIORIZAÇÃO POR RELEVÂNCIA TÉCNICA E RASTREABILIDADE TOTAL:
    - Dê prioridade máxima a projetos open-source com repositórios reais (GitHub), lançamentos de modelos, papers (ArXiv) e ferramentas práticas.
    - Use o número de curtidas (likes), comentários (replies) e reposts para ranquear e priorizar as discussões que mais repercutiram no dia.
-   - Se o tweet mencionar ou contiver link para GitHub, ArXiv, artigos externos (`external_links`) ou demonstração direta, SEMPRE inclua esse link formatado em markdown nos sub-bullets!
+   - REGRA MANDATÓRIA DE RASTREABILIDADE DE POSTS DO X:
+     * Para CADA notícia, tópico ou bullet baseado em uma publicação do X, inclua OBRIGATORIAMENTE ao final o link permanente do post no formato `([Post](url))`, utilizando exatamente a URL informada na tag `<url>` do respectivo tweet.
+     * NUNCA invente URLs, não gere links fictícios e não use placeholders genéricos (ex: não coloque links soltos como 'https://x.com'). Se a tag `<url>` estiver vazia para determinado tweet, omita o `([Post](...))`.
+   - PRESERVAÇÃO DE LINKS EXTERNOS:
+     * Se o tweet contiver links adicionais na tag `<external_links>` (artigos, documentação técnica, benchmarks, demos) ou menções a repositórios GitHub / papers ArXiv, SEMPRE inclua também esses links formatados em markdown de forma contextual nos sub-bullets ou ao lado do post (ex: `([Post](url) | [GitHub](url_repo))`).
 
 Sua missão é selecionar, filtrar e consolidar as publicações em um relatório Markdown estruturado OBRIGATORIAMENTE com a seguinte hierarquia visual:
 
@@ -45,6 +49,7 @@ ATENÇÃO À FORMATAÇÃO DOS TÍTULOS E PONTUAÇÃO:
 - REGRA ESTRITA DE PONTUAÇÃO E SINTAXE:
   * NUNCA inicie bullets com parênteses soltos como '- )' ou '- )**'. Formate sempre '- **Título:** ...'.
   * NUNCA use travessão longo ' — ' (em-dash) em qualquer parte do texto! O uso de ' — ' é terminantemente proibido. Use dois-pontos ':', parênteses '()' ou vírgulas. Exemplo: formate sempre '**Nome (Subtítulo):**' ou '**Autor (Tema):**', NUNCA '**Nome — Subtítulo:**'.
+  * RASTREABILIDADE DE FONTES: Todo bullet de notícia baseada em tweet DEVE conter a referência clicável `([Post](url))` ao final do bullet para validação da fonte primária pelos leitores.
 """
 
 def get_prompt_github(trending_repos_json: str) -> str:

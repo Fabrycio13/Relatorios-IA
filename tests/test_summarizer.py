@@ -6,11 +6,13 @@ from unittest.mock import patch, MagicMock
 from src.core.models import Tweet, GitHubRepo, ResearchPaper, DailyIngestionBatch
 from src.processors.ai_summarizer import (
     gerar_resumo_ia,
+    montar_payload_tweets_xml,
     _anexar_secao_github,
     _anexar_secao_papers,
     _anexar_secao_takeaway,
     remover_travessoes
 )
+from src.processors.prompts import get_prompt_resumo_ia
 
 
 class TestAISummarizer(unittest.TestCase):
@@ -143,6 +145,95 @@ class TestAISummarizer(unittest.TestCase):
             mock_load.assert_called_once()
             self.assertIsNotNone(resultado)
             self.assertTrue(output_file.exists())
+
+    def test_montar_payload_tweets_xml_preserva_urls_e_external_links(self):
+        """Valida que o payload XML preserva a URL permanente do post e múltiplos links externos."""
+        tweet1 = Tweet(
+            author_name="Jason Liu",
+            author_handle="@jxnlco",
+            timestamp="2026-10-27T07:00:00Z",
+            text="Novo benchmark para coding agents com tool use.",
+            url="https://x.com/jxnlco/status/1982736173070442654",
+            likes="350",
+            reposts="45",
+            replies="12",
+            views="25000",
+            external_links=["https://t.co/abc1", "https://t.co/def2"]
+        )
+        xml = montar_payload_tweets_xml([tweet1])
+
+        self.assertIn("<tweets_feed>", xml)
+        self.assertIn("</tweets_feed>", xml)
+        self.assertIn('<tweet_item id="1" author="Jason Liu (@jxnlco)" metrics="Likes: 350, Reposts: 45">', xml)
+        self.assertIn("<url>https://x.com/jxnlco/status/1982736173070442654</url>", xml)
+        self.assertIn("<external_links>https://t.co/abc1 | https://t.co/def2</external_links>", xml)
+        self.assertIn("<content>Novo benchmark para coding agents com tool use.</content>", xml)
+
+    def test_montar_payload_tweets_xml_trata_external_links_vazio_corretamente(self):
+        """Valida que quando external_links é vazio, o campo é preenchido com 'Nenhum' sem falhas."""
+        tweet = Tweet(
+            author_name="Swyx",
+            author_handle="@swyx",
+            timestamp="2026-10-27T06:00:00Z",
+            text="Reflexão rápida sobre modelos de raciocínio.",
+            url="https://x.com/swyx/status/99887766",
+            likes="120",
+            reposts="10",
+            replies="5",
+            views="10000",
+            external_links=[]
+        )
+        xml = montar_payload_tweets_xml([tweet])
+
+        self.assertIn("<url>https://x.com/swyx/status/99887766</url>", xml)
+        self.assertIn("<external_links>Nenhum</external_links>", xml)
+
+    def test_montar_payload_tweets_xml_trata_url_vazia_sem_inventar_dados(self):
+        """Valida que quando url é vazia, a tag permanece vazia sem placeholders fictícios."""
+        tweet = Tweet(
+            author_name="Desconhecido",
+            author_handle="@anon",
+            timestamp="2026-10-27T05:00:00Z",
+            text="Tweet sem URL de status.",
+            url="",
+            likes="0",
+            reposts="0",
+            replies="0",
+            views="0",
+            external_links=[]
+        )
+        xml = montar_payload_tweets_xml([tweet])
+
+        self.assertIn("<url></url>", xml)
+        self.assertNotIn("https://x.com", xml)
+
+    def test_prompt_resumo_ia_solicita_rastreabilidade_post_obrigatorio(self):
+        """Valida que o prompt de curadoria instrui imperativamente a inclusão de ([Post](url)) e proíbe links fictícios."""
+        prompt = get_prompt_resumo_ia("27/10/2026", "26/10/2026")
+
+        self.assertIn("([Post](url))", prompt)
+        self.assertIn("<url>", prompt)
+        self.assertIn("<external_links>", prompt)
+        self.assertIn("NUNCA invente URLs", prompt)
+        self.assertIn("RASTREABILIDADE", prompt)
+
+    @patch("src.processors.ai_summarizer._executar_chamada_openai")
+    def test_gerar_resumo_ia_transmite_payload_completo_para_openai(self, mock_openai):
+        """Valida que gerar_resumo_ia repassa URLs e links externos no payload para a chamada da OpenAI."""
+        mock_openai.return_value = "## 📌 Destaques\n* Notícia com ([Post](https://x.com/mattpocockuk/status/123))"
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            output_file = Path(tmp_dir) / "test_report_links.md"
+            gerar_resumo_ia(batch=self.sample_batch, output_path=output_file)
+
+            # Verifica que a primeira chamada (resumo do feed) recebeu o XML com a URL do tweet
+            first_call_args = mock_openai.call_args_list[0]
+            payload_enviado = first_call_args[0][1]  # payload dict enviado à OpenAI
+            messages = payload_enviado["messages"]
+            user_content = messages[1]["content"]
+
+            self.assertIn("<url>https://x.com/mattpocockuk/status/123</url>", user_content)
+            self.assertIn("<external_links>https://github.com/example/agent</external_links>", user_content)
 
 
 if __name__ == "__main__":

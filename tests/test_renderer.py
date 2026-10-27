@@ -75,5 +75,50 @@ class TestRenderer(unittest.TestCase):
         self.assertIn("Ferramentas Open-Source", html)
         self.assertIn("Papers em Destaque", html)
 
+    def test_format_inline_markdown_links_target_blank_and_clickable(self):
+        """Valida que links Markdown são convertidos em âncoras HTML clicáveis com target=_blank e rel seguro."""
+        sample = "Veja o post original ([Post](https://x.com/svpino/status/12345)) e o repo ([GitHub](https://github.com/svpino/repo))."
+        rendered = format_inline(sample)
+
+        self.assertIn('<a href="https://x.com/svpino/status/12345" target="_blank" rel="noopener noreferrer"', rendered)
+        self.assertIn('>Post</a>', rendered)
+        self.assertIn('<a href="https://github.com/svpino/repo" target="_blank" rel="noopener noreferrer"', rendered)
+        self.assertIn('>GitHub</a>', rendered)
+
+    def test_render_bento_email_renders_clickable_post_links_in_all_x_sections(self):
+        """Valida que o renderizador Bento Grid preserva links clicáveis de posts do X em bullets e cabeçalhos de notícias."""
+        sample_md = """
+## 📌 Destaques Principais do Dia
+- **Novo Modelo Aberto:** Lançamento de pesos abertos com raciocínio ([Post](https://x.com/author1/status/111)).
+
+---
+
+## 🚀 Ferramentas Open-Source, Visão & Ambientes 3D
+* **Framework 3D (Ferramentas):** Novo toolkit para reconstrução neural ([Post](https://x.com/author2/status/222) | [GitHub](https://github.com/org/toolkit)):
+  - Suporte completo a pipeline de visão computacional ([Doc](https://example.com/doc)).
+
+---
+
+## 🎯 Radar Perfis de Referência
+* **Santiago Valdarrama (CLI Tools):** Discussão sobre automação em Python ([Post](https://x.com/svpino/status/333))
+"""
+        html = render_bento_email(sample_md)
+
+        # Valida que todos os links de posts do X estão presentes como links HTML clicáveis
+        self.assertIn('href="https://x.com/author1/status/111"', html)
+        self.assertIn('href="https://x.com/author2/status/222"', html)
+        self.assertIn('href="https://x.com/svpino/status/333"', html)
+        self.assertIn('href="https://github.com/org/toolkit"', html)
+        self.assertIn('href="https://example.com/doc"', html)
+
+        # Valida abertura segura em nova aba
+        self.assertIn('target="_blank"', html)
+        self.assertIn('rel="noopener noreferrer"', html)
+
+        # Valida integridade do Bento Grid
+        self.assertIn('class="newspaper-section"', html)
+        self.assertIn('Destaques Principais do Dia', html)
+        self.assertIn('Radar Perfis de Referência', html)
+
 if __name__ == "__main__":
     unittest.main()
