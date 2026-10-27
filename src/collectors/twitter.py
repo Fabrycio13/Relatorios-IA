@@ -4,7 +4,7 @@ import sys
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, Page
 
 from src.core.config import BASE_DIR, TWEETS_DATA_FILE, config
 from src.core.logger import get_logger
@@ -13,6 +13,9 @@ from src.core.models import Tweet
 logger = get_logger("twitter_collector")
 SESSION_DIR = BASE_DIR / ".session"
 MAX_EXECUTION_SECONDS = 300  # Timeout global de segurança: 5 minutos
+MAX_CONSECUTIVE_OLD_TWEETS = 8  # Limite de segurança: 8 tweets consecutivos fora da janela indicam fim do horizonte temporal
+MAX_EMPTY_SCROLLS = 3  # Limite de scrolls consecutivos sem novos tweets antes de abortar
+DEFAULT_MAX_SCROLLS = 25
 
 if sys.platform == "linux" or os.environ.get("CI"):
     USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
@@ -97,7 +100,11 @@ def _extrair_tweet(art, fallback_name: str | None = None, fallback_handle: str |
         try:
             link_el = art.locator("a[href*='/status/']").first
             if link_el.is_visible(timeout=400):
-                tweet_url = "https://x.com" + link_el.get_attribute("href")
+                href = link_el.get_attribute("href") or ""
+                if href.startswith("http"):
+                    tweet_url = href
+                elif href:
+                    tweet_url = "https://x.com" + href
         except Exception:
             pass
 
@@ -127,7 +134,111 @@ def _extrair_tweet(art, fallback_name: str | None = None, fallback_handle: str |
     except Exception:
         return None
 
-def coletar_tweets_vip(max_scrolls=25, headless=True) -> list[Tweet]:
+def _selecionar_aba_seguindo(page: Page) -> bool:
+    """Clica na aba 'Seguindo' ou 'Following' se visível para garantir feed cronológico."""
+    try:
+        following_tab = page.locator("a[href='/home'][role='tab']:has-text('Seguindo'), a[href='/home'][role='tab']:has-text('Following')").first
+        if following_tab.is_visible(timeout=3000):
+            following_tab.click()
+            logger.info("Aba 'Seguindo / Following' selecionada com sucesso.")
+            time.sleep(2)
+            return True
+        else:
+            logger.debug("Aba 'Seguindo / Following' não visível ou feed já unificado.")
+            return False
+    except Exception as e:
+        logger.warning(f"Aviso ao selecionar aba Seguindo: {e}")
+        return False
+
+def coletar_feed_principal(
+    page: Page,
+    limite_tempo: datetime,
+    start_time: float | None = None,
+    max_scrolls: int = DEFAULT_MAX_SCROLLS,
+    max_consecutive_old: int = MAX_CONSECUTIVE_OLD_TWEETS,
+    max_empty_scrolls: int = MAX_EMPTY_SCROLLS,
+    scroll_delay: float = 1.5,
+    seen_texts: set[str] | None = None,
+) -> tuple[list[Tweet], set[str]]:
+    """Coleta tweets recentes do feed principal com tratamento robusto de tweets antigos e esgotamento."""
+    if start_time is None:
+        start_time = time.time()
+    if seen_texts is None:
+        seen_texts = set()
+
+    tweets_coletados: list[Tweet] = []
+    consecutive_old_tweets = 0
+    consecutive_empty_scrolls = 0
+
+    for scroll_idx in range(max_scrolls):
+        if time.time() - start_time > MAX_EXECUTION_SECONDS:
+            logger.warning("Timeout global de segurança de 5 minutos atingido no feed.")
+            break
+
+        articles = page.locator("article[data-testid='tweet']").all()
+        novos_nesta_rodada = 0
+        alcancou_limite_antigos = False
+
+        for art in articles:
+            tweet_obj = _extrair_tweet(art)
+            if not tweet_obj or tweet_obj.text in seen_texts:
+                continue
+
+            seen_texts.add(tweet_obj.text)
+            novos_nesta_rodada += 1
+
+            # Validação da janela temporal de 48 horas
+            if tweet_obj.timestamp:
+                try:
+                    tweet_dt = datetime.fromisoformat(tweet_obj.timestamp.replace("Z", "+00:00"))
+                    if tweet_dt < limite_tempo:
+                        consecutive_old_tweets += 1
+                        logger.debug(
+                            f"Tweet fora da janela temporal ({tweet_obj.timestamp}): {tweet_obj.text[:40]}... "
+                            f"(antigos consecutivos: {consecutive_old_tweets})"
+                        )
+                        if consecutive_old_tweets >= max_consecutive_old:
+                            logger.info(
+                                f"Limite de {max_consecutive_old} tweets consecutivos fora da janela atingido. "
+                                f"Encerrando coleta do feed."
+                            )
+                            alcancou_limite_antigos = True
+                            break
+                        # Descarta tweet antigo isolado (pinned tweet, retweet) e continua analisando os demais
+                        continue
+                    else:
+                        # Tweet válido dentro da janela temporal: zera contador de antigos consecutivos
+                        consecutive_old_tweets = 0
+                except Exception:
+                    pass
+
+            tweets_coletados.append(tweet_obj)
+
+        if alcancou_limite_antigos:
+            break
+
+        # Detecção de feed esgotado (sem novos artigos renderizados)
+        if novos_nesta_rodada == 0:
+            consecutive_empty_scrolls += 1
+            if consecutive_empty_scrolls >= max_empty_scrolls:
+                logger.info(f"Feed esgotado: {max_empty_scrolls} scrolls consecutivos sem novos tweets.")
+                break
+        else:
+            consecutive_empty_scrolls = 0
+
+        page.mouse.wheel(0, 1500)
+        if scroll_delay > 0:
+            time.sleep(scroll_delay)
+
+    return tweets_coletados, seen_texts
+
+def coletar_tweets_vip(
+    max_scrolls: int = DEFAULT_MAX_SCROLLS,
+    headless: bool = True,
+    scroll_delay: float = 1.5,
+    max_consecutive_old: int = MAX_CONSECUTIVE_OLD_TWEETS,
+    max_empty_scrolls: int = MAX_EMPTY_SCROLLS,
+) -> list[Tweet]:
     """Coleta tweets recentes do feed Seguindo e dos perfis do Radar VIP com timeout global de 5 minutos."""
     start_time = time.time()
     logger.info("=" * 60)
@@ -138,7 +249,6 @@ def coletar_tweets_vip(max_scrolls=25, headless=True) -> list[Tweet]:
     tweets_coletados: list[Tweet] = []
     seen_texts: set[str] = set()
     limite_tempo = datetime.now(timezone.utc) - timedelta(hours=48)
-    alcancou_limite = False
 
     with sync_playwright() as p:
         launch_args = {
@@ -183,41 +293,21 @@ def coletar_tweets_vip(max_scrolls=25, headless=True) -> list[Tweet]:
             context.close()
             return []
 
-        # Clica na aba Seguindo se visível
-        try:
-            following_tab = page.locator("a[href='/home'][role='tab'] >> text='Seguindo'").first
-            if following_tab.is_visible(timeout=3000):
-                following_tab.click()
-                time.sleep(2)
-        except Exception:
-            pass
+        # Clica na aba Seguindo/Following se visível para garantir feed cronológico
+        _selecionar_aba_seguindo(page)
 
         # 1. Coleta no Feed Principal
-        for _ in range(max_scrolls):
-            if alcancou_limite or (time.time() - start_time > MAX_EXECUTION_SECONDS):
-                if time.time() - start_time > MAX_EXECUTION_SECONDS:
-                    logger.warning("Timeout global de segurança de 5 minutos atingido no feed.")
-                break
-
-            articles = page.locator("article[data-testid='tweet']").all()
-            for art in articles:
-                tweet_obj = _extrair_tweet(art)
-                if not tweet_obj or tweet_obj.text in seen_texts:
-                    continue
-                seen_texts.add(tweet_obj.text)
-
-                if tweet_obj.timestamp:
-                    try:
-                        tweet_dt = datetime.fromisoformat(tweet_obj.timestamp.replace("Z", "+00:00"))
-                        if tweet_dt < limite_tempo:
-                            alcancou_limite = True
-                    except Exception:
-                        pass
-
-                tweets_coletados.append(tweet_obj)
-
-            page.mouse.wheel(0, 1500)
-            time.sleep(1.5)
+        feed_tweets, seen_texts = coletar_feed_principal(
+            page=page,
+            limite_tempo=limite_tempo,
+            start_time=start_time,
+            max_scrolls=max_scrolls,
+            max_consecutive_old=max_consecutive_old,
+            max_empty_scrolls=max_empty_scrolls,
+            scroll_delay=scroll_delay,
+            seen_texts=seen_texts,
+        )
+        tweets_coletados.extend(feed_tweets)
 
         # 2. Coleta no Radar VIP (Perfis de Referência)
         vip_profiles = [
