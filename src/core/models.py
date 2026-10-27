@@ -1,5 +1,9 @@
+import json
+import os
 import re
 from dataclasses import dataclass, field, asdict
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 @dataclass
@@ -94,5 +98,152 @@ class ResearchPaper:
             authors=list(data.get("authors") or []),
             upvotes=int(data.get("upvotes") or 0),
             url=str(data.get("url") or f"https://huggingface.co/papers/{data.get('arxiv_id', '')}")
+        )
+
+
+SNAPSHOT_TWEETS_FILE = "tweets_coletados.json"
+SNAPSHOT_GITHUB_FILE = "github_trending.json"
+SNAPSHOT_PAPERS_FILE = "hf_papers.json"
+SNAPSHOT_METADATA_FILE = "snapshot_metadata.json"
+
+
+def _atomic_write_json(file_path: Path, data: Any) -> None:
+    """Grava dados em formato JSON de maneira atômica utilizando arquivo temporário intermediário."""
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = file_path.with_name(f"{file_path.name}.tmp")
+    with open(temp_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    os.replace(temp_path, file_path)
+
+
+@dataclass
+class DailyIngestionBatch:
+    """Modelo de dados tipado para representar o lote unificado de ingestão diária."""
+    tweets: list[Tweet] = field(default_factory=list)
+    repos: list[GitHubRepo] = field(default_factory=list)
+    papers: list[ResearchPaper] = field(default_factory=list)
+    collected_at: str = field(default_factory=lambda: datetime.now().isoformat())
+
+    def is_empty(self) -> bool:
+        """Retorna True se nenhuma das fontes coletou itens."""
+        return len(self.tweets) == 0 and len(self.repos) == 0 and len(self.papers) == 0
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serializa o lote e suas entidades filhas em um dicionário."""
+        return {
+            "tweets": [t.to_dict() for t in self.tweets],
+            "repos": [r.to_dict() for r in self.repos],
+            "papers": [p.to_dict() for p in self.papers],
+            "collected_at": self.collected_at,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "DailyIngestionBatch":
+        """Reconstitui o lote tipado a partir de um dicionário."""
+        return cls(
+            tweets=[Tweet.from_dict(t) for t in data.get("tweets") or []],
+            repos=[GitHubRepo.from_dict(r) for r in data.get("repos") or []],
+            papers=[ResearchPaper.from_dict(p) for p in data.get("papers") or []],
+            collected_at=str(data.get("collected_at") or datetime.now().isoformat()),
+        )
+
+    def save_snapshot(self, data_dir: Path | str, source: str | None = None) -> None:
+        """
+        Salva snapshot atômico dos arquivos JSON no diretório especificado.
+        Se source for informado ('twitter'/'tweets', 'github'/'repos', 'papers'),
+        atualiza exclusivamente o arquivo JSON e o metadado daquela fonte,
+        preservando a integridade e estampa temporal dos demais arquivos em disco.
+        """
+        dir_path = Path(data_dir)
+        dir_path.mkdir(parents=True, exist_ok=True)
+
+        meta_file = dir_path / SNAPSHOT_METADATA_FILE
+        meta: dict[str, Any] = {}
+        if meta_file.exists():
+            try:
+                with open(meta_file, "r", encoding="utf-8") as f:
+                    loaded = json.load(f)
+                    if isinstance(loaded, dict):
+                        meta = loaded
+            except Exception:
+                meta = {}
+
+        sources_meta = meta.get("sources") if isinstance(meta.get("sources"), dict) else {}
+
+        if source in ("twitter", "tweets"):
+            _atomic_write_json(dir_path / SNAPSHOT_TWEETS_FILE, [t.to_dict() for t in self.tweets])
+            sources_meta["twitter"] = self.collected_at
+            meta["sources"] = sources_meta
+            _atomic_write_json(meta_file, meta)
+        elif source in ("github", "repos"):
+            _atomic_write_json(dir_path / SNAPSHOT_GITHUB_FILE, [r.to_dict() for r in self.repos])
+            sources_meta["github"] = self.collected_at
+            meta["sources"] = sources_meta
+            _atomic_write_json(meta_file, meta)
+        elif source in ("papers",):
+            _atomic_write_json(dir_path / SNAPSHOT_PAPERS_FILE, [p.to_dict() for p in self.papers])
+            sources_meta["papers"] = self.collected_at
+            meta["sources"] = sources_meta
+            _atomic_write_json(meta_file, meta)
+        else:
+            # Full snapshot (todas as fontes consolidadas)
+            _atomic_write_json(dir_path / SNAPSHOT_TWEETS_FILE, [t.to_dict() for t in self.tweets])
+            _atomic_write_json(dir_path / SNAPSHOT_GITHUB_FILE, [r.to_dict() for r in self.repos])
+            _atomic_write_json(dir_path / SNAPSHOT_PAPERS_FILE, [p.to_dict() for p in self.papers])
+            meta["collected_at"] = self.collected_at
+            meta["sources"] = {
+                "twitter": self.collected_at,
+                "github": self.collected_at,
+                "papers": self.collected_at,
+            }
+            _atomic_write_json(meta_file, meta)
+
+    @classmethod
+    def load_snapshot(cls, data_dir: Path | str) -> "DailyIngestionBatch":
+        """Reconstitui o DailyIngestionBatch a partir dos arquivos JSON existentes no diretório."""
+        dir_path = Path(data_dir)
+        if not dir_path.exists():
+            return cls()
+
+        def _carregar_json_seguro(arquivo: Path) -> list[dict[str, Any]]:
+            if not arquivo.exists():
+                return []
+            try:
+                with open(arquivo, "r", encoding="utf-8") as f:
+                    conteudo = json.load(f)
+                    return conteudo if isinstance(conteudo, list) else []
+            except Exception:
+                return []
+
+        tweets_raw = _carregar_json_seguro(dir_path / SNAPSHOT_TWEETS_FILE)
+        repos_raw = _carregar_json_seguro(dir_path / SNAPSHOT_GITHUB_FILE)
+        papers_raw = _carregar_json_seguro(dir_path / SNAPSHOT_PAPERS_FILE)
+
+        collected_at = ""
+        meta_file = dir_path / SNAPSHOT_METADATA_FILE
+        if meta_file.exists():
+            try:
+                with open(meta_file, "r", encoding="utf-8") as f:
+                    meta = json.load(f)
+                    collected_at = str(meta.get("collected_at") or "")
+            except Exception:
+                pass
+
+        if not collected_at:
+            mtimes = [
+                p.stat().st_mtime
+                for p in [dir_path / SNAPSHOT_TWEETS_FILE, dir_path / SNAPSHOT_GITHUB_FILE, dir_path / SNAPSHOT_PAPERS_FILE]
+                if p.exists()
+            ]
+            if mtimes:
+                collected_at = datetime.fromtimestamp(max(mtimes)).isoformat()
+            else:
+                collected_at = datetime.now().isoformat()
+
+        return cls(
+            tweets=[Tweet.from_dict(t) for t in tweets_raw],
+            repos=[GitHubRepo.from_dict(r) for r in repos_raw],
+            papers=[ResearchPaper.from_dict(p) for p in papers_raw],
+            collected_at=collected_at,
         )
 
