@@ -83,18 +83,16 @@ def get_prompt_papers(papers_json: str) -> str:
     )
 
 def get_prompt_takeaway(relatorio_completo_md: str) -> str:
-    """Prompt para sintetizar o takeaway prático e acionável de engenharia do dia."""
+    """Prompt para sintetizar 'O Dizer do Dia' como um parágrafo editorial único e fluido."""
     return (
-        "Você é um Chief AI Architect e Engenheiro de Software Sênior.\n"
-        "Com base em todo o relatório diário fornecido abaixo (discussões do X, repositórios em alta no GitHub e artigos científicos do Hugging Face), sintetize de 2 a 3 conclusões e recomendações práticas e diretas para desenvolvedores e times de tecnologia.\n\n"
-        "Explique de forma objetiva:\n"
-        "1. Padrão/Tendência Emergente: O que o conjunto de novidades de hoje indica que está mudando na prática.\n"
-        "2. Recomendação Prática: Uma sugestão acionável para quem constrói software, agentes ou integra LLMs (o que testar, adotar ou evitar hoje).\n\n"
-        "REGRA ESTRITA: NUNCA use travessão longo ' — ' em hipótese alguma.\n\n"
-        "Formate EXATAMENTE assim:\n"
-        "- **Padrão em Foco:** [Explicação concisa e didática em 2 linhas]\n"
-        "- **Recomendação Prática:** [Sugestão acionável para engenheiros em 2 linhas]\n\n"
-        "Retorne APENAS os bullets em markdown, sem títulos nem blocos ```markdown.\n\n"
+        "Você é um Chief AI Architect e Editor Técnico do jornal 'The Engineering Gazette'.\n"
+        "Com base em todo o relatório diário fornecido abaixo (discussões do X, repositórios em alta no GitHub e artigos científicos do Hugging Face), sintetize um único parágrafo editorial conciso, elegante e de alto impacto (de 2 a 4 linhas) que amarre o tema predominante do dia e traga uma reflexão prática para engenheiros de software e construtores de IA.\n\n"
+        "Diretrizes editoriais:\n"
+        "1. Escreva um texto corrido fluido, coeso e direto.\n"
+        "2. NUNCA use marcadores de lista, bullets (- ou *) nem numerações.\n"
+        "3. NUNCA use prefixos rígidos ou rótulos repetitivos como 'Padrão em Foco:' ou 'Recomendação Prática:'. O texto deve ser puramente corrido sem marcadores.\n"
+        "4. REGRA ESTRITA: NUNCA use travessão longo ' — ' em hipótese alguma. Use dois-pontos, parênteses ou vírgulas.\n\n"
+        "Retorne APENAS o parágrafo em texto corrido (sem títulos, sem marcadores e sem blocos ```markdown).\n\n"
         f"CONTEÚDO DO RELATÓRIO:\n{relatorio_completo_md[:12000]}"
     )
 

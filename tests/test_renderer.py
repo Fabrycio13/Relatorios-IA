@@ -70,7 +70,7 @@ class TestRenderer(unittest.TestCase):
         self.assertIn('name="papers"', html)
         self.assertIn('id="takeaway"', html)
         self.assertIn('name="takeaway"', html)
-        self.assertIn("Takeaway Prático de Engenharia do Dia", html)
+        self.assertIn("VEREDITO DA REDAÇÃO", html)
         self.assertIn("Destaques Principais do Dia", html)
         self.assertIn("Ferramentas Open-Source", html)
         self.assertIn("Papers em Destaque", html)
@@ -119,6 +119,43 @@ class TestRenderer(unittest.TestCase):
         self.assertIn('class="newspaper-section"', html)
         self.assertIn('Destaques Principais do Dia', html)
         self.assertIn('Radar Perfis de Referência', html)
+
+    def test_render_bento_email_dizer_do_dia_paragrafo_sem_ul_li(self):
+        """Valida que o Dizer do Dia renderiza um parágrafo justificado estilizado, sem tags <ul> ou <li>."""
+        sample_md = """
+## 💡 Veredito da Redação: O Dizer do Dia
+A convergência do dia aponta para a consolidação de coding agents determinísticos e compressão semântica de bases vetoriais. O foco de engenharia migra da experimentação dispersa para a garantia de auditabilidade e custo previsível de execução.
+"""
+        html = render_bento_email(sample_md)
+
+        # Valida cabeçalho do box editorial
+        self.assertIn("VEREDITO DA REDAÇÃO: O DIZER DO DIA", html)
+
+        # Valida que o texto está contido em tag <p> com tipografia editorial serifada
+        self.assertIn('<p style="margin: 0; font-size: 14.5px; line-height: 1.65; color: #713f12; font-family: \'Times New Roman\', Georgia, serif; text-align: justify; font-weight: 400;">', html)
+        self.assertIn("A convergência do dia aponta para a consolidação", html)
+
+        # Valida que NÃO foram criadas listas não-ordenadas no box do takeaway
+        takeaway_block = html[html.find('id="takeaway"'):html.find('class="footer-container"')] if 'class="footer-container"' in html else html[html.find('id="takeaway"'):]
+        self.assertNotIn("<ul", takeaway_block)
+        self.assertNotIn("<li", takeaway_block)
+
+        # Valida âncoras de navegação rápida
+        self.assertIn('id="takeaway"', html)
+        self.assertIn('id="dizer-do-dia"', html)
+
+    def test_render_bento_email_takeaway_retrocompatibilidade_com_bullets_legados(self):
+        """Valida retrocompatibilidade: relatórios antigos contendo marcadores no Takeaway continuam renderizando graciosamente."""
+        sample_legacy_md = """
+## 💡 Takeaway Prático de Engenharia do Dia
+- **Padrão em Foco:** Agentes locais com MCP estão substituindo pipelines caros.
+- **Recomendação Prática:** Priorize ferramentas que rodam localmente com CPU.
+"""
+        html = render_bento_email(sample_legacy_md)
+        self.assertIn("VEREDITO DA REDAÇÃO", html)
+        self.assertIn("Agentes locais com MCP", html)
+        self.assertIn("Priorize ferramentas", html)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -12,7 +12,7 @@ from src.processors.ai_summarizer import (
     _anexar_secao_takeaway,
     remover_travessoes
 )
-from src.processors.prompts import get_prompt_resumo_ia
+from src.processors.prompts import get_prompt_resumo_ia, get_prompt_takeaway
 
 
 class TestAISummarizer(unittest.TestCase):
@@ -103,7 +103,7 @@ class TestAISummarizer(unittest.TestCase):
             self.assertIn("Resumo Principal da Síntese", conteudo)
             self.assertIn("GitHub Trending", conteudo)
             self.assertIn("Papers em Destaque", conteudo)
-            self.assertIn("Takeaway Prático de Engenharia", conteudo)
+            self.assertIn("Veredito da Redação: O Dizer do Dia", conteudo)
 
     def test_gerar_resumo_ia_lote_totalmente_vazio_retorna_none(self):
         empty_batch = DailyIngestionBatch(tweets=[], repos=[], papers=[])
@@ -234,6 +234,34 @@ class TestAISummarizer(unittest.TestCase):
 
             self.assertIn("<url>https://x.com/mattpocockuk/status/123</url>", user_content)
             self.assertIn("<external_links>https://github.com/example/agent</external_links>", user_content)
+
+    def test_get_prompt_takeaway_diretrizes_editorial_paragrafo_unico(self):
+        """Valida que o prompt do Dizer do Dia exige um único parágrafo fluido e veta bullets e rótulos rígidos."""
+        prompt = get_prompt_takeaway("# Relatório Markdown de Teste")
+
+        # Exige parágrafo único de 2 a 4 linhas
+        self.assertIn("único parágrafo", prompt)
+        self.assertIn("2 a 4 linhas", prompt)
+
+        # Veta expressamente marcadores e prefixos repetitivos
+        self.assertIn("Padrão em Foco", prompt)
+        self.assertIn("Recomendação Prática", prompt)
+        self.assertIn("sem marcadores", prompt.lower())
+
+        # Veta travessão longo
+        self.assertIn("travessão longo", prompt)
+
+    @patch("src.processors.ai_summarizer._executar_chamada_openai")
+    def test_anexar_secao_takeaway_gera_cabecalho_dizer_do_dia(self, mock_openai):
+        """Valida que _anexar_secao_takeaway anexa o novo cabeçalho 'Veredito da Redação: O Dizer do Dia'."""
+        mock_openai.return_value = "A convergência técnica do dia aponta para o determinismo de ferramentas de agentes."
+        base_md = "# Relatório Diário de Teste\n"
+
+        resultado = _anexar_secao_takeaway(base_md, "test-openai-key")
+
+        self.assertIn("## 💡 Veredito da Redação: O Dizer do Dia", resultado)
+        self.assertIn("A convergência técnica do dia aponta para o determinismo", resultado)
+        mock_openai.assert_called_once()
 
 
 if __name__ == "__main__":

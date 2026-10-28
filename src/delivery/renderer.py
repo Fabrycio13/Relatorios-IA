@@ -279,29 +279,32 @@ def render_bento_email(md_text: str) -> str:
             """)
             continue
 
-        # 4. Box Editorial: Takeaway Prático de Engenharia
-        if "Takeaway" in title or "💡" in title:
-            bullets_html = []
+        # 4. Box Editorial: O Dizer do Dia (Veredito da Redação)
+        if "Dizer do Dia" in title or "Takeaway" in title or "💡" in title:
+            # Processa as linhas do Dizer do Dia
+            cleaned_lines = []
             for l in lines:
                 l_str = l.strip()
+                if not l_str:
+                    continue
+                # Remove marcadores residuais se existirem para manter parágrafo corrido
                 if l_str.startswith("- ") or l_str.startswith("* "):
-                    conteudo = format_inline(l_str[2:])
-                    bullets_html.append(f"""
-                    <li style="margin-bottom: 9px; line-height: 1.6; color: #713f12; font-size: 14px; font-weight: 400;">
-                        {conteudo}
-                    </li>
-                    """)
+                    l_str = l_str[2:].strip()
+                cleaned_lines.append(format_inline(l_str))
+
+            paragrafo_conteudo = " ".join(cleaned_lines)
 
             articles_html.append(f"""
-            <!-- TAKEAWAY PRÁTICO (BOX EDITORIAL) -->
+            <!-- O DIZER DO DIA: VEREDITO DA REDAÇÃO (BOX EDITORIAL) -->
             <a name="takeaway" id="takeaway" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>
+            <a name="dizer-do-dia" id="dizer-do-dia" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>
             <div class="newspaper-section" style="margin-bottom: 24px; border: 2px solid #ca8a04; padding: 18px 20px; background-color: #fefce8;">
                 <div style="border-bottom: 1px solid #eab308; padding-bottom: 8px; margin-bottom: 12px; text-align: center;">
-                    <h2 style="font-family: 'Times New Roman', Georgia, serif; color: #854d0e; font-size: 15.5px; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; text-align: center;">Veredito da Redação: Takeaway Prático de Engenharia do Dia</h2>
+                    <h2 style="font-family: 'Times New Roman', Georgia, serif; color: #854d0e; font-size: 15.5px; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; text-align: center;">VEREDITO DA REDAÇÃO: O DIZER DO DIA</h2>
                 </div>
-                <ul style="padding-left: 20px; margin: 0;">
-                    {''.join(bullets_html)}
-                </ul>
+                <p style="margin: 0; font-size: 14.5px; line-height: 1.65; color: #713f12; font-family: 'Times New Roman', Georgia, serif; text-align: justify; font-weight: 400;">
+                    {paragrafo_conteudo}
+                </p>
             </div>
             """)
             continue
@@ -511,7 +514,7 @@ def render_bento_email(md_text: str) -> str:
                 <span style="color: #ccc;">•</span>
                 <a href="#papers" class="nav-pill" style="color: #be185d; text-decoration: none; margin: 0 5px;">✦ Papers</a>
                 <span style="color: #ccc;">•</span>
-                <a href="#takeaway" class="nav-pill" style="color: #854d0e; text-decoration: none; margin: 0 5px;">✦ Takeaway</a>
+                <a href="#takeaway" class="nav-pill" style="color: #854d0e; text-decoration: none; margin: 0 5px;">✦ Dizer do Dia</a>
             </div>
         </div>
 
