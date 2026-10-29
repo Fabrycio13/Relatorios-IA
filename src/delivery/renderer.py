@@ -4,7 +4,7 @@ import html
 from datetime import datetime
 from pathlib import Path
 from src.core.config import HEADER_BANNER_URL, HEADER_FULL_HD_URL, FOOTER_BANNER_URL, DATA_DIR
-from src.delivery.banner_selector import resolver_banner_do_dia
+from src.delivery.banner_selector import resolver_banner_do_dia, BannerInfo
 
 def obter_numero_edicao(data_str: str | None = None) -> str:
     """
@@ -75,7 +75,11 @@ def format_inline(text: str) -> str:
     t = t.replace("\u2014", "-").replace("—", "-")
     return t
 
-def render_bento_email(md_text: str, data_envio: datetime | None = None) -> str:
+def render_bento_email(
+    md_text: str,
+    data_envio: datetime | None = None,
+    banner_info: BannerInfo | None = None
+) -> str:
     """
     Renderizador Oficial estilo Jornal Impresso Tradicional (The Engineering Gazette).
     Títulos centralizados com cores temáticas distintas para cada tópico,
@@ -84,7 +88,8 @@ def render_bento_email(md_text: str, data_envio: datetime | None = None) -> str:
     """
     # Garantia total da REGRA DE OURO
     md_text = md_text.replace("\u2014", "-").replace("—", "-")
-    banner_info = resolver_banner_do_dia(data_envio=data_envio)
+    if banner_info is None:
+        banner_info = resolver_banner_do_dia(data_envio=data_envio)
     caption_escaped = html.escape(banner_info.caption, quote=True)
 
     sections = []
@@ -476,7 +481,7 @@ def render_bento_email(md_text: str, data_envio: datetime | None = None) -> str:
     <td>
     <![endif]-->
     <div class="main-container" style="max-width: 680px; margin: 0 auto; background-color: #fbf8f1; background-image: linear-gradient(#fbf8f1, #fbf8f1); border: 1px solid #d4cbb8; box-shadow: 0 4px 16px rgba(0,0,0,0.06); padding: 36px 32px; box-sizing: border-box;">
-        
+
         <!-- CABEÇALHO SUPERIOR DE IMPRENSA (TABELA ANTI-COLISÃO PARA CLIENTES DE EMAIL) -->
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-bottom: 1px solid #1a1a1a; margin-bottom: 12px; font-family: -apple-system, Arial, sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #555555;">
             <tr>
@@ -496,7 +501,7 @@ def render_bento_email(md_text: str, data_envio: datetime | None = None) -> str:
         <div class="newspaper-header" style="text-align: center; border-bottom: 3px double #1a1a1a; padding-bottom: 12px; margin-bottom: 16px;">
             <h1 class="masthead-title" style="font-family: 'Playfair Display', Georgia, 'Times New Roman', serif; font-size: 38px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; margin: 6px 0; line-height: 1.05; color: #111111;">O Diário de Engenharia</h1>
             <div class="masthead-subtitle" style="font-style: italic; font-size: 13.5px; color: #444444; margin: 4px 0 10px 0;">Crônica Diária de Agentes Autônomos, Modelos de Linguagem e Sistemas de Software</div>
-            
+
             <!-- BARRA DE DATAÇÃO (TABELA ANTI-COLISÃO) -->
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-top: 1px solid #1a1a1a; border-bottom: 1px solid #1a1a1a; margin-bottom: 10px; font-family: -apple-system, Arial, sans-serif; font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: #222222;">
                 <tr>

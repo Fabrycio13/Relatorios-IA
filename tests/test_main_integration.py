@@ -1,4 +1,5 @@
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
@@ -11,6 +12,11 @@ from src.core.models import Tweet, GitHubRepo, ResearchPaper, DailyIngestionBatc
 class TestMainIntegration(unittest.TestCase):
 
     def setUp(self):
+        self.tmp_dir_base = tempfile.TemporaryDirectory()
+        self.mock_status_file = Path(self.tmp_dir_base.name) / "ultimo_envio.txt"
+        self.status_file_patch = patch("main.STATUS_FILE", self.mock_status_file)
+        self.status_file_patch.start()
+
         self.sample_tweet = Tweet(
             author_name="Matt Pocock",
             author_handle="@mattpocockuk",
@@ -47,6 +53,11 @@ class TestMainIntegration(unittest.TestCase):
             collected_at="2026-10-27T08:00:00"
         )
 
+    def tearDown(self):
+        self.status_file_patch.stop()
+        self.tmp_dir_base.cleanup()
+
+    @patch("main.confirmar_banner_utilizado")
     @patch("main.registrar_envio_sucesso")
     @patch("main.notificar_windows")
     @patch("main.aguardar_conexao_internet", return_value=True)
@@ -60,7 +71,8 @@ class TestMainIntegration(unittest.TestCase):
         mock_despachar,
         mock_internet,
         mock_notificar,
-        mock_registrar_sucesso
+        mock_registrar_sucesso,
+        mock_confirmar_banner
     ):
         mock_pipeline_run.return_value = self.sample_batch
 
@@ -80,6 +92,7 @@ class TestMainIntegration(unittest.TestCase):
         from src.delivery.base import EmailDeliveryChannel
         self.assertIsInstance(channel_used, EmailDeliveryChannel)
         mock_registrar_sucesso.assert_called_once()
+        mock_confirmar_banner.assert_called_once()
 
     @patch("main.registrar_envio_sucesso")
     @patch("main.notificar_windows")
