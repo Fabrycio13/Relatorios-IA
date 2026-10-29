@@ -201,8 +201,15 @@ def main():
 
                 if args.preview:
                     logger.info("\n▶️  [ETAPA 3/3] Renderização e Pré-visualização Local (Preview)...")
+                    agora_preview = datetime.now()
+                    banner_preview = resolver_banner_do_dia(data_envio=agora_preview)
                     channel = FilePreviewDeliveryChannel()
-                    sucesso = despachar_relatorio(caminho_relatorio=relatorio_para_envio, channel=channel)
+                    sucesso = despachar_relatorio(
+                        caminho_relatorio=relatorio_para_envio,
+                        channel=channel,
+                        data_envio=agora_preview,
+                        banner_info=banner_preview
+                    )
                     if not sucesso:
                         logger.error("❌ Falha ao gerar preview local.")
                         notificar_windows("⚠️ Falha no Diário de IA", "Falha ao gerar preview local do relatório.")

@@ -221,5 +221,55 @@ A convergência do dia aponta para a consolidação de coding agents determinís
         self.assertNotIn('"aspas duplas"', alt_trecho)
 
 
+    @patch("src.delivery.renderer.resolver_banner_do_dia")
+    def test_render_bento_email_link_hd_e_title_dinamico(self, mock_resolver):
+        """Valida que o link <a> do banner aponta para full_hd_url e que o atributo title
+        reflete dinamicamente a legenda da imagem com escape seguro."""
+        from src.delivery.banner_selector import BannerInfo
+        from datetime import datetime
+
+        mock_resolver.return_value = BannerInfo(
+            banner_url="https://example.com/banner_rotativo_01.jpg",
+            full_hd_url="https://example.com/banner_rotativo_01_hd.jpg",
+            caption="A Grande Forja dos Compiladores: Código determinístico e modelos.",
+            is_special_date=False,
+            filename="banner_rotativo_01.jpg"
+        )
+
+        sample_md = "## 📌 Destaques\n- Teste de link HD."
+        html = render_bento_email(sample_md, data_envio=datetime(2026, 10, 29))
+
+        # 1. Valida que o link <a> aponta para a URL em alta resolução (full_hd_url) com target="_blank" e rel="noopener noreferrer"
+        self.assertIn('<a href="https://example.com/banner_rotativo_01_hd.jpg" target="_blank" rel="noopener noreferrer"', html)
+
+        # 2. Valida que o atributo title reflete dinamicamente o tema do banner
+        self.assertIn('title="A Grande Forja dos Compiladores: Código determinístico e modelos. (Clique para abrir a imagem original em alta resolução)"', html)
+
+        # 3. Valida que o atributo alt reflete a imagem
+        self.assertIn('alt="Arte da Edição: A Grande Forja dos Compiladores: Código determinístico e modelos."', html)
+
+    @patch("src.delivery.renderer.resolver_banner_do_dia")
+    def test_render_bento_email_title_escapa_caracteres_especiais(self, mock_resolver):
+        """Valida que o atributo title no link <a> escapa aspas e caracteres especiais."""
+        from src.delivery.banner_selector import BannerInfo
+        from datetime import datetime
+
+        mock_resolver.return_value = BannerInfo(
+            banner_url="https://example.com/banner.jpg",
+            full_hd_url="https://example.com/banner_hd.jpg",
+            caption='Tema "Especial" <IA> & Inovação',
+            is_special_date=False,
+            filename="banner.jpg"
+        )
+
+        sample_md = "## 📌 Destaques\n- Teste."
+        html = render_bento_email(sample_md, data_envio=datetime(2026, 10, 29))
+
+        # O title do link <a> deve conter aspas e tags escapadas
+        title_trecho = html[html.find('<a href="https://example.com/banner_hd.jpg"'):html.find('<img src=')]
+        self.assertIn('title="Tema &quot;Especial&quot; &lt;IA&gt; &amp; Inovação', title_trecho)
+        self.assertNotIn('"Especial"', title_trecho)
+
+
 if __name__ == "__main__":
     unittest.main()

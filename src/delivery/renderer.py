@@ -91,6 +91,12 @@ def render_bento_email(
     if banner_info is None:
         banner_info = resolver_banner_do_dia(data_envio=data_envio)
     caption_escaped = html.escape(banner_info.caption, quote=True)
+    title_escaped = html.escape(
+        f"{banner_info.caption} (Clique para abrir a imagem original em alta resolução)",
+        quote=True
+    )
+    full_hd_url_escaped = html.escape(banner_info.full_hd_url, quote=True)
+    banner_url_escaped = html.escape(banner_info.banner_url, quote=True)
 
     sections = []
     current_section = None
@@ -530,8 +536,8 @@ def render_bento_email(
 
         <!-- FOTO PRINCIPAL COM MOLDURA DE GRAVURA E LEGENDA DINÂMICA DA EDIÇÃO -->
         <div class="newspaper-photo" style="margin: 18px 0 24px 0; border: 1px solid #1a1a1a; padding: 5px; background: #ffffff;">
-            <a href="{banner_info.full_hd_url}" target="_blank" style="display: block; text-decoration: none; border: 0; outline: none;" title="Clique para abrir a arte original em alta resolução">
-                <img src="{banner_info.banner_url}" alt="Arte da Edição: {caption_escaped}" width="680" style="display: block; width: 100%; max-height: 380px; height: auto; object-fit: cover; object-position: center bottom; border: 0;" />
+            <a href="{full_hd_url_escaped}" target="_blank" rel="noopener noreferrer" style="display: block; text-decoration: none; border: 0; outline: none;" title="{title_escaped}">
+                <img src="{banner_url_escaped}" alt="Arte da Edição: {caption_escaped}" width="680" style="display: block; width: 100%; max-height: 380px; height: auto; object-fit: cover; object-position: center bottom; border: 0;" />
             </a>
             <div class="photo-caption" style="font-size: 12.5px; font-style: italic; color: #444444; padding: 6px 4px 2px 4px; border-top: 1px solid #e2dac9; text-align: center; font-family: Georgia, serif;">
                 {caption_escaped}

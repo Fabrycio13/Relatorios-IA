@@ -20,6 +20,10 @@ class TestDeliveryIntegration(unittest.TestCase):
         self.status_file_patch = patch("main.STATUS_FILE", self.mock_status_file)
         self.status_file_patch.start()
 
+        self.mock_data_dir = Path(self.tmp_dir_base.name)
+        self.data_dir_patch = patch("src.delivery.banner_selector.DATA_DIR", self.mock_data_dir)
+        self.data_dir_patch.start()
+
         self.sample_tweet = Tweet(
             author_name="Test Author",
             author_handle="@testauthor",
@@ -57,6 +61,7 @@ class TestDeliveryIntegration(unittest.TestCase):
 
     def tearDown(self):
         self.status_file_patch.stop()
+        self.data_dir_patch.stop()
         self.tmp_dir_base.cleanup()
 
     def test_channels_implement_protocol(self):
@@ -91,7 +96,8 @@ class TestDeliveryIntegration(unittest.TestCase):
             with patch("main.IngestionPipeline.run", return_value=self.sample_batch), \
                  patch("main.gerar_resumo_ia", return_value=dummy_report), \
                  patch("src.delivery.base.REPORTS_DIR", tmp_path), \
-                 patch("main.STATUS_FILE", tmp_path / "ultimo_envio.txt"):
+                 patch("main.STATUS_FILE", tmp_path / "ultimo_envio.txt"), \
+                 patch("src.delivery.banner_selector.DATA_DIR", tmp_path):
 
                 test_args = ["main.py", "--preview"]
                 with patch.object(sys, "argv", test_args):
@@ -103,6 +109,13 @@ class TestDeliveryIntegration(unittest.TestCase):
                 self.assertIn("<!DOCTYPE html>", html_content)
                 self.assertIn("Test Repo", html_content)
 
+                # Valida presença do link HD, rel noopener, title dinâmico e alt no banner
+                self.assertIn('class="newspaper-photo"', html_content)
+                self.assertIn('target="_blank"', html_content)
+                self.assertIn('rel="noopener noreferrer"', html_content)
+                self.assertIn('title="', html_content)
+                self.assertIn('alt="Arte da Edição:', html_content)
+
                 # 2. Garante abertura no navegador
                 mock_browser.assert_called_once_with(preview_dest.resolve().as_uri())
 
@@ -110,8 +123,9 @@ class TestDeliveryIntegration(unittest.TestCase):
                 mock_smtp_ssl.assert_not_called()
                 mock_smtp_regular.assert_not_called()
 
-                # 4. Garante que a trava antirrepetição NUNCA é registrada
+                # 4. Garante que a trava antirrepetição e histórico NUNCA são gravados em preview
                 mock_registrar_sucesso.assert_not_called()
+                self.assertFalse((tmp_path / "historico_banners.json").exists())
 
     @patch("src.delivery.base.webbrowser.open")
     @patch("smtplib.SMTP_SSL")
@@ -132,15 +146,21 @@ class TestDeliveryIntegration(unittest.TestCase):
 
             with patch("src.core.config.config.obter_ultimo_relatorio", return_value=dummy_report), \
                  patch("src.delivery.base.REPORTS_DIR", tmp_path), \
-                 patch("main.STATUS_FILE", tmp_path / "ultimo_envio.txt"):
+                 patch("main.STATUS_FILE", tmp_path / "ultimo_envio.txt"), \
+                 patch("src.delivery.banner_selector.DATA_DIR", tmp_path):
 
                 test_args = ["main.py", "--step", "email", "--preview"]
                 with patch.object(sys, "argv", test_args):
                     main.main()
 
                 self.assertTrue(preview_dest.exists())
+                html_content = preview_dest.read_text(encoding="utf-8")
+                self.assertIn('class="newspaper-photo"', html_content)
+                self.assertIn('rel="noopener noreferrer"', html_content)
+                self.assertIn('alt="Arte da Edição:', html_content)
                 mock_smtp_ssl.assert_not_called()
                 mock_registrar_sucesso.assert_not_called()
+                self.assertFalse((tmp_path / "historico_banners.json").exists())
 
     @patch("main.confirmar_banner_utilizado")
     @patch("main.registrar_envio_sucesso")
@@ -444,6 +464,117 @@ class TestDeliveryIntegration(unittest.TestCase):
                     main.main()
 
                 mock_reconciliar.assert_called_once()
+
+
+    @patch("src.delivery.base.webbrowser.open")
+    @patch("smtplib.SMTP_SSL")
+    @patch("main.notificar_windows")
+    @patch("main.registrar_envio_sucesso")
+    def test_e2e_preview_com_banner_dinamico_e_link_hd(
+        self,
+        mock_registrar_sucesso,
+        mock_notificar,
+        mock_smtp_ssl,
+        mock_browser
+    ):
+        """Valida E2E que python main.py --preview renderiza o banner dinâmico com link HD e title,
+        sem acionar SMTP, sem criar histórico e sem alterar a trava diária."""
+        import json
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            banners_dir = tmp_path / "banners"
+            banners_dir.mkdir()
+            (banners_dir / "halloween.jpg").write_bytes(b"arte_halloween")
+            manifesto = {
+                "legenda_padrao": "Legenda Padrão",
+                "feriados": {
+                    "10-31": {
+                        "arquivo": "halloween.jpg",
+                        "legenda": "Edição Especial de Halloween E2E"
+                    }
+                },
+                "catalogo_geral": []
+            }
+            (banners_dir / "manifesto.json").write_text(json.dumps(manifesto), encoding="utf-8")
+
+            preview_dest = tmp_path / "preview.html"
+            dummy_report = tmp_path / "Resumo_IA_2026-10-31.md"
+            dummy_report.write_text("# Relatório Halloween", encoding="utf-8")
+
+            with patch("main.IngestionPipeline.run", return_value=self.sample_batch), \
+                 patch("main.gerar_resumo_ia", return_value=dummy_report), \
+                 patch("src.core.config.config.obter_ultimo_relatorio", return_value=dummy_report), \
+                 patch("src.delivery.base.REPORTS_DIR", tmp_path), \
+                 patch("main.STATUS_FILE", tmp_path / "ultimo_envio.txt"), \
+                 patch("src.delivery.banner_selector.DATA_DIR", tmp_path), \
+                 patch("src.delivery.banner_selector.BANNERS_DIR", banners_dir), \
+                 patch("main.datetime") as mock_dt:
+
+                mock_dt.now.return_value = datetime(2026, 10, 31, 10, 0)
+                mock_dt.strftime = datetime.strftime
+
+                test_args = ["main.py", "--preview"]
+                with patch.object(sys, "argv", test_args):
+                    main.main()
+
+                self.assertTrue(preview_dest.exists())
+                html = preview_dest.read_text(encoding="utf-8")
+
+                # Valida link HD apontando para a imagem do dia com rel noopener
+                self.assertIn("halloween.jpg?v=20261021_v2", html)
+                self.assertIn('rel="noopener noreferrer"', html)
+                # Valida title dinâmico e alt com o tema
+                self.assertIn('title="Edição Especial de Halloween E2E (Clique para abrir a imagem original em alta resolução)"', html)
+                self.assertIn('alt="Arte da Edição: Edição Especial de Halloween E2E"', html)
+                self.assertIn("Edição Especial de Halloween E2E", html)
+
+                # Zero conexões SMTP, zero gravação de histórico, zero alteração na trava diária
+                mock_smtp_ssl.assert_not_called()
+                mock_registrar_sucesso.assert_not_called()
+                self.assertFalse((tmp_path / "historico_banners.json").exists())
+                self.assertFalse((tmp_path / "ultimo_envio.txt").exists())
+                mock_browser.assert_called_once_with(preview_dest.resolve().as_uri())
+
+    @patch("src.delivery.base.webbrowser.open")
+    @patch("smtplib.SMTP_SSL")
+    @patch("main.notificar_windows")
+    @patch("main.registrar_envio_sucesso")
+    def test_preview_isolamento_detectaria_regressao_sem_tocar_producao(
+        self,
+        mock_registrar_sucesso,
+        mock_notificar,
+        mock_smtp_ssl,
+        mock_browser
+    ):
+        """Valida que o preview é estritamente isolado e que, se ocorresse uma regressão
+        tentando persistir histórico, o teste detectaria a falha em tmp_path sem jamais
+        tocar no diretório de dados real de produção."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            preview_dest = tmp_path / "preview.html"
+            dummy_report = tmp_path / "Resumo_IA_2026-10-27.md"
+            dummy_report.write_text("# Relatório Teste", encoding="utf-8")
+
+            with patch("src.core.config.config.obter_ultimo_relatorio", return_value=dummy_report), \
+                 patch("src.delivery.base.REPORTS_DIR", tmp_path), \
+                 patch("main.STATUS_FILE", tmp_path / "ultimo_envio.txt"), \
+                 patch("src.delivery.banner_selector.DATA_DIR", tmp_path):
+
+                test_args = ["main.py", "--step", "email", "--preview"]
+                with patch.object(sys, "argv", test_args):
+                    main.main()
+
+                # Em execução normal de preview: histórico NÃO existe em tmp_path nem em produção
+                self.assertFalse((tmp_path / "historico_banners.json").exists())
+
+                # Simula uma regressão: se confirmar_banner_utilizado fosse chamado,
+                # ele gravaria no DATA_DIR injetado (tmp_path), provando que o patch é eficaz
+                from src.delivery.banner_selector import confirmar_banner_utilizado
+                confirmar_banner_utilizado(data_envio=datetime(2026, 10, 27))
+                self.assertTrue(
+                    (tmp_path / "historico_banners.json").exists(),
+                    "Uma regressão que escreva no histórico DEVE ser capturada no tmp_path."
+                )
 
 
 if __name__ == "__main__":

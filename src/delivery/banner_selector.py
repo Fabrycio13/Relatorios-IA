@@ -15,7 +15,7 @@ import logging
 import os
 from pathlib import Path
 
-from src.core.config import DATA_DIR, STATUS_FILE, HEADER_BANNER_URL, HEADER_FULL_HD_URL
+from src.core.config import DATA_DIR, STATUS_FILE, BANNERS_DIR, HEADER_BANNER_URL, HEADER_FULL_HD_URL
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +162,7 @@ def resolver_banner_do_dia(
         data_envio = datetime.now()
 
     if banners_dir is None:
-        banners_dir = Path(__file__).resolve().parent.parent.parent / "assets" / "banners"
+        banners_dir = BANNERS_DIR
 
     if manifesto_path is None:
         manifesto_path = banners_dir / "manifesto.json"
@@ -280,7 +280,7 @@ def confirmar_banner_utilizado(
         data_envio = datetime.now()
 
     if banners_dir is None:
-        banners_dir = Path(__file__).resolve().parent.parent.parent / "assets" / "banners"
+        banners_dir = BANNERS_DIR
 
     if manifesto_path is None:
         manifesto_path = banners_dir / "manifesto.json"
