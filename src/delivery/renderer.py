@@ -1,8 +1,10 @@
 import re
 import json
+import html
 from datetime import datetime
 from pathlib import Path
 from src.core.config import HEADER_BANNER_URL, HEADER_FULL_HD_URL, FOOTER_BANNER_URL, DATA_DIR
+from src.delivery.banner_selector import resolver_banner_do_dia
 
 def obter_numero_edicao(data_str: str | None = None) -> str:
     """
@@ -73,7 +75,7 @@ def format_inline(text: str) -> str:
     t = t.replace("\u2014", "-").replace("—", "-")
     return t
 
-def render_bento_email(md_text: str) -> str:
+def render_bento_email(md_text: str, data_envio: datetime | None = None) -> str:
     """
     Renderizador Oficial estilo Jornal Impresso Tradicional (The Engineering Gazette).
     Títulos centralizados com cores temáticas distintas para cada tópico,
@@ -82,6 +84,8 @@ def render_bento_email(md_text: str) -> str:
     """
     # Garantia total da REGRA DE OURO
     md_text = md_text.replace("\u2014", "-").replace("—", "-")
+    banner_info = resolver_banner_do_dia(data_envio=data_envio)
+    caption_escaped = html.escape(banner_info.caption, quote=True)
 
     sections = []
     current_section = None
@@ -519,13 +523,13 @@ def render_bento_email(md_text: str) -> str:
             </div>
         </div>
 
-        <!-- FOTO PRINCIPAL COM MOLDURA DE GRAVURA E LEGENDA EXATA SOLICITADA -->
+        <!-- FOTO PRINCIPAL COM MOLDURA DE GRAVURA E LEGENDA DINÂMICA DA EDIÇÃO -->
         <div class="newspaper-photo" style="margin: 18px 0 24px 0; border: 1px solid #1a1a1a; padding: 5px; background: #ffffff;">
-            <a href="{HEADER_FULL_HD_URL}" target="_blank" style="display: block; text-decoration: none; border: 0; outline: none;" title="Clique para abrir a arte original do castelo em alta resolução">
-                <img src="{HEADER_BANNER_URL}" alt="Castelo de IA &amp; Coding Agents" width="680" style="display: block; width: 100%; max-height: 380px; height: auto; object-fit: cover; object-position: center bottom; border: 0;" />
+            <a href="{banner_info.full_hd_url}" target="_blank" style="display: block; text-decoration: none; border: 0; outline: none;" title="Clique para abrir a arte original em alta resolução">
+                <img src="{banner_info.banner_url}" alt="Arte da Edição: {caption_escaped}" width="680" style="display: block; width: 100%; max-height: 380px; height: auto; object-fit: cover; object-position: center bottom; border: 0;" />
             </a>
             <div class="photo-caption" style="font-size: 12.5px; font-style: italic; color: #444444; padding: 6px 4px 2px 4px; border-top: 1px solid #e2dac9; text-align: center; font-family: Georgia, serif;">
-                O Castelo da Engenharia de Agentes: Panorama da fronteira de desenvolvimento em IA contemporânea.
+                {caption_escaped}
             </div>
         </div>
 
