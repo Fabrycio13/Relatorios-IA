@@ -132,7 +132,7 @@ def _anexar_secao_takeaway(relatorio_md: str, openai_key: str) -> str:
             operation_name="OpenAI Síntese de Takeaway"
         ).strip()
 
-        secao = ["\n\n---\n\n## 💡 Veredito da Redação: O Dizer do Dia\n", takeaway_markdown]
+        secao = ["\n\n---\n\n## 💡 Dica do Autor: O que levar para o código hoje\n", takeaway_markdown]
         return relatorio_md + "\n".join(secao)
     except Exception as e:
         logger.warning(f"Aviso ao anexar Takeaway: {e}")
