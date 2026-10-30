@@ -1,0 +1,51 @@
+{
+  "versao": "1.0",
+  "legenda_padrao": "Crônicas da Engenharia de Agentes: Panorama diário da fronteira de desenvolvimento em IA contemporânea.",
+  "feriados": {
+    "10-31": {
+      "arquivo": "halloween.jpg",
+      "legenda": "Edição Especial de Halloween: Os fantasmas dos bugs esquecidos em produção e os cemitérios de dependências obsoletas."
+    },
+    "12-24": {
+      "arquivo": "natal.jpg",
+      "legenda": "Edição Especial de Véspera de Natal: A grande oficina dos agentes em recesso, arquiteturas de IA em repouso e paz na branch main."
+    },
+    "12-25": {
+      "arquivo": "natal.jpg",
+      "legenda": "Edição Especial de Natal: A grande oficina dos agentes em recesso, arquiteturas de IA em repouso e paz na branch main."
+    },
+    "12-31": {
+      "arquivo": "ano_novo.jpg",
+      "legenda": "Edição Especial de Véspera de Ano Novo: Novos paradigmas, arquiteturas limpas e a celebração dos marcos alcançados na engenharia de agentes."
+    },
+    "01-01": {
+      "arquivo": "ano_novo.jpg",
+      "legenda": "Edição Especial de Ano Novo: Novos paradigmas, arquiteturas limpas e a celebração dos marcos alcançados na engenharia de agentes."
+    },
+    "2026-02-17": {
+      "arquivo": "carnaval.jpg",
+      "legenda": "Edição Especial de Carnaval: A folia dos dados sintéticos e a dança sincronizada de múltiplos agentes em produção."
+    },
+    "04-21": {
+      "arquivo": "tiradentes.jpg",
+      "legenda": "Edição Especial de Tiradentes: A liberdade do código open-source e a coragem de quebrar os monopólios proprietários de IA."
+    },
+    "05-01": {
+      "arquivo": "trabalho.jpg",
+      "legenda": "Edição Especial do Dia do Trabalhador: Homenagem aos engenheiros de software, compiladores e agentes que mantêm o mundo funcionando."
+    },
+    "09-07": {
+      "arquivo": "independencia.jpg",
+      "legenda": "Edição Especial da Independência: A soberania de construir e hospedar nossa própria inteligência computacional."
+    },
+    "11-15": {
+      "arquivo": "republica.jpg",
+      "legenda": "Edição Especial da Proclamação da República: O poder distribuído da comunidade e o avanço da computação pública e auditável."
+    },
+    "11-20": {
+      "arquivo": "consciencia_negra.jpg",
+      "legenda": "Edição Especial da Consciência Negra: Resiliência, diversidade e a força das ideias que transformam a tecnologia e a história."
+    }
+  },
+  "catalogo_geral": []
+}

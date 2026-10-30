@@ -10,6 +10,7 @@ REPORTS_DIR = BASE_DIR / "reports"
 LOGS_DIR = BASE_DIR / "logs"
 SCRIPTS_DIR = BASE_DIR / "scripts"
 ASSETS_DIR = BASE_DIR / "assets"
+BANNERS_DIR = ASSETS_DIR / "banners"
 
 # Garante que os diretórios essenciais existam
 for d in [DATA_DIR, REPORTS_DIR, LOGS_DIR, SCRIPTS_DIR, ASSETS_DIR]:

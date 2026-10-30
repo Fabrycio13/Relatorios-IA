@@ -7,6 +7,9 @@ email_config.json
 # Dados em cache e estado de execução
 data/*.json
 data/ultimo_envio.txt
+data/*.lock
+*.lock
+data/*.tmp
 ultimo_envio.txt
 
 # Logs
