@@ -439,6 +439,12 @@ class TestDeliveryIntegration(unittest.TestCase):
                 self.assertIn("SUCESSO_TRAVA_LIVRE", res3.stdout)
 
             finally:
+                if proc1.stdin and not proc1.stdin.closed:
+                    proc1.stdin.close()
+                if proc1.stdout and not proc1.stdout.closed:
+                    proc1.stdout.close()
+                if proc1.stderr and not proc1.stderr.closed:
+                    proc1.stderr.close()
                 if proc1.poll() is None:
                     proc1.kill()
                     proc1.wait()
@@ -501,7 +507,8 @@ class TestDeliveryIntegration(unittest.TestCase):
             dummy_report = tmp_path / "Resumo_IA_2026-10-31.md"
             dummy_report.write_text("# Relatório Halloween", encoding="utf-8")
 
-            with patch("main.IngestionPipeline.run", return_value=self.sample_batch), \
+            with patch("main.aguardar_conexao_internet", return_value=True), \
+                 patch("main.IngestionPipeline.run", return_value=self.sample_batch), \
                  patch("main.gerar_resumo_ia", return_value=dummy_report), \
                  patch("src.core.config.config.obter_ultimo_relatorio", return_value=dummy_report), \
                  patch("src.delivery.base.REPORTS_DIR", tmp_path), \

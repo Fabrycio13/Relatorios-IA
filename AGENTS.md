@@ -32,6 +32,9 @@ Antes de planejar ou alterar código, consulte a documentação oficial existent
 3. **Testes Herméticos:**
    * Testes devem funcionar de forma autônoma em qualquer ambiente (inclusive CI/CD limpo), sem depender da existência de `.env`, credenciais reais ou conectividade com a internet.
    * Isole chamadas de configuração de credenciais, sockets de rede e serviços externos (`smtp`, `webbrowser`, APIs de IA).
+   * **Guardrails Automáticos:** A suíte utiliza `tests/guardrails.py` para interceptar sockets TCP/UDP, resolução DNS e inicialização real de navegadores Playwright.
+   * **Comando Canônico:** A suíte completa deve ser executada com `python -m unittest discover -s tests -t . -v` para assegurar a carga do pacote `tests/__init__.py`. Execuções seletivas devem utilizar notação de módulo pontuada (`python -m unittest tests.<modulo> -v`).
+   * **Limite de Subprocessos Filhos:** Subprocessos crus (`subprocess.Popen([sys.executable, ...])`) possuem espaço de memória independente e não herdam automaticamente os interceptores do processo-pai; testes de concorrência multiprocesso devem se ater a operações locais de lock/IPC.
 
 ---
 
@@ -59,7 +62,7 @@ Antes de planejar ou alterar código, consulte a documentação oficial existent
 ## 5. Rastreabilidade e Critérios de Conclusão (Definition of Done)
 
 * **Rastreabilidade Proporcional:** Demandas complexas e novas funcionalidades devem seguir o fluxo `Spec → Ticket → Testes → Code Review`. Correções pontuais e pequenas refatorações dispensam formalização burocrática pesada, mas exigem clareza nos commits e no rationale.
-* **Execução Gradual de Testes:** Execute os testes relevantes durante a implementação do código e a suíte completa (`python -m unittest discover tests -v`) antes de finalizar a integração.
+* **Execução Gradual de Testes:** Execute os testes relevantes durante a implementação do código e a suíte completa canônica (`python -m unittest discover -s tests -t . -v`) antes de finalizar a integração.
 * **Code Review Baseado em Evidências:** Avalie alterações sob dois eixos independentes:
   1. *Standards:* aderência aos padrões de código, ausência de smells de Fowler e manutenibilidade.
   2. *Spec:* verificação objetiva do cumprimento dos requisitos solicitados, ausência de scope creep e preservação dos comportamentos existentes.
