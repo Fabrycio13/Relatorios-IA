@@ -180,15 +180,19 @@ A convergência do dia aponta para a consolidação de coding agents determinís
         self.assertIn("Edição Especial de Halloween Teste", html)
         mock_resolver.assert_called_once_with(data_envio=datetime(2026, 10, 31))
 
-    def test_render_bento_email_chamada_padrao_renderiza_castelo_classico(self):
+    @patch("src.delivery.renderer.resolver_banner_do_dia")
+    def test_render_bento_email_chamada_padrao_renderiza_castelo_classico(self, mock_resolver):
         """Valida retrocompatibilidade: chamada sem data_envio renderiza com sucesso o castelo clássico."""
         from src.core.config import HEADER_BANNER_URL
+        from src.delivery.banner_selector import _fallback_castelo_classico
 
+        mock_resolver.return_value = _fallback_castelo_classico()
         sample_md = "## 📌 Destaques\n- **Novidade:** Teste de compatibilidade."
         html = render_bento_email(sample_md)
 
         self.assertIn(HEADER_BANNER_URL, html)
         self.assertIn("Castelo da Engenharia de Agentes", html)
+        mock_resolver.assert_called_once_with(data_envio=None)
 
 
     @patch("src.delivery.renderer.resolver_banner_do_dia")
