@@ -325,7 +325,8 @@ class TestDeliveryIntegration(unittest.TestCase):
             tmp_path = Path(tmp_dir)
             lock_path = tmp_path / "ultimo_envio.lock"
             status_path = tmp_path / "ultimo_envio.txt"
-            status_path.write_text("2026-10-29", encoding="utf-8")
+            hoje_str = datetime.now().strftime("%Y-%m-%d")
+            status_path.write_text(hoje_str, encoding="utf-8")
 
             # Executa main.py sem --force quando já foi enviado hoje -> dispara sys.exit(0)
             with patch("main.STATUS_FILE", status_path):

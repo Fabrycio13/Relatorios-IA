@@ -78,6 +78,7 @@ if ($Install) {
         -AllowStartIfOnBatteries `
         -DontStopIfGoingOnBatteries `
         -StartWhenAvailable `
+        -WakeToRun `
         -RestartCount 3 `
         -RestartInterval (New-TimeSpan -Minutes 5)
 
