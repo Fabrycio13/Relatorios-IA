@@ -21,6 +21,7 @@ _WAS_SOCKET_GUARDED_AT_IMPORT = getattr(socket.socket.connect, "__name__", "") =
 from tests.guardrails import (
     NetworkBlockedError,
     PlaywrightBlockedError,
+    _guarded_sendmsg,
     allow_network,
     allow_playwright,
     is_guardrails_installed,
@@ -72,6 +73,7 @@ class TestGuardrails(unittest.TestCase):
         self.assertTrue(is_local_address(("localhost", 80)))
         self.assertTrue(is_local_address(("::1", 443)))
         self.assertTrue(is_local_address(("127.0.0.2", 9000)))
+        self.assertTrue(is_local_address(("127.255.255.254", 80)))
         self.assertTrue(is_local_address("/tmp/pipe.sock"))
         self.assertTrue(is_local_address(b"/tmp/pipe.sock"))
         self.assertTrue(is_local_address((None, 80)))
@@ -79,6 +81,10 @@ class TestGuardrails(unittest.TestCase):
 
         # 0.0.0.0 NÃO é loopback e deve ser rejeitado para conexões de saída
         self.assertFalse(is_local_address(("0.0.0.0", 5000)))
+
+        # Domínios iniciados por 127. NÃO são IPs de loopback válidos e devem ser rejeitados
+        self.assertFalse(is_local_address(("127.exemplo.com", 80)))
+        self.assertFalse(is_local_address(("127.0.0.1.nip.io", 80)))
 
         # O hostname da máquina NÃO é considerado loopback seguro (pode resolver para IP de rede externa/LAN)
         self.assertFalse(is_local_address((socket.gethostname(), 80)))
@@ -97,6 +103,13 @@ class TestGuardrails(unittest.TestCase):
         self.assertIn("Tentativa de resolução DNS externa não autorizada", str(ctx.exception))
         self.assertIn("example.com", str(ctx.exception))
 
+    def test_dns_getaddrinfo_domain_starting_with_127_is_blocked_before_resolution(self):
+        """Valida que domínios iniciados por '127.' (ex: '127.exemplo.com') são bloqueados antes do DNS."""
+        with self.assertRaises(NetworkBlockedError) as ctx:
+            socket.getaddrinfo("127.exemplo.com", 80)
+        self.assertIn("Tentativa de resolução DNS externa não autorizada", str(ctx.exception))
+        self.assertIn("127.exemplo.com", str(ctx.exception))
+
     def test_dns_getaddrinfo_local_host_is_permitted(self):
         """Valida que resolução DNS para localhost/loopback é permitida normalmente."""
         res = socket.getaddrinfo("localhost", 80)
@@ -108,6 +121,12 @@ class TestGuardrails(unittest.TestCase):
         """Valida que socket.gethostbyname para host externo é interceptado antes do DNS."""
         with self.assertRaises(NetworkBlockedError) as ctx:
             socket.gethostbyname("google.com")
+        self.assertIn("Tentativa de resolução DNS (gethostbyname)", str(ctx.exception))
+
+    def test_dns_gethostbyname_domain_starting_with_127_is_blocked(self):
+        """Valida que socket.gethostbyname para '127.exemplo.com' é bloqueado antes da resolução."""
+        with self.assertRaises(NetworkBlockedError) as ctx:
+            socket.gethostbyname("127.exemplo.com")
         self.assertIn("Tentativa de resolução DNS (gethostbyname)", str(ctx.exception))
 
     def test_external_socket_connect_raises_network_blocked_error(self):
@@ -134,6 +153,52 @@ class TestGuardrails(unittest.TestCase):
         """Valida que socket.create_connection para IP externo é interceptado sem tráfego de rede."""
         with self.assertRaises(NetworkBlockedError):
             socket.create_connection(("8.8.8.8", 53), timeout=1)
+
+    def test_udp_socket_sendto_external_ip_is_blocked(self):
+        """Valida que socket.sendto para IP externo sem connect prévio é interceptado e bloqueado."""
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            with self.assertRaises(NetworkBlockedError) as ctx:
+                s.sendto(b"PING_PAYLOAD", ("8.8.8.8", 53))
+            self.assertIn("Tentativa de envio UDP/datagrama (sendto) externo não autorizado", str(ctx.exception))
+            self.assertIn("8.8.8.8", str(ctx.exception))
+        finally:
+            s.close()
+
+    def test_udp_socket_sendto_domain_starting_with_127_is_blocked(self):
+        """Valida que socket.sendto para domínio iniciado por 127. é bloqueado sem emissão de pacotes."""
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            with self.assertRaises(NetworkBlockedError):
+                s.sendto(b"DATAGRAM", ("127.exemplo.com", 9999))
+        finally:
+            s.close()
+
+    def test_udp_socket_sendto_local_loopback_is_permitted(self):
+        """Valida que socket.sendto para loopback local (127.0.0.1) é permitido normalmente."""
+        s_recv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            s_recv.bind(("127.0.0.1", 0))
+            port = s_recv.getsockname()[1]
+            # Envio legítimo em loopback
+            sent = s_send.sendto(b"LOCAL_ECHO", ("127.0.0.1", port))
+            self.assertEqual(sent, len(b"LOCAL_ECHO"))
+            data, _ = s_recv.recvfrom(1024)
+            self.assertEqual(data, b"LOCAL_ECHO")
+        finally:
+            s_recv.close()
+            s_send.close()
+
+    def test_socket_sendmsg_external_is_blocked_when_available(self):
+        """Valida que socket.sendmsg para destino externo é interceptado."""
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            with self.assertRaises(NetworkBlockedError) as ctx:
+                _guarded_sendmsg(s, [b"MSG"], [], 0, ("8.8.8.8", 53))
+            self.assertIn("Tentativa de envio de mensagens (sendmsg)", str(ctx.exception))
+        finally:
+            s.close()
 
     def test_urllib_request_to_external_url_is_blocked(self):
         """Valida que urllib.request.urlopen para URL externa é bloqueado por NetworkBlockedError."""

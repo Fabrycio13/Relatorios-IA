@@ -1,7 +1,7 @@
 """Módulo de Guardrails e Proteção Hermética da Suíte de Testes.
 
 Garante o cumprimento estrito da Regra 3 do AGENTS.md (Testes Herméticos):
-1. Bloqueia conexões de rede externas acidentais (HTTP, HTTPS, DNS, SMTP, TCP).
+1. Bloqueia conexões e envios de rede externos acidentais (TCP connect, UDP sendto/sendmsg).
 2. Bloqueia resolução DNS externa (socket.getaddrinfo, socket.gethostbyname) antes de qualquer handshake.
 3. Bloqueia a inicialização real de instâncias de Browser e drivers do Playwright.
 4. Preserva a execução legítima de subprocessos locais do interpretador Python (concorrência e locks).
@@ -19,6 +19,7 @@ Limites Técnicos Documentados:
 """
 
 from contextlib import contextmanager
+import ipaddress
 import socket
 import sys
 import threading
@@ -27,7 +28,7 @@ logger = None
 
 
 class NetworkBlockedError(RuntimeError):
-    """Exceção levantada quando uma conexão de rede externa não autorizada é tentada em testes."""
+    """Exceção levantada quando uma conexão ou envio de rede externa não autorizada é tentada em testes."""
     pass
 
 
@@ -73,11 +74,20 @@ def allow_playwright():
 
 
 def _is_local_host_str(host_str: str) -> bool:
-    """Verifica se uma string de hostname/IP é estritamente loopback local (127.0.0.1, localhost, ::1)."""
+    """Verifica se uma string de hostname/IP é estritamente loopback local (127.0.0.1, localhost, ::1).
+
+    Utiliza ipaddress para validação semântica de IP real, impedindo que domínios arbitrários
+    iniciados por '127.' (ex: '127.exemplo.com') sejam tratados erroneamente como loopback.
+    """
     if not host_str:
         return True
     h = host_str.strip().lower()
-    return h in ("127.0.0.1", "localhost", "::1") or h.startswith("127.")
+    if h == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(h).is_loopback
+    except ValueError:
+        return False
 
 
 def is_local_address(address) -> bool:
@@ -102,9 +112,29 @@ def is_local_address(address) -> bool:
 # Guardas de socket originais
 _orig_connect = socket.socket.connect
 _orig_connect_ex = socket.socket.connect_ex
+_orig_sendto = socket.socket.sendto
+_orig_sendmsg = getattr(socket.socket, "sendmsg", None)
 _orig_getaddrinfo = socket.getaddrinfo
 _orig_gethostbyname = socket.gethostbyname
 _orig_gethostbyname_ex = socket.gethostbyname_ex
+
+
+def _extract_address_from_sendto_args(args, kwargs):
+    """Extrai o endereço de destino dos argumentos variáveis de socket.sendto."""
+    if "address" in kwargs:
+        return kwargs["address"]
+    if len(args) >= 2:
+        return args[-1]
+    return None
+
+
+def _extract_address_from_sendmsg_args(args, kwargs):
+    """Extrai o endereço de destino dos argumentos variáveis de socket.sendmsg (quando disponível)."""
+    if "address" in kwargs:
+        return kwargs["address"]
+    if len(args) >= 4:
+        return args[3]
+    return None
 
 
 def _guarded_connect(self, address):
@@ -133,6 +163,36 @@ def _guarded_connect_ex(self, address):
                 "Todos os testes devem ser herméticos (Regra 3 do AGENTS.md)."
             )
     return _orig_connect_ex(self, address)
+
+
+def _guarded_sendto(self, *args, **kwargs):
+    if not is_network_allowed():
+        target = _extract_address_from_sendto_args(args, kwargs)
+        if target is not None and not is_local_address(target):
+            try:
+                self.close()
+            except Exception:
+                pass
+            raise NetworkBlockedError(
+                f"Tentativa de envio UDP/datagrama (sendto) externo não autorizado em ambiente de testes para: {target}. "
+                "Todos os testes devem ser herméticos (Regra 3 do AGENTS.md)."
+            )
+    return _orig_sendto(self, *args, **kwargs)
+
+
+def _guarded_sendmsg(self, *args, **kwargs):
+    if not is_network_allowed():
+        target = _extract_address_from_sendmsg_args(args, kwargs)
+        if target is not None and not is_local_address(target):
+            try:
+                self.close()
+            except Exception:
+                pass
+            raise NetworkBlockedError(
+                f"Tentativa de envio de mensagens (sendmsg) externo não autorizado em ambiente de testes para: {target}. "
+                "Todos os testes devem ser herméticos (Regra 3 do AGENTS.md)."
+            )
+    return _orig_sendmsg(self, *args, **kwargs)
 
 
 def _guarded_getaddrinfo(host, port, *args, **kwargs):
@@ -221,6 +281,9 @@ def install_guardrails():
 
     socket.socket.connect = _guarded_connect
     socket.socket.connect_ex = _guarded_connect_ex
+    socket.socket.sendto = _guarded_sendto
+    if _orig_sendmsg is not None:
+        socket.socket.sendmsg = _guarded_sendmsg
     socket.getaddrinfo = _guarded_getaddrinfo
     socket.gethostbyname = _guarded_gethostbyname
     socket.gethostbyname_ex = _guarded_gethostbyname_ex
@@ -242,6 +305,9 @@ def uninstall_guardrails():
 
     socket.socket.connect = _orig_connect
     socket.socket.connect_ex = _orig_connect_ex
+    socket.socket.sendto = _orig_sendto
+    if _orig_sendmsg is not None:
+        socket.socket.sendmsg = _orig_sendmsg
     socket.getaddrinfo = _orig_getaddrinfo
     socket.gethostbyname = _orig_gethostbyname
     socket.gethostbyname_ex = _orig_gethostbyname_ex
