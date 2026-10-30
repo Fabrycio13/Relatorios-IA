@@ -85,7 +85,10 @@ python main.py --check-auth
 ### 6. Executar a Suíte de Testes Unitários
 Executa todos os testes automatizados da pasta `tests/` em modo verboso:
 ```powershell
-python -m unittest discover tests -v
+python -m unittest discover -s tests -t . -v
+
+# Ou execução seletiva de módulo específico:
+python -m unittest tests.test_delivery_integration -v
 ```
 
 ### 7. Consultar Status do Envio
