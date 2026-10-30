@@ -47,5 +47,26 @@
       "legenda": "Edição Especial da Consciência Negra: Resiliência, diversidade e a força das ideias que transformam a tecnologia e a história."
     }
   },
-  "catalogo_geral": []
+  "catalogo_geral": [
+    {
+      "arquivo": "01_observatorio.jpg",
+      "legenda": "O Grande Observatório da Inteligência Artificial: Monumentalidade, precisão astronômica e a contínua exploração das fronteiras do conhecimento em IA."
+    },
+    {
+      "arquivo": "02_biblioteca.jpg",
+      "legenda": "A Biblioteca Viva dos Agentes: Onde sabedoria ancestral, modelos de linguagem e arquiteturas orgânicas florescem em perfeita harmonia."
+    },
+    {
+      "arquivo": "03_ponte.jpg",
+      "legenda": "A Ponte dos Dados: Infraestrutura arquitetônica, integração fluida de APIs e travessias monumentais sobre o oceano da informação."
+    },
+    {
+      "arquivo": "04_templo.jpg",
+      "legenda": "O Templo do Código: Serenidade, equilíbrio e maestria artesanal na construção de arquiteturas de software resilientes e duradouras."
+    },
+    {
+      "arquivo": "05_jardim.jpg",
+      "legenda": "O Jardim das Ideias: A jornada inspiradora do conhecimento, o desabrochar de novas descobertas e a evolução constante da tecnologia."
+    }
+  ]
 }
