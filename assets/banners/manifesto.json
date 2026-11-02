@@ -67,6 +67,54 @@
     {
       "arquivo": "05_jardim.jpg",
       "legenda": "O Jardim das Ideias: A jornada inspiradora do conhecimento, o desabrochar de novas descobertas e a evolução constante da tecnologia."
+    },
+    {
+      "arquivo": "06_torre_contexto.jpg",
+      "legenda": "A Torre do Contexto Infinito: Colossal espiral gótica elevando-se às nuvens, simbolizando a expansão ilimitada da memória e raciocínio dos agentes."
+    },
+    {
+      "arquivo": "07_vale_algoritmos.jpg",
+      "legenda": "O Vale dos Algoritmos: Paisagem alpina radiante banhada por sol de verão, onde riachos límpidos e moinhos celebram a harmonia dos fluxos de dados."
+    },
+    {
+      "arquivo": "08_forja_compiladores.jpg",
+      "legenda": "A Grande Forja dos Compiladores: Oficina mecânica monumental onde engrenagens titânicas moldam código determinístico e arquiteturas sólidas."
+    },
+    {
+      "arquivo": "09_farol_fronteira.jpg",
+      "legenda": "O Farol da Fronteira: Sentinela de pedra no penhasco ao entardecer dourado, projetando clareza e orientação sobre o vasto oceano da inovação."
+    },
+    {
+      "arquivo": "10_aqueduto_vetores.jpg",
+      "legenda": "O Aqueduto dos Vetores: Grandiosa obra de engenharia em múltiplos arcos de pedra canalizando torrentes luminosas de dados através de desfiladeiros."
+    },
+    {
+      "arquivo": "11_cidade_flutuante.jpg",
+      "legenda": "A Cidade Flutuante dos Modelos: Arquipélago suspenso em céu azul-celeste com castelos voadores e dirigíveis, representando as altas camadas de inteligência."
+    },
+    {
+      "arquivo": "12_camara_sandboxing.jpg",
+      "legenda": "A Câmara de Sandboxing: Fortaleza impenetrável de ferro rebitado e válvulas de segurança, isolando experimentos autônomos em ambiente hermético."
+    },
+    {
+      "arquivo": "13_observatorio_sagrado.jpg",
+      "legenda": "O Observatório da Montanha Sagrada: Mirante ancestral no cume alpino com cerejeiras e bandeiras coloridas contemplando o infinito mar de nuvens douradas."
+    },
+    {
+      "arquivo": "14_laboratorio_evals.jpg",
+      "legenda": "O Laboratório de Avaliações: Balanças colossais de latão sob a solene luz de vitrais, pesando com rigor analítico a precisão e latência dos modelos."
+    },
+    {
+      "arquivo": "15_vila_artesaos.jpg",
+      "legenda": "A Vila dos Artesãos de Software: Tranquilidade rural com moinhos de água, carpas koi em canais cristalinos e dedicação à excelência do código bem escrito."
+    },
+    {
+      "arquivo": "16_mina_pesquisa.jpg",
+      "legenda": "A Mina de Pesquisa: Galerias subterrâneas de pedra esculpida onde pesquisadores extraem geodos cristalinos de conhecimento científico e princípios matemáticos."
+    },
+    {
+      "arquivo": "17_santuario_confluencia.jpg",
+      "legenda": "O Santuário da Confluência: Floresta de bambus esmeralda com portais torii sobre lago espelhado, transmitindo serenidade, equilíbrio e paz arquitetural."
     }
   ]
 }
