@@ -147,6 +147,46 @@
     {
       "arquivo": "25_estufa_dados.jpg",
       "legenda": "A Estufa Botânica de Dados: Palácio vitoriano de cristal com prismas de luz e vegetação tropical, acolhendo o crescimento orgânico de novos ecossistemas de software."
+    },
+    {
+      "arquivo": "26_monolito_kernel.jpg",
+      "legenda": "O Monolito do Kernel: Monumental câmara subterrânea vitoriana de pedra ciclópica guardando o núcleo fundacional do sistema."
+    },
+    {
+      "arquivo": "27_arquipelago_dourado.jpg",
+      "legenda": "O Arquipélago das Nuvens Douradas: Ilhas flutuantes com pagodes antigos e quedas d'água mergulhando em nuvens douradas ao pôr do sol."
+    },
+    {
+      "arquivo": "28_observatorio_ondas.jpg",
+      "legenda": "O Observatório das Ondas Gravitacionais: Torre monumental sobre o abismo com interferômetros de precisão medindo oscilações do cosmos."
+    },
+    {
+      "arquivo": "29_trilha_vagalumes.jpg",
+      "legenda": "A Trilha dos Vaga-Lumes Sintéticos: Estrada de montanha entre bambuzais e cerejeiras iluminada por partículas bioluminescentes no crepúsculo."
+    },
+    {
+      "arquivo": "30_forja_grafos.jpg",
+      "legenda": "A Forja dos Grafos Densos: Complexo industrial onde gigantescos martelos a vapor forjam estruturas geométricas de sustentação arquitetural."
+    },
+    {
+      "arquivo": "31_terminal_aurora.jpg",
+      "legenda": "O Terminal da Aurora Boreal: Charmosa estação ferroviária em fiorde ártico sob os véus luminosos verdes e violetas da aurora."
+    },
+    {
+      "arquivo": "32_labirinto_ponteiros.jpg",
+      "legenda": "O Labirinto dos Ponteiros: Pátio gótico colossal com corredores geométricos infinitos e monumentos aos mestres da ciência da computação."
+    },
+    {
+      "arquivo": "33_jardim_termas.jpg",
+      "legenda": "O Jardim das Águas Termais: Onsen sereno cercado por bordos vermelhos de outono, pontes laqueadas e névoas tranquilas de montanha."
+    },
+    {
+      "arquivo": "34_usina_fluxo.jpg",
+      "legenda": "A Usina Hidrelétrica do Fluxo Contínuo: Represa ciclópica de pedra e turbinas a vapor canalizando a força motriz dos fluxos ininterruptos de dados."
+    },
+    {
+      "arquivo": "35_vale_moinhos.jpg",
+      "legenda": "O Vale dos Moinhos de Vento: Colinas verdejantes ao sol radiante de verão com campos floridos e moinhos rústicos sob nuvens cumulus."
     }
   ]
 }
