@@ -49,24 +49,144 @@
   },
   "catalogo_geral": [
     {
-      "arquivo": "01_observatorio.jpg",
-      "legenda": "O Grande Observatório da Inteligência Artificial: Monumentalidade, precisão astronômica e a contínua exploração das fronteiras do conhecimento em IA."
+      "arquivo": "01_biblioteca.jpg",
+      "legenda": "A Biblioteca Viva dos Agentes: Onde sabedoria ancestral, modelos de linguagem e arquiteturas orgânicas florescem em perfeita harmonia."
     },
     {
-      "arquivo": "02_biblioteca.jpg",
-      "legenda": "A Biblioteca Viva dos Agentes: Onde sabedoria ancestral, modelos de linguagem e arquiteturas orgânicas florescem em perfeita harmonia."
+      "arquivo": "02_observatorio.jpg",
+      "legenda": "O Grande Observatório da Inteligência Artificial: Monumentalidade, precisão astronômica e a contínua exploração das fronteiras do conhecimento em IA."
     },
     {
       "arquivo": "03_ponte.jpg",
       "legenda": "A Ponte dos Dados: Infraestrutura arquitetônica, integração fluida de APIs e travessias monumentais sobre o oceano da informação."
     },
     {
-      "arquivo": "04_templo.jpg",
+      "arquivo": "04_torre_contexto.jpg",
+      "legenda": "A Torre do Contexto Infinito: Colossal espiral gótica elevando-se às nuvens, simbolizando a expansão ilimitada da memória e raciocínio dos agentes."
+    },
+    {
+      "arquivo": "05_templo.jpg",
       "legenda": "O Templo do Código: Serenidade, equilíbrio e maestria artesanal na construção de arquiteturas de software resilientes e duradouras."
     },
     {
-      "arquivo": "05_jardim.jpg",
+      "arquivo": "06_forja_compiladores.jpg",
+      "legenda": "A Grande Forja dos Compiladores: Oficina mecânica monumental onde engrenagens titânicas moldam código determinístico e arquiteturas sólidas."
+    },
+    {
+      "arquivo": "07_jardim.jpg",
       "legenda": "O Jardim das Ideias: A jornada inspiradora do conhecimento, o desabrochar de novas descobertas e a evolução constante da tecnologia."
+    },
+    {
+      "arquivo": "08_aqueduto_vetores.jpg",
+      "legenda": "O Aqueduto dos Vetores: Grandiosa obra de engenharia em múltiplos arcos de pedra canalizando torrentes luminosas de dados através de desfiladeiros."
+    },
+    {
+      "arquivo": "09_vale_algoritmos.jpg",
+      "legenda": "O Vale dos Algoritmos: Paisagem alpina radiante banhada por sol de verão, onde riachos límpidos e moinhos celebram a harmonia dos fluxos de dados."
+    },
+    {
+      "arquivo": "10_camara_sandboxing.jpg",
+      "legenda": "A Câmara de Sandboxing: Fortaleza impenetrável de ferro rebitado e válvulas de segurança, isolando experimentos autônomos em ambiente hermético."
+    },
+    {
+      "arquivo": "11_farol_fronteira.jpg",
+      "legenda": "O Farol da Fronteira: Sentinela de pedra no penhasco ao entardecer dourado, projetando clareza e orientação sobre o vasto oceano da inovação."
+    },
+    {
+      "arquivo": "12_laboratorio_evals.jpg",
+      "legenda": "O Laboratório de Avaliações: Balanças colossais de latão sob a solene luz de vitrais, pesando com rigor analítico a precisão e latência dos modelos."
+    },
+    {
+      "arquivo": "13_cidade_flutuante.jpg",
+      "legenda": "A Cidade Flutuante dos Modelos: Arquipélago suspenso em céu azul-celeste com castelos voadores e dirigíveis, representando as altas camadas de inteligência."
+    },
+    {
+      "arquivo": "14_mina_pesquisa.jpg",
+      "legenda": "A Mina de Pesquisa: Galerias subterrâneas de pedra esculpida onde pesquisadores extraem geodos cristalinos de conhecimento científico e princípios matemáticos."
+    },
+    {
+      "arquivo": "15_observatorio_sagrado.jpg",
+      "legenda": "O Observatório da Montanha Sagrada: Mirante ancestral no cume alpino com cerejeiras e bandeiras coloridas contemplando o infinito mar de nuvens douradas."
+    },
+    {
+      "arquivo": "16_arquivo_alexandria.jpg",
+      "legenda": "O Arquivo de Alexandria Digital: Catedral-biblioteca infinita de abóbadas góticas e escadarias espirais, preservando os fundamentos eternos da computação."
+    },
+    {
+      "arquivo": "17_vila_artesaos.jpg",
+      "legenda": "A Vila dos Artesãos de Software: Tranquilidade rural com moinhos de água, carpas koi em canais cristalinos e dedicação à excelência do código bem escrito."
+    },
+    {
+      "arquivo": "18_cidadela_agentes.jpg",
+      "legenda": "A Cidadela dos Agentes Autônomos: Fortaleza inexpugnável em penhascos verticais com observatórios astronômicos, vigiando as fronteiras dos sistemas inteligentes."
+    },
+    {
+      "arquivo": "19_santuario_confluencia.jpg",
+      "legenda": "O Santuário da Confluência: Floresta de bambus esmeralda com portais torii sobre lago espelhado, transmitindo serenidade, equilíbrio e paz arquitetural."
+    },
+    {
+      "arquivo": "20_relogio_determinismo.jpg",
+      "legenda": "O Relógio do Determinismo: Mecanismo colossal de engrenagens de precisão e astrolábios, celebrando a exatidão matemática e a previsibilidade dos algoritmos."
+    },
+    {
+      "arquivo": "21_expresso_noturno.jpg",
+      "legenda": "O Expresso Noturno dos Dados: Locomotiva vintage sobre viaduto marítimo refletindo constelações e a Via Láctea, simbolizando o processamento contínuo de dados na madrugada."
+    },
+    {
+      "arquivo": "22_ponte_desacoplamento.jpg",
+      "legenda": "A Ponte do Desacoplamento: Majestosa ponte pênsil de pedra e ferro unindo desfiladeiros montanhosos com perfeita independência estrutural e baixo acoplamento."
+    },
+    {
+      "arquivo": "23_bosque_neurais.jpg",
+      "legenda": "O Bosque das Redes Neurais: Floresta milenar banhada pela luz dourada do amanhecer, onde riachos cristalinos e musgos conectam ideias em simbiose orgânica."
+    },
+    {
+      "arquivo": "24_castelo_grafos.jpg",
+      "legenda": "O Castelo dos Grafos de Conhecimento: Arquitetura monumental de viadutos e torres interligadas em rede geométrica sobre as montanhas da sabedoria."
+    },
+    {
+      "arquivo": "25_estufa_dados.jpg",
+      "legenda": "A Estufa Botânica de Dados: Palácio vitoriano de cristal com prismas de luz e vegetação tropical, acolhendo o crescimento orgânico de novos ecossistemas de software."
+    },
+    {
+      "arquivo": "26_monolito_kernel.jpg",
+      "legenda": "O Monolito do Kernel: Monumental câmara subterrânea vitoriana de pedra ciclópica guardando o núcleo fundacional do sistema."
+    },
+    {
+      "arquivo": "27_arquipelago_dourado.jpg",
+      "legenda": "O Arquipélago das Nuvens Douradas: Ilhas flutuantes com pagodes antigos e quedas d'água mergulhando em nuvens douradas ao pôr do sol."
+    },
+    {
+      "arquivo": "28_observatorio_ondas.jpg",
+      "legenda": "O Observatório das Ondas Gravitacionais: Torre monumental sobre o abismo com interferômetros de precisão medindo oscilações do cosmos."
+    },
+    {
+      "arquivo": "29_trilha_vagalumes.jpg",
+      "legenda": "A Trilha dos Vaga-Lumes Sintéticos: Estrada de montanha entre bambuzais e cerejeiras iluminada por partículas bioluminescentes no crepúsculo."
+    },
+    {
+      "arquivo": "30_forja_grafos.jpg",
+      "legenda": "A Forja dos Grafos Densos: Complexo industrial onde gigantescos martelos a vapor forjam estruturas geométricas de sustentação arquitetural."
+    },
+    {
+      "arquivo": "31_terminal_aurora.jpg",
+      "legenda": "O Terminal da Aurora Boreal: Charmosa estação ferroviária em fiorde ártico sob os véus luminosos verdes e violetas da aurora."
+    },
+    {
+      "arquivo": "32_labirinto_ponteiros.jpg",
+      "legenda": "O Labirinto dos Ponteiros: Pátio gótico colossal com corredores geométricos infinitos e monumentos aos mestres da ciência da computação."
+    },
+    {
+      "arquivo": "33_jardim_termas.jpg",
+      "legenda": "O Jardim das Águas Termais: Onsen sereno cercado por bordos vermelhos de outono, pontes laqueadas e névoas tranquilas de montanha."
+    },
+    {
+      "arquivo": "34_usina_fluxo.jpg",
+      "legenda": "A Usina Hidrelétrica do Fluxo Contínuo: Represa ciclópica de pedra e turbinas a vapor canalizando a força motriz dos fluxos ininterruptos de dados."
+    },
+    {
+      "arquivo": "35_vale_moinhos.jpg",
+      "legenda": "O Vale dos Moinhos de Vento: Colinas verdejantes ao sol radiante de verão com campos floridos e moinhos rústicos sob nuvens cumulus."
     }
   ]
 }
