@@ -626,5 +626,52 @@ class TestBannerSelector(unittest.TestCase):
         self.assertIn("Abrindo visualização no navegador", saida)
 
 
+
+    def test_carnaval_2027_todos_os_5_dias_selecionam_tier_1_com_arquivos(self):
+        """Valida a resolução dos 5 dias de Carnaval em 2027 (06 a 10 de Fevereiro) selecionando Tier 1."""
+        (self.banners_dir / "festivos").mkdir(exist_ok=True)
+        manifesto_festivos = {
+            "versao": "2.0",
+            "legenda_padrao": "Legenda Padrão de Teste",
+            "feriados": {
+                "2027-02-06": {"arquivo": "carnaval_01_sabado.jpg", "legenda": "Sábado Carnaval"},
+                "2027-02-07": {"arquivo": "carnaval_02_domingo.jpg", "legenda": "Domingo Carnaval"},
+                "2027-02-08": {"arquivo": "carnaval_03_segunda.jpg", "legenda": "Segunda Carnaval"},
+                "2027-02-09": {"arquivo": "carnaval_04_terca.jpg", "legenda": "Terça Carnaval"},
+                "2027-02-10": {"arquivo": "carnaval_05_quarta.jpg", "legenda": "Quarta Cinzas"},
+            },
+            "catalogo_geral": []
+        }
+        self.manifesto_path.write_text(json.dumps(manifesto_festivos), encoding="utf-8")
+
+        for arq in [
+            "carnaval_01_sabado.jpg",
+            "carnaval_02_domingo.jpg",
+            "carnaval_03_segunda.jpg",
+            "carnaval_04_terca.jpg",
+            "carnaval_05_quarta.jpg",
+        ]:
+            (self.banners_dir / "festivos" / arq).write_bytes(b"dummy")
+
+        dias = [
+            (datetime(2027, 2, 6), "carnaval_01_sabado.jpg", "Sábado Carnaval"),
+            (datetime(2027, 2, 7), "carnaval_02_domingo.jpg", "Domingo Carnaval"),
+            (datetime(2027, 2, 8), "carnaval_03_segunda.jpg", "Segunda Carnaval"),
+            (datetime(2027, 2, 9), "carnaval_04_terca.jpg", "Terça Carnaval"),
+            (datetime(2027, 2, 10), "carnaval_05_quarta.jpg", "Quarta Cinzas"),
+        ]
+
+        for dt, expected_file, expected_legenda in dias:
+            info = resolver_banner_do_dia(
+                data_envio=dt,
+                banners_dir=self.banners_dir,
+                manifesto_path=self.manifesto_path
+            )
+            self.assertTrue(info.is_special_date)
+            self.assertEqual(info.filename, expected_file)
+            self.assertEqual(info.caption, expected_legenda)
+            self.assertIn(f"festivos/{expected_file}", info.banner_url)
+
+
 if __name__ == "__main__":
     unittest.main()

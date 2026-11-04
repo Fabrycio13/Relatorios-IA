@@ -74,12 +74,6 @@
         "prompt": "Midnight mountaintop astronomical observatory overlooking vast horizon under a luminous emerald and violet aurora borealis, twinkling stars, distant gentle fireworks in the valley below, serene dawn of the new year, hopeful atmosphere, Makoto Shinkai style, full-bleed 16:9."
       }
     },
-    "2026-02-17": {
-      "arquivo": "carnaval.jpg",
-      "subpasta": "festivos",
-      "titulo": "Carnaval",
-      "legenda": "Edição Especial de Carnaval: A folia dos dados sintéticos e a dança sincronizada de múltiplos agentes em produção."
-    },
     "04-21": {
       "arquivo": "tiradentes.jpg",
       "subpasta": "festivos",
@@ -109,6 +103,66 @@
       "subpasta": "festivos",
       "titulo": "Consciência Negra",
       "legenda": "Edição Especial da Consciência Negra: Resiliência, diversidade e a força das ideias que transformam a tecnologia e a história."
+    },
+    "2027-02-06": {
+      "arquivo": "carnaval_01_sabado.jpg",
+      "subpasta": "festivos",
+      "titulo": "Sábado de Carnaval",
+      "legenda": "Edição Especial de Carnaval: O grande baile de máscaras dos autômatos, lanternas douradas e o despertar da folia algorítmica.",
+      "geracao": {
+        "data": "2026-11-04",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "An enchanted twilight masquerade festival along Venetian-style grand canals with illuminated stone bridges, glowing golden lanterns and floating paper lanterns on water, ornate brass and velvet carnival masks and colorful festive ribbons, magnificent celebration atmosphere, Makoto Shinkai lighting, Studio Ghibli warmth, vibrant colors (deep magenta, royal gold, sapphire blue), wide panoramic full-bleed view, extremely detailed."
+      }
+    },
+    "2027-02-07": {
+      "arquivo": "carnaval_02_domingo.jpg",
+      "subpasta": "festivos",
+      "titulo": "Domingo de Carnaval",
+      "legenda": "Edição Especial de Carnaval: O desfile monumental das cidadelas iluminadas, alegorias mecânicas e a celebração dos dados abertos.",
+      "geracao": {
+        "data": "2026-11-04",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "A vibrant night carnival street parade through a fantastical coastal steampunk city, towering illuminated festival floats shaped like mechanical celestial beasts and starry galleons with glowing lanterns, fireworks in the distance and sparkling colorful confetti showering down over cobblestone avenues with glowing string lights, Makoto Shinkai style, rich volumetric lighting, cinematic wide angle."
+      }
+    },
+    "2027-02-08": {
+      "arquivo": "carnaval_03_segunda.jpg",
+      "subpasta": "festivos",
+      "titulo": "Segunda-feira de Carnaval",
+      "legenda": "Edição Especial de Carnaval: A dança harmônica dos múltiplos agentes, miríades de lanternas celestiais e reflexos luminosos nas águas.",
+      "geracao": {
+        "data": "2026-11-04",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "A magnificent nighttime carnival festival scene over an ancient coastal water garden, thousands of synchronized glowing colorful paper lanterns floating into the starry night sky, iridescent light reflections on turquoise water, vibrant festive banners, fireworks bursting across nebula skies, Studio Ghibli aesthetic, magical joyful celebration atmosphere, widescreen full-bleed."
+      }
+    },
+    "2027-02-09": {
+      "arquivo": "carnaval_04_terca.jpg",
+      "subpasta": "festivos",
+      "titulo": "Terça-feira de Carnaval",
+      "legenda": "Edição Especial de Terça de Carnaval: O apogeu das cores e da criatividade sintética, chuva de confetes estelares e a apoteose da engenharia.",
+      "geracao": {
+        "data": "2026-11-04",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "An epic festival climax on Mardi Gras carnival night, a celestial fantasy plaza exploding with vibrant energy and colors, swirling festive magenta and cyan powder and sparkling golden confetti, massive illuminated clockwork festival tower in background, breathtaking fireworks filling the night sky, joyful festive energy, Makoto Shinkai aesthetic, gorgeous volumetric lighting, wide composition."
+      }
+    },
+    "2027-02-10": {
+      "arquivo": "carnaval_05_quarta.jpg",
+      "subpasta": "festivos",
+      "titulo": "Quarta-feira de Cinzas",
+      "legenda": "Edição Especial de Quarta-feira de Cinzas: A serenidade das pontes ao amanhecer, a calma restauradora e o renascimento de novos ciclos de software.",
+      "geracao": {
+        "data": "2026-11-04",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "A serene and peaceful early morning dawn after a grand carnival festival, empty cobblestone streets and ancient stone bridges of a picturesque canal town sprinkled with colorful confetti and resting festive ribbons, soft misty morning golden sunrise filtering through arches, quiet reflective tranquility and hopeful new dawn, Studio Ghibli cinematic background, wide angle."
+      }
     }
   },
   "catalogo_geral": [
