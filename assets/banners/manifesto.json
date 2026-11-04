@@ -1,192 +1,536 @@
 {
-  "versao": "1.0",
+  "versao": "2.0",
   "legenda_padrao": "Crônicas da Engenharia de Agentes: Panorama diário da fronteira de desenvolvimento em IA contemporânea.",
+  "padrao": {
+    "arquivo": "castelo_panoramica_v2.jpg",
+    "subpasta": "padrao",
+    "titulo": "O Castelo da Engenharia de Agentes",
+    "legenda": "O Castelo da Engenharia de Agentes: Panorama da fronteira de desenvolvimento em IA contemporânea.",
+    "geracao": {
+      "data": "2026-10-21",
+      "modelo": "Imagen 3 / Antigravity Agent",
+      "estilo": "Gravura Vitoriana Panorâmica P&B",
+      "prompt": "Panoramic architectural engraving of a steampunk castle of agentic intelligence, victorian linework, fine hatching, copperplate intaglio style."
+    }
+  },
   "feriados": {
     "10-31": {
       "arquivo": "halloween.jpg",
-      "legenda": "Edição Especial de Halloween: Os fantasmas dos bugs esquecidos em produção e os cemitérios de dependências obsoletas."
+      "subpasta": "festivos",
+      "titulo": "Edição Especial de Halloween",
+      "legenda": "Edição Especial de Halloween: Os fantasmas dos bugs esquecidos em produção e os cemitérios de dependências obsoletas.",
+      "geracao": {
+        "data": "2026-10-30",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Gravura Vitoriana Gótica P&B",
+        "prompt": "Victorian gothic castle with glowing jack-o-lanterns, dark foggy atmosphere, intricate linework engraving, monochrome copperplate."
+      }
     },
     "12-24": {
       "arquivo": "natal_vespera.jpg",
-      "legenda": "Edição Especial de Véspera de Natal: A grande oficina dos agentes em recesso, arquiteturas de IA em repouso e paz na branch main."
+      "subpasta": "festivos",
+      "titulo": "Véspera de Natal",
+      "legenda": "Edição Especial de Véspera de Natal: A grande oficina dos agentes em recesso, arquiteturas de IA em repouso e paz na branch main.",
+      "geracao": {
+        "data": "2026-11-04",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Cozy snowy alpine village on Christmas Eve, warm golden lights in wooden chalet windows, stone arch bridge over frozen canal, illuminated Christmas trees in town square, gentle snowfall, cinematic Studio Ghibli lighting, full-bleed 16:9, highly detailed."
+      }
     },
     "12-25": {
       "arquivo": "natal.jpg",
-      "legenda": "Edição Especial de Natal: A grande celebração do conhecimento compartilhado, árvores de Natal radiantes e a harmonia das inteligências em evolução."
+      "subpasta": "festivos",
+      "titulo": "Natal",
+      "legenda": "Edição Especial de Natal: A grande celebração do conhecimento compartilhado, árvores de Natal radiantes e a harmonia das inteligências em evolução.",
+      "geracao": {
+        "data": "2026-11-04",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Santa Claus enchanted log workshop in a deep snow-covered pine forest, gentle smoke from stone chimney, towering festive pine trees with glowing fairy lights and red ribbons, sparkling fresh snow, warm magical holiday atmosphere, Makoto Shinkai lighting, full-bleed 16:9."
+      }
     },
     "12-31": {
       "arquivo": "ano_novo_vespera.jpg",
-      "legenda": "Edição Especial de Véspera de Ano Novo: A celebração dos marcos alcançados, espetáculo de fogos na baía e a contagem regressiva para novos ciclos."
+      "subpasta": "festivos",
+      "titulo": "Véspera de Ano Novo",
+      "legenda": "Edição Especial de Véspera de Ano Novo: A celebração dos marcos alcançados, espetáculo de fogos na baía e a contagem regressiva para novos ciclos.",
+      "geracao": {
+        "data": "2026-11-04",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Grand New Year's Eve fireworks celebration over a celestial coastal bay, colorful bursts of gold, cyan, magenta and emerald in the midnight sky, mirror reflections on calm sea, illuminated seaside citadel with cheering festival lanterns, cinematic vibrant lighting, full-bleed 16:9."
+      }
     },
     "01-01": {
       "arquivo": "ano_novo.jpg",
-      "legenda": "Edição Especial de Ano Novo: O alvorecer de novos paradigmas, auroras boreais no horizonte e a abertura de um ano extraordinário para a engenharia de software."
+      "subpasta": "festivos",
+      "titulo": "Ano Novo",
+      "legenda": "Edição Especial de Ano Novo: O alvorecer de novos paradigmas, auroras boreais no horizonte e a abertura de um ano extraordinário para a engenharia de software.",
+      "geracao": {
+        "data": "2026-11-04",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Midnight mountaintop astronomical observatory overlooking vast horizon under a luminous emerald and violet aurora borealis, twinkling stars, distant gentle fireworks in the valley below, serene dawn of the new year, hopeful atmosphere, Makoto Shinkai style, full-bleed 16:9."
+      }
     },
     "2026-02-17": {
       "arquivo": "carnaval.jpg",
+      "subpasta": "festivos",
+      "titulo": "Carnaval",
       "legenda": "Edição Especial de Carnaval: A folia dos dados sintéticos e a dança sincronizada de múltiplos agentes em produção."
     },
     "04-21": {
       "arquivo": "tiradentes.jpg",
+      "subpasta": "festivos",
+      "titulo": "Tiradentes",
       "legenda": "Edição Especial de Tiradentes: A liberdade do código open-source e a coragem de quebrar os monopólios proprietários de IA."
     },
     "05-01": {
       "arquivo": "trabalho.jpg",
+      "subpasta": "festivos",
+      "titulo": "Dia do Trabalhador",
       "legenda": "Edição Especial do Dia do Trabalhador: Homenagem aos engenheiros de software, compiladores e agentes que mantêm o mundo funcionando."
     },
     "09-07": {
       "arquivo": "independencia.jpg",
+      "subpasta": "festivos",
+      "titulo": "Independência do Brasil",
       "legenda": "Edição Especial da Independência: A soberania de construir e hospedar nossa própria inteligência computacional."
     },
     "11-15": {
       "arquivo": "republica.jpg",
+      "subpasta": "festivos",
+      "titulo": "Proclamação da República",
       "legenda": "Edição Especial da Proclamação da República: O poder distribuído da comunidade e o avanço da computação pública e auditável."
     },
     "11-20": {
       "arquivo": "consciencia_negra.jpg",
+      "subpasta": "festivos",
+      "titulo": "Consciência Negra",
       "legenda": "Edição Especial da Consciência Negra: Resiliência, diversidade e a força das ideias que transformam a tecnologia e a história."
     }
   },
   "catalogo_geral": [
     {
       "arquivo": "01_biblioteca.jpg",
-      "legenda": "A Biblioteca Viva dos Agentes: Onde sabedoria ancestral, modelos de linguagem e arquiteturas orgânicas florescem em perfeita harmonia."
+      "subpasta": "geral",
+      "titulo": "A Biblioteca Viva dos Agentes",
+      "legenda": "A Biblioteca Viva dos Agentes: Onde sabedoria ancestral, modelos de linguagem e arquiteturas orgânicas florescem em perfeita harmonia.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "A breathtaking cinematic anime painting of a grand organic library filled with luminous books, spiraling wooden staircases, warm golden light, gentle cherry blossoms drifting indoors, Makoto Shinkai style, high detail, volumetric god rays."
+      }
     },
     {
       "arquivo": "02_observatorio.jpg",
-      "legenda": "O Grande Observatório da Inteligência Artificial: Monumentalidade, precisão astronômica e a contínua exploração das fronteiras do conhecimento em IA."
+      "subpasta": "geral",
+      "titulo": "O Grande Observatório da Inteligência Artificial",
+      "legenda": "O Grande Observatório da Inteligência Artificial: Monumentalidade, precisão astronômica e a contínua exploração das fronteiras do conhecimento em IA.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Intricate black and white 19th-century copperplate intaglio engraving of a monumental Victorian astronomical observatory atop rugged cliffs, colossal brass telescope, precision astrolabes, cross-hatching, fine line work."
+      }
     },
     {
       "arquivo": "03_ponte.jpg",
-      "legenda": "A Ponte dos Dados: Infraestrutura arquitetônica, integração fluida de APIs e travessias monumentais sobre o oceano da informação."
+      "subpasta": "geral",
+      "titulo": "A Ponte dos Dados",
+      "legenda": "A Ponte dos Dados: Infraestrutura arquitetônica, integração fluida de APIs e travessias monumentais sobre o oceano da informação.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Vibrant Japanese animated landscape of an ancient stone aqueduct and futuristic glowing light streams spanning across an azure sea under fluffy cumulus clouds, Studio Ghibli style, lush green hills, warm afternoon sunshine."
+      }
     },
     {
       "arquivo": "04_torre_contexto.jpg",
-      "legenda": "A Torre do Contexto Infinito: Colossal espiral gótica elevando-se às nuvens, simbolizando a expansão ilimitada da memória e raciocínio dos agentes."
+      "subpasta": "geral",
+      "titulo": "A Torre do Contexto Infinito",
+      "legenda": "A Torre do Contexto Infinito: Colossal espiral gótica elevando-se às nuvens, simbolizando a expansão ilimitada da memória e raciocínio dos agentes.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Victorian line engraving of a towering spiral Gothic spire ascending into turbulent storm clouds, surrounded by flying mechanical ornithopters, intricate cross-hatching, copperplate intaglio style."
+      }
     },
     {
       "arquivo": "05_templo.jpg",
-      "legenda": "O Templo do Código: Serenidade, equilíbrio e maestria artesanal na construção de arquiteturas de software resilientes e duradouras."
+      "subpasta": "geral",
+      "titulo": "O Templo do Código",
+      "legenda": "O Templo do Código: Serenidade, equilíbrio e maestria artesanal na construção de arquiteturas de software resilientes e duradouras.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Serene panoramic anime background of a mountain monastery surrounded by golden autumn maple trees, tranquil koi ponds, and mist-veiled peaks, high aesthetic, cinematic lighting."
+      }
     },
     {
       "arquivo": "06_forja_compiladores.jpg",
-      "legenda": "A Grande Forja dos Compiladores: Oficina mecânica monumental onde engrenagens titânicas moldam código determinístico e arquiteturas sólidas."
+      "subpasta": "geral",
+      "titulo": "A Grande Forja dos Compiladores",
+      "legenda": "A Grande Forja dos Compiladores: Oficina mecânica monumental onde engrenagens titânicas moldam código determinístico e arquiteturas sólidas.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Victorian industrial engraving of a massive steam-driven mechanical foundry, giant interlocking brass gears, iron bellows, roaring furnace light rendered through master intaglio cross-hatching."
+      }
     },
     {
       "arquivo": "07_jardim.jpg",
-      "legenda": "O Jardim das Ideias: A jornada inspiradora do conhecimento, o desabrochar de novas descobertas e a evolução constante da tecnologia."
+      "subpasta": "geral",
+      "titulo": "O Jardim das Ideias",
+      "legenda": "O Jardim das Ideias: A jornada inspiradora do conhecimento, o desabrochar de novas descobertas e a evolução constante da tecnologia.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Whimsical anime landscape of an enchanted botanical terrace, glowing bioluminescent flowers, floating glass greenhouse orbs under twilight purple and amber skies, Makoto Shinkai style."
+      }
     },
     {
       "arquivo": "08_aqueduto_vetores.jpg",
-      "legenda": "O Aqueduto dos Vetores: Grandiosa obra de engenharia em múltiplos arcos de pedra canalizando torrentes luminosas de dados através de desfiladeiros."
+      "subpasta": "geral",
+      "titulo": "O Aqueduto dos Vetores",
+      "legenda": "O Aqueduto dos Vetores: Grandiosa obra de engenharia em múltiplos arcos de pedra canalizando torrentes luminosas de dados através de desfiladeiros.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Master engraving of a monumental multi-tiered Roman-style aqueduct crossing a deep river canyon, precision stone arches, detailed cross-hatching, vintage architectural etching."
+      }
     },
     {
       "arquivo": "09_vale_algoritmos.jpg",
-      "legenda": "O Vale dos Algoritmos: Paisagem alpina radiante banhada por sol de verão, onde riachos límpidos e moinhos celebram a harmonia dos fluxos de dados."
+      "subpasta": "geral",
+      "titulo": "O Vale dos Algoritmos",
+      "legenda": "O Vale dos Algoritmos: Paisagem alpina radiante banhada por sol de verão, onde riachos límpidos e moinhos celebram a harmonia dos fluxos de dados.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Lush green alpine valley with crystal-clear winding streams, rustic wooden watermills, vibrant wildflowers under bright midday summer sun, Studio Ghibli cinematic background."
+      }
     },
     {
       "arquivo": "10_camara_sandboxing.jpg",
-      "legenda": "A Câmara de Sandboxing: Fortaleza impenetrável de ferro rebitado e válvulas de segurança, isolando experimentos autônomos em ambiente hermético."
+      "subpasta": "geral",
+      "titulo": "A Câmara de Sandboxing",
+      "legenda": "A Câmara de Sandboxing: Fortaleza impenetrável de ferro rebitado e válvulas de segurança, isolando experimentos autônomos em ambiente hermético.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Detailed copperplate engraving of a fortified subterranean isolation vault, heavy riveted iron plates, steam pressure gauges, hermetic security hatches, Victorian industrial engraving."
+      }
     },
     {
       "arquivo": "11_farol_fronteira.jpg",
-      "legenda": "O Farol da Fronteira: Sentinela de pedra no penhasco ao entardecer dourado, projetando clareza e orientação sobre o vasto oceano da inovação."
+      "subpasta": "geral",
+      "titulo": "O Farol da Fronteira",
+      "legenda": "O Farol da Fronteira: Sentinela de pedra no penhasco ao entardecer dourado, projetando clareza e orientação sobre o vasto oceano da inovação.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Majestic stone lighthouse perched upon a jagged seaside cliff at golden sunset, casting a luminous warm beam across an emerald ocean, seagulls soaring, Makoto Shinkai aesthetics."
+      }
     },
     {
       "arquivo": "12_laboratorio_evals.jpg",
-      "legenda": "O Laboratório de Avaliações: Balanças colossais de latão sob a solene luz de vitrais, pesando com rigor analítico a precisão e latência dos modelos."
+      "subpasta": "geral",
+      "titulo": "O Laboratório de Avaliações",
+      "legenda": "O Laboratório de Avaliações: Balanças colossais de latão sob a solene luz de vitrais, pesando com rigor analítico a precisão e latência dos modelos.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Victorian scientific laboratory engraving featuring giant brass balance scales, glass retort flasks, calibrated weights under high arched stained-glass windows, delicate hatching."
+      }
     },
     {
       "arquivo": "13_cidade_flutuante.jpg",
-      "legenda": "A Cidade Flutuante dos Modelos: Arquipélago suspenso em céu azul-celeste com castelos voadores e dirigíveis, representando as altas camadas de inteligência."
+      "subpasta": "geral",
+      "titulo": "A Cidade Flutuante dos Modelos",
+      "legenda": "A Cidade Flutuante dos Modelos: Arquipélago suspenso em céu azul-celeste com castelos voadores e dirigíveis, representando as altas camadas de inteligência.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Breathtaking floating island citadel in brilliant cyan skies, whimsical steampunk airships docking at sky harbors, waterfalls pouring into clouds, Studio Ghibli inspired."
+      }
     },
     {
       "arquivo": "14_mina_pesquisa.jpg",
-      "legenda": "A Mina de Pesquisa: Galerias subterrâneas de pedra esculpida onde pesquisadores extraem geodos cristalinos de conhecimento científico e princípios matemáticos."
+      "subpasta": "geral",
+      "titulo": "A Mina de Pesquisa",
+      "legenda": "A Mina de Pesquisa: Galerias subterrâneas de pedra esculpida onde pesquisadores extraem geodos cristalinos de conhecimento científico e princípios matemáticos.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Intaglio engraving of a vast subterranean cavern mine, wooden timber scaffolding, miners extracting glowing multifaceted crystals from dark rock strata, fine cross-hatching."
+      }
     },
     {
       "arquivo": "15_observatorio_sagrado.jpg",
-      "legenda": "O Observatório da Montanha Sagrada: Mirante ancestral no cume alpino com cerejeiras e bandeiras coloridas contemplando o infinito mar de nuvens douradas."
+      "subpasta": "geral",
+      "titulo": "O Observatório da Montanha Sagrada",
+      "legenda": "O Observatório da Montanha Sagrada: Mirante ancestral no cume alpino com cerejeiras e bandeiras coloridas contemplando o infinito mar de nuvens douradas.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Ancestral Japanese shrine and stargazing pavilion atop a snow-dusted sacred peak, colorful prayer flags fluttering, ocean of golden sunset clouds beneath."
+      }
     },
     {
       "arquivo": "16_arquivo_alexandria.jpg",
-      "legenda": "O Arquivo de Alexandria Digital: Catedral-biblioteca infinita de abóbadas góticas e escadarias espirais, preservando os fundamentos eternos da computação."
+      "subpasta": "geral",
+      "titulo": "O Arquivo de Alexandria Digital",
+      "legenda": "O Arquivo de Alexandria Digital: Catedral-biblioteca infinita de abóbadas góticas e escadarias espirais, preservando os fundamentos eternos da computação.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Monumental library cathedral with endless vaulted ceilings, towering bookshelves accessible by spiral ladders, grand globes, intricate Victorian engraving."
+      }
     },
     {
       "arquivo": "17_vila_artesaos.jpg",
-      "legenda": "A Vila dos Artesãos de Software: Tranquilidade rural com moinhos de água, carpas koi em canais cristalinos e dedicação à excelência do código bem escrito."
+      "subpasta": "geral",
+      "titulo": "A Vila dos Artesãos de Software",
+      "legenda": "A Vila dos Artesãos de Software: Tranquilidade rural com moinhos de água, carpas koi em canais cristalinos e dedicação à excelência do código bem escrito.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Idyllic rural Japanese artisan village, thatched-roof wooden workshops, clear canals with swimming koi fish, mossy stone lanterns, warm late afternoon sunlight."
+      }
     },
     {
       "arquivo": "18_cidadela_agentes.jpg",
-      "legenda": "A Cidadela dos Agentes Autônomos: Fortaleza inexpugnável em penhascos verticais com observatórios astronômicos, vigiando as fronteiras dos sistemas inteligentes."
+      "subpasta": "geral",
+      "titulo": "A Cidadela dos Agentes Autônomos",
+      "legenda": "A Cidadela dos Agentes Autônomos: Fortaleza inexpugnável em penhascos verticais com observatórios astronômicos, vigiando as fronteiras dos sistemas inteligentes.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Imposing mountain fortress built into sheer granite cliffs, defensive parapets, astronomical domes, suspension footbridges, copperplate architectural engraving."
+      }
     },
     {
       "arquivo": "19_santuario_confluencia.jpg",
-      "legenda": "O Santuário da Confluência: Floresta de bambus esmeralda com portais torii sobre lago espelhado, transmitindo serenidade, equilíbrio e paz arquitetural."
+      "subpasta": "geral",
+      "titulo": "O Santuário da Confluência",
+      "legenda": "O Santuário da Confluência: Floresta de bambus esmeralda com portais torii sobre lago espelhado, transmitindo serenidade, equilíbrio e paz arquitetural.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Mystical bamboo grove bathed in morning mist, crimson Torii gates reflected in mirror-still pond with water lilies, quiet serene nature painting."
+      }
     },
     {
       "arquivo": "20_relogio_determinismo.jpg",
-      "legenda": "O Relógio do Determinismo: Mecanismo colossal de engrenagens de precisão e astrolábios, celebrando a exatidão matemática e a previsibilidade dos algoritmos."
+      "subpasta": "geral",
+      "titulo": "O Relógio do Determinismo",
+      "legenda": "O Relógio do Determinismo: Mecanismo colossal de engrenagens de precisão e astrolábios, celebrando a exatidão matemática e a previsibilidade dos algoritmos.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Master clockwork mechanism engraving, colossal brass planetary gear trains, escapement wheel, armillary spheres, intricate mathematical horology etching."
+      }
     },
     {
       "arquivo": "21_expresso_noturno.jpg",
-      "legenda": "O Expresso Noturno dos Dados: Locomotiva vintage sobre viaduto marítimo refletindo constelações e a Via Láctea, simbolizando o processamento contínuo de dados na madrugada."
+      "subpasta": "geral",
+      "titulo": "O Expresso Noturno dos Dados",
+      "legenda": "O Expresso Noturno dos Dados: Locomotiva vintage sobre viaduto marítimo refletindo constelações e a Via Láctea, simbolizando o processamento contínuo de dados na madrugada.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Vintage steam locomotive crossing an infinite ocean railroad bridge at midnight, water glowing with reflections of the Milky Way galaxy and shooting stars, Makoto Shinkai style."
+      }
     },
     {
       "arquivo": "22_ponte_desacoplamento.jpg",
-      "legenda": "A Ponte do Desacoplamento: Majestosa ponte pênsil de pedra e ferro unindo desfiladeiros montanhosos com perfeita independência estrutural e baixo acoplamento."
+      "subpasta": "geral",
+      "titulo": "A Ponte do Desacoplamento",
+      "legenda": "A Ponte do Desacoplamento: Majestosa ponte pênsil de pedra e ferro unindo desfiladeiros montanhosos com perfeita independência estrutural e baixo acoplamento.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Grand 19th-century suspension bridge spanning a yawning chasm between two towering mountain peaks, iron cables, massive stone anchorage pylons, intaglio hatching."
+      }
     },
     {
       "arquivo": "23_bosque_neurais.jpg",
-      "legenda": "O Bosque das Redes Neurais: Floresta milenar banhada pela luz dourada do amanhecer, onde riachos cristalinos e musgos conectam ideias em simbiose orgânica."
+      "subpasta": "geral",
+      "titulo": "O Bosque das Redes Neurais",
+      "legenda": "O Bosque das Redes Neurais: Floresta milenar banhada pela luz dourada do amanhecer, onde riachos cristalinos e musgos conectam ideias em simbiose orgânica.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Ancient deep forest at sunrise, golden sunbeams piercing through mossy tree canopies, luminous flora, babbling brook, serene natural harmony."
+      }
     },
     {
       "arquivo": "24_castelo_grafos.jpg",
-      "legenda": "O Castelo dos Grafos de Conhecimento: Arquitetura monumental de viadutos e torres interligadas em rede geométrica sobre as montanhas da sabedoria."
+      "subpasta": "geral",
+      "titulo": "O Castelo dos Grafos de Conhecimento",
+      "legenda": "O Castelo dos Grafos de Conhecimento: Arquitetura monumental de viadutos e torres interligadas em rede geométrica sobre as montanhas da sabedoria.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Complex network of Gothic towers connected by high stone bridges and walkways, forming a geometric graph across alpine peaks, master line engraving."
+      }
     },
     {
       "arquivo": "25_estufa_dados.jpg",
-      "legenda": "A Estufa Botânica de Dados: Palácio vitoriano de cristal com prismas de luz e vegetação tropical, acolhendo o crescimento orgânico de novos ecossistemas de software."
+      "subpasta": "geral",
+      "titulo": "A Estufa Botânica de Dados",
+      "legenda": "A Estufa Botânica de Dados: Palácio vitoriano de cristal com prismas de luz e vegetação tropical, acolhendo o crescimento orgânico de novos ecossistemas de software.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Magnificent Victorian crystal greenhouse palace filled with rare tropical palms, refracting rainbow prisms of afternoon light, Studio Ghibli warmth and detail."
+      }
     },
     {
       "arquivo": "26_monolito_kernel.jpg",
-      "legenda": "O Monolito do Kernel: Monumental câmara subterrânea vitoriana de pedra ciclópica guardando o núcleo fundacional do sistema."
+      "subpasta": "geral",
+      "titulo": "O Monolito do Kernel",
+      "legenda": "O Monolito do Kernel: Monumental câmara subterrânea vitoriana de pedra ciclópica guardando o núcleo fundacional do sistema.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Colossal subterranean vault with massive cyclopean stone pillars supporting an immense granite monolith at center, torchlight and shadow rendering, classical etching."
+      }
     },
     {
       "arquivo": "27_arquipelago_dourado.jpg",
-      "legenda": "O Arquipélago das Nuvens Douradas: Ilhas flutuantes com pagodes antigos e quedas d'água mergulhando em nuvens douradas ao pôr do sol."
+      "subpasta": "geral",
+      "titulo": "O Arquipélago das Nuvens Douradas",
+      "legenda": "O Arquipélago das Nuvens Douradas: Ilhas flutuantes com pagodes antigos e quedas d'água mergulhando em nuvens douradas ao pôr do sol.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Panoramic sunset over floating celestial islands, tiered Japanese pagodas, cascading waterfalls evaporating into golden clouds, Makoto Shinkai vibrant sky."
+      }
     },
     {
       "arquivo": "28_observatorio_ondas.jpg",
-      "legenda": "O Observatório das Ondas Gravitacionais: Torre monumental sobre o abismo com interferômetros de precisão medindo oscilações do cosmos."
+      "subpasta": "geral",
+      "titulo": "O Observatório das Ondas Gravitacionais",
+      "legenda": "O Observatório das Ondas Gravitacionais: Torre monumental sobre o abismo com interferômetros de precisão medindo oscilações do cosmos.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Towering cantilevered observatory station extending out over a dramatic coastal abyss, precision laser interferometer arms, fine copperplate hatching."
+      }
     },
     {
       "arquivo": "29_trilha_vagalumes.jpg",
-      "legenda": "A Trilha dos Vaga-Lumes Sintéticos: Estrada de montanha entre bambuzais e cerejeiras iluminada por partículas bioluminescentes no crepúsculo."
+      "subpasta": "geral",
+      "titulo": "A Trilha dos Vaga-Lumes Sintéticos",
+      "legenda": "A Trilha dos Vaga-Lumes Sintéticos: Estrada de montanha entre bambuzais e cerejeiras iluminada por partículas bioluminescentes no crepúsculo.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Twilit mountain trail lined with rustic wooden fences, bamboo trees, drifting glowing fireflies illuminating cobblestones, magical purple-blue atmosphere."
+      }
     },
     {
       "arquivo": "30_forja_grafos.jpg",
-      "legenda": "A Forja dos Grafos Densos: Complexo industrial onde gigantescos martelos a vapor forjam estruturas geométricas de sustentação arquitetural."
+      "subpasta": "geral",
+      "titulo": "A Forja dos Grafos Densos",
+      "legenda": "A Forja dos Grafos Densos: Complexo industrial onde gigantescos martelos a vapor forjam estruturas geométricas de sustentação arquitetural.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Industrial steelworks engraving with titanic steam hammers shaping intricate geometric structural lattice frameworks, atmospheric smoke and fine hatching."
+      }
     },
     {
       "arquivo": "31_terminal_aurora.jpg",
-      "legenda": "O Terminal da Aurora Boreal: Charmosa estação ferroviária em fiorde ártico sob os véus luminosos verdes e violetas da aurora."
+      "subpasta": "geral",
+      "titulo": "O Terminal da Aurora Boreal",
+      "legenda": "O Terminal da Aurora Boreal: Charmosa estação ferroviária em fiorde ártico sob os véus luminosos verdes e violetas da aurora.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Charming snowbound railway station in a Nordic fjord under vibrant dancing green and violet aurora borealis, warm lantern glow on fresh snow."
+      }
     },
     {
       "arquivo": "32_labirinto_ponteiros.jpg",
-      "legenda": "O Labirinto dos Ponteiros: Pátio gótico colossal com corredores geométricos infinitos e monumentos aos mestres da ciência da computação."
+      "subpasta": "geral",
+      "titulo": "O Labirinto dos Ponteiros",
+      "legenda": "O Labirinto dos Ponteiros: Pátio gótico colossal com corredores geométricos infinitos e monumentos aos mestres da ciência da computação.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Infinite labyrinthine Gothic courtyard with geometric arcades, stone obelisks, perspective receding into dramatic vanishing points, Piranesi-style engraving."
+      }
     },
     {
       "arquivo": "33_jardim_termas.jpg",
-      "legenda": "O Jardim das Águas Termais: Onsen sereno cercado por bordos vermelhos de outono, pontes laqueadas e névoas tranquilas de montanha."
+      "subpasta": "geral",
+      "titulo": "O Jardim das Águas Termais",
+      "legenda": "O Jardim das Águas Termais: Onsen sereno cercado por bordos vermelhos de outono, pontes laqueadas e névoas tranquilas de montanha.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Traditional Japanese hot spring onsen surrounded by brilliant scarlet Japanese maples, steam rising off thermal pools, arched vermilion bridge, peaceful autumn ambience."
+      }
     },
     {
       "arquivo": "34_usina_fluxo.jpg",
-      "legenda": "A Usina Hidrelétrica do Fluxo Contínuo: Represa ciclópica de pedra e turbinas a vapor canalizando a força motriz dos fluxos ininterruptos de dados."
+      "subpasta": "geral",
+      "titulo": "A Usina Hidrelétrica do Fluxo Contínuo",
+      "legenda": "A Usina Hidrelétrica do Fluxo Contínuo: Represa ciclópica de pedra e turbinas a vapor canalizando a força motriz dos fluxos ininterruptos de dados.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Titanic masonry hydroelectric dam spanning a mountain gorge, water roaring through spillways into steam turbines, Victorian engraving style."
+      }
     },
     {
       "arquivo": "35_vale_moinhos.jpg",
-      "legenda": "O Vale dos Moinhos de Vento: Colinas verdejantes ao sol radiante de verão com campos floridos e moinhos rústicos sob nuvens cumulus."
+      "subpasta": "geral",
+      "titulo": "O Vale dos Moinhos de Vento",
+      "legenda": "O Vale dos Moinhos de Vento: Colinas verdejantes ao sol radiante de verão com campos floridos e moinhos rústicos sob nuvens cumulus.",
+      "geracao": {
+        "data": "2026-11-02",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Rolling green hills under bright summer sunshine, fields of lavender and sunflowers, traditional rustic windmills spinning in gentle breeze, classic Studio Ghibli vista."
+      }
     }
   ]
 }

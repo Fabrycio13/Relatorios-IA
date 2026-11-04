@@ -25,6 +25,7 @@ from src.delivery import (
     resolver_banner_do_dia,
     confirmar_banner_utilizado,
     reconciliar_historico_se_necessario,
+    exibir_status_banners,
 )
 from src.core.lock import adquirir_trava_pipeline, ConcorrenciaDetectadaError
 
@@ -57,7 +58,13 @@ def parse_args():
         help="Exibe o status do último envio e encerra."
     )
     parser.add_argument(
+        "--status-banners",
+        action="store_true",
+        help="Exibe o painel de status do catálogo de banners e do ciclo de rotação."
+    )
+    parser.add_argument(
         "--check-auth",
+
         action="store_true",
         help="Executa diagnóstico de saúde e autenticação de todas as integrações em 5 segundos."
     )
@@ -117,12 +124,18 @@ def main():
         args.step in ["all", "email"]
         and not args.preview
         and not args.status
+        and not args.status_banners
         and not args.check_auth
     )
     trava_mgr = adquirir_trava_pipeline(lock_file) if precisa_trava else nullcontext()
 
     try:
         with trava_mgr:
+            # Flag --status-banners
+            if args.status_banners:
+                codigo = exibir_status_banners(preview=args.preview)
+                sys.exit(codigo)
+
             # Flag --status
             if args.status:
                 ultimo = verificar_status_envio()

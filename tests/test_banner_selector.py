@@ -504,5 +504,127 @@ class TestBannerSelector(unittest.TestCase):
         self.assertIn("banner_03.jpg", hist_data["imagens_consumidas_no_ciclo"])
 
 
+
+    def test_resolver_subcaminho_banner_em_subpastas_e_fallback(self):
+        """Valida que resolver_subcaminho_banner resolve subpastas (festivos, geral, padrao) e raiz plana."""
+        from src.delivery.banner_selector import resolver_subcaminho_banner
+
+        # Cria subpastas
+        (self.banners_dir / "festivos").mkdir()
+        (self.banners_dir / "geral").mkdir()
+        (self.banners_dir / "padrao").mkdir()
+
+        # Cria arquivos
+        (self.banners_dir / "festivos" / "natal.jpg").write_bytes(b"natal")
+        (self.banners_dir / "geral" / "01_biblioteca.jpg").write_bytes(b"biblio")
+        (self.banners_dir / "padrao" / "castelo_panoramica_v2.jpg").write_bytes(b"castelo")
+        (self.banners_dir / "raiz_plana.jpg").write_bytes(b"raiz")
+
+        path_fest, sub_fest = resolver_subcaminho_banner(self.banners_dir, "natal.jpg")
+        self.assertEqual(sub_fest, "festivos/natal.jpg")
+        self.assertTrue(path_fest.is_file())
+
+        path_geral, sub_geral = resolver_subcaminho_banner(self.banners_dir, "01_biblioteca.jpg")
+        self.assertEqual(sub_geral, "geral/01_biblioteca.jpg")
+        self.assertTrue(path_geral.is_file())
+
+        path_padrao, sub_padrao = resolver_subcaminho_banner(self.banners_dir, "castelo_panoramica_v2.jpg")
+        self.assertEqual(sub_padrao, "padrao/castelo_panoramica_v2.jpg")
+        self.assertTrue(path_padrao.is_file())
+
+        path_raiz, sub_raiz = resolver_subcaminho_banner(self.banners_dir, "raiz_plana.jpg")
+        self.assertEqual(sub_raiz, "raiz_plana.jpg")
+        self.assertTrue(path_raiz.is_file())
+
+    def test_resolver_banner_com_subpastas_gera_urls_com_subdiretorios(self):
+        """Valida que banners em subpastas geram URLs públicas com o prefixo correto no GitHub."""
+        (self.banners_dir / "festivos").mkdir()
+        (self.banners_dir / "geral").mkdir()
+
+        (self.banners_dir / "festivos" / "natal.jpg").write_bytes(b"natal")
+        (self.banners_dir / "geral" / "banner_001.jpg").write_bytes(b"geral1")
+
+        # Feriado de Natal (12-25)
+        d_natal = datetime(2026, 12, 25)
+        info_natal = resolver_banner_do_dia(
+            data_envio=d_natal,
+            banners_dir=self.banners_dir,
+            manifesto_path=self.manifesto_path
+        )
+        self.assertTrue(info_natal.is_special_date)
+        self.assertIn("festivos/natal.jpg", info_natal.banner_url)
+
+        # Dia comum (cai no geral)
+        d_comum = datetime(2026, 11, 10)
+        info_geral = resolver_banner_do_dia(
+            data_envio=d_comum,
+            banners_dir=self.banners_dir,
+            manifesto_path=self.manifesto_path
+        )
+        self.assertFalse(info_geral.is_special_date)
+        self.assertIn("geral/banner_001.jpg", info_geral.banner_url)
+
+    def test_obter_status_banners_calcula_metricas_corretas(self):
+        """Valida que obter_status_banners extrai métricas de ciclo, próximo banner e feriados."""
+        from src.delivery.banner_selector import obter_status_banners
+
+        (self.banners_dir / "geral").mkdir()
+        (self.banners_dir / "geral" / "banner_001.jpg").write_bytes(b"1")
+        (self.banners_dir / "geral" / "banner_002.jpg").write_bytes(b"2")
+
+        historico_path = self.banners_dir / "historico_banners.json"
+        hist_data = {
+            "versao": "1.0",
+            "imagens_consumidas_no_ciclo": ["banner_001.jpg"],
+            "ultimo_envio_por_data": {"2026-11-01": "banner_001.jpg"}
+        }
+        historico_path.write_text(json.dumps(hist_data), encoding="utf-8")
+
+        status = obter_status_banners(
+            banners_dir=self.banners_dir,
+            manifesto_path=self.manifesto_path,
+            historico_path=historico_path
+        )
+
+        self.assertEqual(status.total_geral, 2)
+        self.assertEqual(status.consumidas_ciclo, 1)
+        self.assertEqual(status.percentual_consumido, 50.0)
+        self.assertEqual(len(status.consumidas_detalhes), 1)
+        self.assertEqual(status.consumidas_detalhes[0]["arquivo"], "banner_001.jpg")
+        self.assertEqual(status.consumidas_detalhes[0]["datas_envio"], ["2026-11-01"])
+        self.assertIsNotNone(status.proximo_banner)
+        self.assertEqual(status.proximo_banner["arquivo"], "banner_002.jpg")
+        self.assertEqual(status.restantes_no_ciclo, ["banner_002.jpg"])
+
+    def test_exibir_status_banners_e_preview_browser(self):
+        """Valida que exibir_status_banners formata o painel e chama webbrowser.open quando preview=True."""
+        from src.delivery.banner_selector import exibir_status_banners
+        from unittest.mock import patch
+        import io
+        import sys
+
+        (self.banners_dir / "geral").mkdir()
+        (self.banners_dir / "geral" / "banner_001.jpg").write_bytes(b"1")
+
+        historico_path = self.banners_dir / "historico_banners.json"
+        historico_path.write_text(json.dumps({"versao": "1.0", "imagens_consumidas_no_ciclo": [], "ultimo_envio_por_data": {}}), encoding="utf-8")
+
+        buffer = io.StringIO()
+        with patch("sys.stdout", buffer), patch("webbrowser.open") as mock_browser:
+            codigo = exibir_status_banners(
+                preview=True,
+                banners_dir=self.banners_dir,
+                manifesto_path=self.manifesto_path,
+                historico_path=historico_path
+            )
+            self.assertEqual(codigo, 0)
+            mock_browser.assert_called_once()
+
+        saida = buffer.getvalue()
+        self.assertIn("STATUS DO CATÁLOGO DE BANNERS", saida)
+        self.assertIn("banner_001.jpg", saida)
+        self.assertIn("Abrindo visualização no navegador", saida)
+
+
 if __name__ == "__main__":
     unittest.main()

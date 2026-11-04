@@ -4,9 +4,13 @@ from .base import DeliveryChannel, EmailDeliveryChannel, FilePreviewDeliveryChan
 from .dispatcher import despachar_relatorio
 from .banner_selector import (
     BannerInfo,
+    StatusBannersInfo,
     resolver_banner_do_dia,
     confirmar_banner_utilizado,
     reconciliar_historico_se_necessario,
+    resolver_subcaminho_banner,
+    obter_status_banners,
+    exibir_status_banners,
 )
 
 __all__ = [
@@ -17,7 +21,11 @@ __all__ = [
     "FilePreviewDeliveryChannel",
     "despachar_relatorio",
     "BannerInfo",
+    "StatusBannersInfo",
     "resolver_banner_do_dia",
     "confirmar_banner_utilizado",
     "reconciliar_historico_se_necessario",
+    "resolver_subcaminho_banner",
+    "obter_status_banners",
+    "exibir_status_banners",
 ]
