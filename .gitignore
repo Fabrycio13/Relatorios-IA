@@ -12,6 +12,14 @@ data/*.lock
 data/*.tmp
 ultimo_envio.txt
 
+# Arquivos residuais na raiz
+/tweets_coletados.json
+/github_trending.json
+/hf_papers.json
+
+# Relatórios locais e prévias temporárias em HTML
+reports/*.html
+
 # Logs
 logs/
 *.log
