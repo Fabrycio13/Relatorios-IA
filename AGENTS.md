@@ -8,12 +8,13 @@ Este documento orienta agentes de IA trabalhando neste repositório. O objetivo 
 
 Antes de planejar ou alterar código, consulte a documentação oficial existente (não duplique seus conteúdos):
 
+* 📚 **[docs/README.md](docs/README.md)**: Índice geral e catálogo central de documentação técnica.
 * 📖 **[GLOSSARY.md](GLOSSARY.md)**: Vocabulário ubíquo oficial e definições de domínio.
 * 🏛️ **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**: Mapa de componentes, fluxo de dados e decisões justificadas.
 * 📋 **[docs/adr/](docs/adr/)**: Registros de Decisões de Arquitetura (Task Scheduler, Playwright, CDN, etc.).
 * 📐 **[docs/specs/](docs/specs/)**: Especificações técnicas aprovadas.
 * 🎟️ **[docs/tickets/](docs/tickets/)**: Tickets de implementação e critérios de aceitação.
-* 💡 **[docs/guides/](docs/guides/)**: Guias operacionais (servidor doméstico) e manual de banners.
+* 💡 **[docs/guides/](docs/guides/)**: Guias operacionais (servidor doméstico) e manual de banners ([`style_guide_banners.md`](docs/guides/style_guide_banners.md)).
 * 📜 **[docs/retrospectives/](docs/retrospectives/)**: Histórico de lições aprendidas e dívidas técnicas conhecidas.
 
 ---
@@ -42,6 +43,8 @@ Antes de planejar ou alterar código, consulte a documentação oficial existent
 ## 3. Princípios de Engenharia e Padrões de Código
 
 * **KISS, YAGNI e o Menor Delta:** Implemente a menor alteração suficiente para resolver o problema. Não introduza padrões, factories reflexivas, registries dinâmicos ou contêineres genéricos sem necessidade concreta e justificada.
+* **Higiene da Raiz (Anti-Poluição):** Jamais crie scripts descartáveis, relatórios avulsos ou dumps JSON na raiz. Utilize as pastas de destino corretas (`reports/`, `data/`) ou ambiente efêmero/scratch isolado.
+* **Padrão de Banners e Assets:** Novos banners devem seguir estritamente o layout de subpastas (`assets/banners/geral/`, `festivos/` ou `padrao/`), proporção 1360x760 px e registro no `assets/banners/manifesto.json` conforme [`docs/guides/style_guide_banners.md`](docs/guides/style_guide_banners.md).
 * **Tipagem e Protocolos Pragmáticos:** Utilize `typing.Protocol` para desacoplamento de interfaces e `dataclasses` para entidades de domínio. Utilize `@runtime_checkable` **apenas** quando houver necessidade real comprovada de verificação de tipos em tempo de execução (`isinstance`).
 * **Segurança de Segredos:** Jamais versione ou logue credenciais do `.env` ou cookies da pasta de sessão do Playwright (`.session/`). Senhas e tokens devem ser manipulados exclusivamente em memória e limpos de espaços em branco.
 * **Preservação de Compatibilidade:** Ao refatorar funções públicas ou seams existentes (ex: `enviar_relatorio_email`), preserve a assinatura original funcionando como facade para evitar quebrar pontos de chamada legados.
