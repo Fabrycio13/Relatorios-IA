@@ -13,6 +13,7 @@ Antes de planejar ou alterar código, consulte a documentação oficial existent
 * 📋 **[docs/adr/](docs/adr/)**: Registros de Decisões de Arquitetura (Task Scheduler, Playwright, CDN, etc.).
 * 📐 **[docs/specs/](docs/specs/)**: Especificações técnicas aprovadas.
 * 🎟️ **[docs/tickets/](docs/tickets/)**: Tickets de implementação e critérios de aceitação.
+* 💡 **[docs/guides/](docs/guides/)**: Guias operacionais (servidor doméstico) e manual de banners.
 * 📜 **[docs/retrospectives/](docs/retrospectives/)**: Histórico de lições aprendidas e dívidas técnicas conhecidas.
 
 ---

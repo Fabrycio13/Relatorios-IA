@@ -19,7 +19,7 @@ ready-for-agent
 - [ ] A tag `<a>` que envolve o banner no layout Bento Grid aponta dinamicamente para a URL em alta resolução (1360x760) da imagem específica do dia no repositório GitHub.
 - [ ] O atributo `title` do link e o `alt` da imagem refletem dinamicamente o tema do banner selecionado (comemorativo ou geral).
 - [ ] A execução de `python main.py --preview` (e `python main.py --step email --preview`) renderiza o layout com o banner dinâmico do dia em `reports/preview.html` e dispara o navegador sem conectar à rede SMTP e sem tocar em `data/ultimo_envio.txt`.
-- [ ] Portão de Ativação de Produção (Style Guide Gate): Fica estabelecido como critério de aceitação de produto que nenhuma imagem real entra na pasta de produção `assets/banners/` sem validação prévia humana contra o checklist de 5 critérios do `docs/STYLE_GUIDE_BANNERS.md` (textura de gravura clássica, 1360x760, proporção 16:9, nitidez e ausência de textos corrompidos).
+- [ ] Portão de Ativação de Produção (Style Guide Gate): Fica estabelecido como critério de aceitação de produto que nenhuma imagem real entra na pasta de produção `assets/banners/` sem validação prévia humana contra o checklist de 5 critérios do `docs/guides/style_guide_banners.md` (textura de gravura clássica, 1360x760, proporção 16:9, nitidez e ausência de textos corrompidos).
 - [ ] Distinção formal de validação: os testes automatizados utilizam fixtures temporárias herméticas; a validação da beleza artística e conformidade visual das imagens reais de feriados/catálogo é auditada pelo Style Guide antes do commit.
 - [ ] Contratos operacionais CLI preservados:
   - `sys.exit(0)` em caso de preview ou sucesso.

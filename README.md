@@ -6,6 +6,7 @@ Automação ponta a ponta para curadoria, síntese analítica por IA e entrega d
 > - 📖 **[GLOSSARY.md](GLOSSARY.md)**: Vocabulário ubíquo oficial e conceitos de IA.
 > - 🏛️ **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**: Arquitetura técnica, mapa de componentes e fluxo de dados.
 > - 📋 **[docs/adr/](docs/adr/)**: Registros de Decisões de Arquitetura (ADRs).
+> - 📚 **[docs/](docs/README.md)**: Central de documentação e guias práticos.
 
 ---
 

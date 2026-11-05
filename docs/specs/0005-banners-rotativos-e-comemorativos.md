@@ -3,7 +3,7 @@
 **Status:** Aprovado para implementação  
 **Área:** Entrega, Identidade Visual & Renderização Bento Grid  
 **Prerequisitos:** Specs 0001–0004 concluídas (PRs #1 a #5 integradas na `main`)  
-**Documento Complementar:** [`docs/STYLE_GUIDE_BANNERS.md`](../STYLE_GUIDE_BANNERS.md)
+**Documento Complementar:** [`docs/guides/style_guide_banners.md`](../guides/style_guide_banners.md)
 
 ---
 
@@ -41,7 +41,7 @@ Implementar um **Sistema de Banners Rotativos e Comemorativos Pré-curados**, co
    - Se a imagem estiver listada em `catalogo_geral` no `manifesto.json`, usa sua legenda contextual personalizada.
    - Se a imagem for um arquivo novo colocado na pasta sem cadastro no manifesto, ela é absorvida no pool rotativo recebendo a `legenda_padrao` do manifesto (crescimento incremental zero-config).
 5. **Portão de Ativação de Produção (Style Guide):**
-   - A capacidade de descoberta automática de arquivos **não contorna** o controle de qualidade: somente imagens previamente validadas pelo checklist de 5 critérios do [`docs/STYLE_GUIDE_BANNERS.md`](../STYLE_GUIDE_BANNERS.md) (1360x760, traço nítido, gravura de jornal, sem textos corrompidos) têm permissão de entrar na pasta `assets/banners/` de produção.
+   - A capacidade de descoberta automática de arquivos **não contorna** o controle de qualidade: somente imagens previamente validadas pelo checklist de 5 critérios do [`docs/guides/style_guide_banners.md`](../guides/style_guide_banners.md) (1360x760, traço nítido, gravura de jornal, sem textos corrompidos) têm permissão de entrar na pasta `assets/banners/` de produção.
 6. **Alta Resolução Interativa:**
    - O clique no banner do e-mail abre diretamente a URL em alta resolução (1360x760) daquela imagem específica do dia hospedada no repositório GitHub (`assets/banners/<arquivo>.jpg`), preservando a interatividade.
 

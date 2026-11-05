@@ -41,7 +41,7 @@ A referência máxima de padrão estético do projeto é a arte clássica do cas
 | **Formato de Arquivo** | `JPEG (.jpg)` | Máxima compatibilidade com Gmail, Outlook, Apple Mail e Thunderbird |
 | **Compressão / Peso** | Entre `150 KB` e `280 KB` | Carregamento instantâneo no cliente de e-mail sem engasgar o leitor |
 | **Espaço de Cor** | `sRGB` | Cores consistentes em navegadores e monitores de qualquer fabricante |
-| **Localização dos Arquivos** | `assets/banners/<nome_arquivo>.jpg` | Servido via CDN do GitHub com anti-cache previsível |
+| **Localização dos Arquivos** | `assets/banners/geral/`, `assets/banners/festivos/` ou `assets/banners/padrao/` | Estrutura de subpastas categorizadas servidas via CDN do GitHub com anti-cache |
 
 ---
 
