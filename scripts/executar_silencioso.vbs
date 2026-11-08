@@ -13,6 +13,10 @@ localAppData = WshShell.ExpandEnvironmentStrings("%LOCALAPPDATA%")
 pythonExe = localAppData & "\Programs\Python\Python313\python.exe"
 
 If Not FSO.FileExists(pythonExe) Then
+    pythonExe = localAppData & "\Programs\Python\Python312\python.exe"
+End If
+
+If Not FSO.FileExists(pythonExe) Then
     pythonExe = "python.exe"
 End If
 

@@ -353,7 +353,7 @@ class TestTwitterCollector(unittest.TestCase):
 
         # Simula start_time de 301 segundos atrás
         past_start_time = 1000.0
-        with patch("src.collectors.twitter.time.time", side_effect=[1305.0]):
+        with patch("src.collectors.twitter.time.time", return_value=1305.0):
             tweets, _ = coletar_feed_principal(
                 page=mock_page,
                 limite_tempo=self.limite_tempo,
