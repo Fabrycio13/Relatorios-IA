@@ -1,4 +1,4 @@
-import smtplib
+from src.core.smtp import conectar_smtp_ssl
 import urllib.error
 import urllib.request
 from src.core.config import config
@@ -26,8 +26,8 @@ def check_email() -> tuple[bool, str]:
     if not remetente or not senha_app:
         return False, "Credenciais de e-mail incompletas no .env"
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=6) as server:
-            server.login(remetente, senha_app.replace(" ", ""))
+        with conectar_smtp_ssl(remetente, senha_app, timeout=6):
+            pass
         return True, f"Login SMTP OK ({remetente} -> {destinatario})"
     except Exception as e:
         return False, f"Falha no login SMTP do Gmail: {e}"
