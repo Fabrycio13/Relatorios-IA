@@ -108,3 +108,27 @@ A estrutura do projeto adota responsabilidade única estrita em cada módulo:
 3. **MIME Multipart com Fallback em Texto Puro (`plain_text`):**
    O parâmetro opcional `plain_text` no método `deliver` de `DeliveryChannel` permite anexar uma versão em texto puro como parte alternativa (`multipart/alternative`), prevenindo alertas de spam e renderização de anexos binários em clientes de e-mail corporativos.
 
+
+
+---
+
+## 6. Fronteiras de Confiança e Modelo de Blindagem
+
+### Mapeamento de Zonas de Confiança
+| Zona | Componentes | Nível de Confiança | Mecanismos de Blindagem |
+| :--- | :--- | :--- | :--- |
+| **Z1: Fontes Externas** | APIs públicas, Feeds, X/Twitter, ArXiv, GitHub | **Não Confiável** | Timeout estrito, cabeçalhos de User-Agent, parsing resiliente. |
+| **Z2: Síntese de Conteúdo** | LLM configurada (processamento de texto e geração) | **Não Determinística** | Prompts estruturados; o Markdown gerado é considerado **não confiável** para inserção em HTML. |
+| **Z3: Renderização Determinística** | `src/delivery/renderer.py` | **Fronteira de Blindagem** | `format_inline()`, `html.escape(..., quote=True)`, validação de RFC/Userinfo em `_is_safe_url()`, teste canônico de invariantes. |
+| **Z4: Canais de Entrega e Apresentação** | `src/delivery/base.py`, SMTP Gmail, Preview no Navegador | **Transporte & Exibição** | Conexão SMTP com TLS estrito (`ssl.create_default_context()`) para entrega de e-mail; gravação local em arquivo para preview (o navegador pode realizar requisições de rede para carregar recursos remotos referenciados no HTML, como imagens externas). A segurança do conteúdo continua sob responsabilidade do renderizador. |
+
+### A. As 4 Ressalvas Conceituais da Retrospectiva
+1. **Fronteiras Independentes e Conteúdo Não Confiável por Definição:** Mapeamento explícito e separado das fronteiras entre fontes externas, síntese pela LLM configurada, Markdown gerado, renderer determinístico e canais de entrega. Todo conteúdo externo e todo Markdown da LLM devem ser tratados como não confiáveis até passarem pelo tratamento contextual do renderizador.
+2. **Blindagem Determinística no Renderer:** A proteção contra XSS e HTML Injection depende exclusivamente da implementação determinística do renderizador (escape contextual, validação de URLs e cobertura exaustiva de campos dinâmicos).
+3. **Desvinculação entre Sanitização HTML e Prompt Injection:** A sanitização e neutralização de tags HTML no renderizador **não resolve nem mitiga Prompt Injection**; Prompt Injection é um vetor de manipulação semântica da LLM pertencente à fronteira da IA, demandando defesas próprias de prompt e curadoria.
+4. **Separação Rigorosa entre Segurança de Transporte e de Conteúdo:** O transporte via SMTP com TLS protege a confidencialidade e integridade do canal de conexão, mas não garante que o conteúdo, as afirmações editoriais ou os links incluídos sejam idôneos ou seguros.
+
+### B. Os 3 Princípios Complementares Derivados
+5. **Risco Residual de Phishing em URLs Sintaticamente Válidas:** A validação sintática estrita de URLs (`_is_safe_url()`) garante conformidade com RFC 1123, hostname válido e ausência de userinfo, mas não verifica a reputação do domínio de destino; URLs sintaticamente perfeitas ainda podem direcionar para destinos maliciosos.
+6. **Segurança Relativa do HTML Gerado:** O documento HTML final não é rotulado como "universalmente seguro"; sua segurança é relativa e estritamente delimitada pelas regras de sanitização implementadas e cobertas pela suíte canônica de testes de invariantes.
+7. **Preview Local no Navegador como Superfície Ativa:** A prévia local (`--preview`) não realiza envio SMTP (grava o relatório em `reports/preview.html` e aciona o navegador padrão). Contudo, o navegador pode realizar requisições de rede para carregar recursos remotos (como imagens e fontes externas) e interpreta ativamente o HTML renderizado. Portanto, o preview local exige as mesmas garantias de blindagem contra injeção e execução de scripts que o relatório transmitido por e-mail, sendo a segurança do conteúdo de inteira responsabilidade do renderizador determinístico. Não se deve assumir que o preview bloqueia tráfego externo.
