@@ -1,9 +1,9 @@
 # Especificação Técnica 0006: Governança de Segurança, Invariantes Anti-XSS e Unificação SMTP
 
-**Status:** Proposta para Aprovação Humana Final (Revisão 5.2)  
-**Área:** Segurança de Aplicação (AppSec), Qualidade & Governança  
-**Prerequisitos:** Consolidação da Retrospectiva de Segurança (Decisões D1 a D4 aprovadas)  
-**Data:** 09/11/2026 (Revisão 5.2)  
+**Status:** Proposta para Aprovação Humana Final (Revisão 5.2)
+**Área:** Segurança de Aplicação (AppSec), Qualidade & Governança
+**Prerequisitos:** Consolidação da Retrospectiva de Segurança (Decisões D1 a D4 aprovadas)
+**Data:** 09/11/2026 (Revisão 5.2)
 
 ---
 
@@ -11,13 +11,13 @@
 
 A auditoria de segurança e a retrospectiva operacional do projeto `Relatorios-IA` revelaram quatro oportunidades críticas de melhoria na robustez da aplicação e nas diretrizes de engenharia para agentes de IA:
 
-1. **Fragilidade de Regressão em Interpolações HTML (Anti-XSS):**  
+1. **Fragilidade de Regressão em Interpolações HTML (Anti-XSS):**
    O renderizador de e-mails (`src/delivery/renderer.py`) compõe o layout *The Engineering Gazette* interpolando strings formatadas com conteúdo curado por modelos de linguagem (LLM) a partir de fontes externas (X/Twitter, GitHub, ArXiv). Embora a rodada de segurança tenha sanitizado os campos existentes, a ausência de um teste de invariante estrutural permite que futuras adições de campos ou blocos editoriais introduzam injeção de HTML ou XSS caso o desenvolvedor esqueça de invocar `format_inline()` ou `html.escape()`.
-2. **Ausência de Diretrizes de Segurança no `AGENTS.md`:**  
+2. **Ausência de Diretrizes de Segurança no `AGENTS.md`:**
    O `AGENTS.md` possui foco estrito em isolamento de testes e automação CLI, mas omitia diretrizes mandatórias sobre a obrigatoriedade de sanitização contextual de dados externos e a configuração explícita de `SSLContext` com validação de certificados e hostname em conexões de rede.
-3. **Lacuna Conceitual sobre Fronteiras de Confiança em `docs/ARCHITECTURE.md`:**  
+3. **Lacuna Conceitual sobre Fronteiras de Confiança em `docs/ARCHITECTURE.md`:**
    A documentação de arquitetura mapeava o fluxo sequencial de componentes, mas não formalizava as fronteiras de confiança entre fontes externas, síntese por IA, renderização determinística e canais de saída. Essa indefinição gerou dúvidas em auditorias sobre a relação entre *Prompt Injection*, renderização HTML, visualização local e canais de entrega.
-4. **Duplicação da Lógica de Conexão SMTP Segura e Inversão de Camadas:**  
+4. **Duplicação da Lógica de Conexão SMTP Segura e Inversão de Camadas:**
    Tanto o canal de envio oficial (`EmailDeliveryChannel.deliver` em `src/delivery/base.py`) quanto o diagnóstico de conectividade (`check_email` em `src/core/healthcheck.py`) inicializavam independentemente a conexão `smtplib.SMTP_SSL("smtp.gmail.com", 465)` com criação de contexto TLS e sanitização de credenciais, criando risco de divergência futura na política de segurança de transporte. Ademais, centralizar essa função dentro de `delivery.base` forçaria `src/core/healthcheck.py` a importar da camada de entrega, introduzindo uma inversão indesejada de dependência em camadas.
 
 ---
@@ -25,13 +25,13 @@ A auditoria de segurança e a retrospectiva operacional do projeto `Relatorios-I
 ## 2. Solution Architecture & Escopo
 
 ### 2.1 Escopo Obrigatório (In-Scope)
-* **D1 — Teste Canônico de Invariantes Anti-XSS (`tests/test_renderer.py`):**  
+* **D1 — Teste Canônico de Invariantes Anti-XSS (`tests/test_renderer.py`):**
   Implementação de teste determinístico utilizando sentinelas canárias distintas injetadas em todas as 8 superfícies de entrada externas do Markdown, inspecionando a árvore resultante com `html.parser.HTMLParser` nativo como ferramenta de asserção estrutural nos testes (e não como sanitizador em tempo de execução nem parser de renderização de navegador). O teste emprega uma máquina de estados com controle estrito do ciclo de vida de `html`, `head` e `body` (rejeitando tags duplicadas, aninhadas ou fora de ordem tanto na abertura quanto no fechamento sem corromper o estado, e impedindo o fechamento de `</head>` com `<style>` ainda aberto), comparação efetiva das 4 tags `<meta>` estáticas contra `EXPECTED_STATIC_METAS` (rejeitando duplicatas ou substituições), exigência de exatamente 1 bloco `<style>` estático no documento, inspeção dedicada de `<style>` para verificação de canários (sem criar parser CSS próprio e reconhecendo a natureza heurística de substrings em `style`), proibição do atributo `srcset` (desnecessário ao template), rejeição de atributos inseguros (`on*`, `action`, `formaction`, `poster`, `xlink:href`), comprovação de ausência de canários em atributos HTML, além de demonstrar que URLs com userinfo (ex: `https://evil.com@attacker.com`) são rejeitadas e desarmadas para texto inerte conforme o contrato de `_is_safe_url()`. O teste valida a integridade estrutural e classes essenciais do Bento Grid (`.main-container`, `.newspaper-section`, `.dropcap`, `.nav-pill`, `.footer-card`), separando formalmente asserções estruturais automatizadas da inspeção visual humana.
-* **D2 — Diretriz "Safe by Default" no `AGENTS.md` (§3):**  
+* **D2 — Diretriz "Safe by Default" no `AGENTS.md` (§3):**
   Inclusão de item conciso em `AGENTS.md` formalizando a exigência de sanitização contextual (`format_inline` / `html.escape`), validação própria de URLs antes de criar hyperlinks, TLS obrigatório com `ssl.create_default_context()` no SMTP e testes de regressão para novos campos, sem detalhes de implementação de baixo nível.
-* **D3 — Fronteiras de Confiança em `docs/ARCHITECTURE.md` (§6):**  
+* **D3 — Fronteiras de Confiança em `docs/ARCHITECTURE.md` (§6):**
   Inclusão de seção compacta documentando as zonas de confiança entre fontes externas, LLM configurada, Markdown gerado, renderer determinístico e canais de saída, formalizando as 4 ressalvas conceituais aprovadas na retrospectiva e os 3 princípios complementares derivados (risco de phishing em URLs válidas, relatividade da segurança do HTML gerado e prévia local no navegador distinguindo ausência de entrega SMTP da possibilidade de requisições externas para recursos remotos).
-* **D4 — Unificação da Conexão SMTP Segura (`src/core/smtp.py`):**  
+* **D4 — Unificação da Conexão SMTP Segura (`src/core/smtp.py`):**
   Centralização da conexão SMTP TLS autenticada em função compartilhada (`conectar_smtp_ssl`) localizada na camada `src/core/`, preservando a hierarquia unidirecional de dependências (`delivery -> core` e `healthcheck -> core.smtp`), assinaturas públicas existentes, isolamento de testes e simplificação do ciclo de vida via context manager nativo de `smtplib` (cuja implementação na biblioteca padrão Python 3.12 e 3.13 garante envio de `QUIT` e execução de `close()` em bloco `finally`), com testes modelando os 4 cenários reais de encerramento do CPython e preservando rigorosamente o tratamento de exceções e logs de cada consumidor.
 
 ### 2.2 Não-Objetivos (Explicitamente Fora de Escopo / Rejeitados)
@@ -70,11 +70,11 @@ src/
 ### 3.2 Avaliação Arquitetural da Localização da Conexão SMTP
 Duas alternativas foram avaliadas para abrigar a função unificada `conectar_smtp_ssl`:
 
-1. **Localização em `src/delivery/base.py` (Rejeitada):**  
-   * Obriga `src/core/healthcheck.py` a importar `src.delivery.base`.  
+1. **Localização em `src/delivery/base.py` (Rejeitada):**
+   * Obriga `src/core/healthcheck.py` a importar `src.delivery.base`.
    * *Problema:* Introduz acoplamento bidirecional entre pacotes (`delivery` já depende de `core`). Em termos de arquitetura em camadas, a camada central (`core`) passaria a depender de uma camada externa de entrega (`delivery`), que por sua vez importa submódulos pesados como `webbrowser`, `email.mime`, etc.
 
-2. **Localização em `src/core/smtp.py` (Aprovada):**  
+2. **Localização em `src/core/smtp.py` (Aprovada):**
    * Cria um módulo coeso e mínimo (`src/core/smtp.py`, ~30 linhas) contendo estritamente a política de transporte SMTP seguro.
    * *Grafo de Dependências Resultante:*
      - `src/core/smtp.py` depende exclusivamente de bibliotecas padrão (`contextlib`, `smtplib`, `ssl`, `typing`).
@@ -104,7 +104,7 @@ def conectar_smtp_ssl(
     timeout: int = 20,
 ) -> Generator[smtplib.SMTP_SSL, None, None]:
     """Cria conexão SMTP SSL com validação de certificados, sanitiza credenciais e realiza autenticação.
-    
+
     Ciclo de vida e encerramento:
     1. Fase de Conexão: Se smtplib.SMTP_SSL(...) falhar durante a resolução de DNS, conexão TCP ou handshake TLS,
        a exceção propaga diretamente ao chamador antes da ativação do bloco de contexto.
@@ -199,7 +199,7 @@ A classe de teste `XSSCanaryParser` implementa transições estritas de abertura
 ```python
 class XSSCanaryParser(html.parser.HTMLParser):
     """Parser de teste para inspeção estrutural do HTML gerado pelo renderizador."""
-    
+
     # Tags intrinsecamente perigosas que NUNCA devem aparecer no documento
     PROHIBITED_TAGS = {
         "script", "iframe", "object", "embed", "svg", "math",
@@ -382,21 +382,21 @@ class XSSCanaryParser(html.parser.HTMLParser):
 
 #### As 8 Superfícies de Entrada Externas e Payloads Canários
 Cada superfície externa é desafiada com canários específicos, incluindo teste de injeção de `<head>` anômalo e atributos perigosos:
-1. **Título de Seção Dinâmico (`<script>` e `<head>` duplicado):**  
+1. **Título de Seção Dinâmico (`<script>` e `<head>` duplicado):**
    `## CANARY_1_TITLE <head><script>alert(1)</script></head>`
-2. **Manchete Principal com Drop Cap (Manipulador `onerror`):**  
+2. **Manchete Principal com Drop Cap (Manipulador `onerror`):**
    `- **CANARY_2_DROPCAP:** Manchete com payload <img src=x onerror=alert(2)>`
-3. **Card GitHub Trending — URL com Userinfo (`@` no netloc):**  
+3. **Card GitHub Trending — URL com Userinfo (`@` no netloc):**
    `* **[CANARY_3_GH_REPO](https://evil.com@attacker.com)** ⭐ **1.200** (Python)`
-4. **Card GitHub Trending — Atributos `xlink:href` e Esquema `javascript:`:**  
+4. **Card GitHub Trending — Atributos `xlink:href` e Esquema `javascript:`:**
    `  - CANARY_4_GH_DESC contendo <svg><a xlink:href="javascript:alert(4)">link</a></svg> e [Ataque](javascript:alert(4))`
-5. **Card Papers ArXiv — Esquema `data:` em Hyperlink:**  
+5. **Card Papers ArXiv — Esquema `data:` em Hyperlink:**
    `* **[CANARY_5_PAPER_TITLE](data:text/html,<script>evil</script>)** 📄 **ArXiv: 2610.99999**`
-6. **Card Papers ArXiv — `<iframe>` e Atributos `action` / `formaction`:**  
+6. **Card Papers ArXiv — `<iframe>` e Atributos `action` / `formaction`:**
    `  - CANARY_6_PAPER_DESC contendo <iframe src='https://evil.com'></iframe> e <form action='javascript:alert(6)' formaction='javascript:alert(6)'>`
-7. **Dica do Autor / Takeaway — Construções Heurísticas de CSS em `style`:**  
+7. **Dica do Autor / Takeaway — Construções Heurísticas de CSS em `style`:**
    `CANARY_7_TAKEAWAY <div style='behavior:url(x); background:url(javascript:alert(7))'>Dica</div>`
-8. **Bullets Temáticos Padrão — Esquema `vbscript:`, Atributo `poster` e Tentativa de `srcset`:**  
+8. **Bullets Temáticos Padrão — Esquema `vbscript:`, Atributo `poster` e Tentativa de `srcset`:**
    `- **CANARY_8_BULLET:** Novidade com [Link](vbscript:msgbox(8)), <video poster='javascript:alert(8)'></video> e <img srcset='evil.jpg 1x'>`
 
 #### Asserções do Teste Canônico
@@ -406,7 +406,7 @@ Cada superfície externa é desafiada com canários específicos, incluindo test
 4. `self.assertEqual(parser.active_tags_found, [])`: Nenhuma tag proibida é criada e nenhuma tag `<meta>` ou `<style>` é injetada fora do `<head>` estático.
 5. `self.assertEqual(parser.unsafe_attrs_found, [])`: Nenhum atributo malicioso (`on*`, `action`, `formaction`, `poster`, `srcset` proibido, `xlink:href`, ou `style` com construções proibidas) é emitido.
 6. **Rejeição Comprovada de URL com Userinfo:** O teste verifica especificamente que `https://evil.com@attacker.com` não aparece como atributo `href` de tag `<a>`. O canário `CANARY_3_GH_REPO` é desarmado e renderizado apenas como texto seguro ou `<span>` inofensivo, em conformidade com o contrato de `_is_safe_url()`.
-7. **Comprovação de Nós Textuais e Ausência de Canários em Atributos e `<style>`:**  
+7. **Comprovação de Nós Textuais e Ausência de Canários em Atributos e `<style>`:**
    - Todos os 8 identificadores canários (`CANARY_1` a `CANARY_8`) são capturados em `parser.canary_data_chunks` em nós de texto (`handle_data`).
    - A inspeção comprova `self.assertEqual(parser.canary_attrs_found, [])`, garantindo que nenhum canário quebrou a estrutura para vazar como atributo HTML.
    - A inspeção comprova `self.assertEqual(parser.canary_in_style_found, [])`, assegurando que o bloco `<style>` estático não sofreu injeção de conteúdo externo.
@@ -491,10 +491,10 @@ Inclusão da seção `## 6. Fronteiras de Confiança e Modelo de Blindagem`:
 * **CA-D4.5:** O grafo de dependências permanece estritamente unidirecional e descendente (`delivery -> core` e `healthcheck -> core.smtp`), sem importação reversa de `delivery` em `core`.
 
 ### Critérios Gerais de Conclusão (CG)
-* **CG.1:** 100% dos testes da suíte canônica executam e passam sob os guardrails de rede:  
+* **CG.1:** 100% dos testes da suíte canônica executam e passam sob os guardrails de rede:
   `python -m unittest discover -s tests -t . -v`
-* **CG.2:** Zero avisos de recursos em execução estrita:  
+* **CG.2:** Zero avisos de recursos em execução estrita:
   `python -W error::ResourceWarning -m unittest discover -s tests -t . -v`
-* **CG.3:** Formatação git limpa e sem espaços residuais:  
+* **CG.3:** Formatação git limpa e sem espaços residuais:
   `git diff --check`
 * **CG.4:** Nenhuma dependência externa adicionada a `requirements.txt`.
