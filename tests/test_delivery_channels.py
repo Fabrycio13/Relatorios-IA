@@ -1,3 +1,4 @@
+import ssl
 import tempfile
 import unittest
 from pathlib import Path
@@ -75,6 +76,13 @@ class TestDeliveryChannels(unittest.TestCase):
         args, _ = mock_server.sendmail.call_args
         self.assertEqual(args[1], ["test@example.com"])
         self.assertIn("Subject: Assunto de Teste", args[2])
+        mock_smtp.assert_called_once()
+        _, smtp_kwargs = mock_smtp.call_args
+        self.assertIn("context", smtp_kwargs)
+        ctx = smtp_kwargs["context"]
+        self.assertIsInstance(ctx, ssl.SSLContext)
+        self.assertTrue(ctx.check_hostname)
+        self.assertEqual(ctx.verify_mode, ssl.CERT_REQUIRED)
 
     @patch("src.delivery.base.config.get_email_credentials")
     def test_email_delivery_channel_missing_credentials(self, mock_creds):

@@ -1,3 +1,4 @@
+import ssl
 import subprocess
 import sys
 import tempfile
@@ -190,7 +191,15 @@ class TestDeliveryIntegration(unittest.TestCase):
                     main.main()
 
                 # Verifica chamada ao servidor SMTP SSL na porta 465
-                mock_smtp_ssl.assert_called_once_with("smtp.gmail.com", 465, timeout=20)
+                mock_smtp_ssl.assert_called_once()
+                args, kwargs = mock_smtp_ssl.call_args
+                self.assertEqual(args[0], "smtp.gmail.com")
+                self.assertEqual(args[1], 465)
+                self.assertEqual(kwargs.get("timeout"), 20)
+                ctx = kwargs.get("context")
+                self.assertIsInstance(ctx, ssl.SSLContext)
+                self.assertTrue(ctx.check_hostname)
+                self.assertEqual(ctx.verify_mode, ssl.CERT_REQUIRED)
                 mock_server.login.assert_called_once_with("sender@gmail.com", "secret123")
                 mock_server.sendmail.assert_called_once()
                 # Verifica destinatário correto no envio

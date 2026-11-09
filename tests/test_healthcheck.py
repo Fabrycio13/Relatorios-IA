@@ -1,3 +1,4 @@
+import ssl
 import unittest
 from unittest.mock import patch, MagicMock
 from src.core.config import config
@@ -67,6 +68,13 @@ class TestHealthcheck(unittest.TestCase):
         ok, msg = check_email()
         self.assertTrue(ok)
         self.assertIn("Login SMTP OK", msg)
+        mock_smtp.assert_called_once()
+        _, smtp_kwargs = mock_smtp.call_args
+        self.assertIn("context", smtp_kwargs)
+        ctx = smtp_kwargs["context"]
+        self.assertIsInstance(ctx, ssl.SSLContext)
+        self.assertTrue(ctx.check_hostname)
+        self.assertEqual(ctx.verify_mode, ssl.CERT_REQUIRED)
 
     @patch.object(config, "get_email_credentials")
     def test_check_email_missing_credentials(self, mock_get_creds):
