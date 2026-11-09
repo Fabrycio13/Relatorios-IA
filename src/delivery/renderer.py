@@ -1,6 +1,8 @@
 import re
 import json
 import html
+import urllib.parse
+import ipaddress
 from datetime import datetime
 from pathlib import Path
 from src.core.config import HEADER_BANNER_URL, HEADER_FULL_HD_URL, FOOTER_BANNER_URL, DATA_DIR
@@ -36,6 +38,55 @@ def obter_numero_edicao(data_str: str | None = None) -> str:
 
     return f"{num:03d}"
 
+_HOST_LABEL_PATTERN = re.compile(r"\A[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\Z")
+
+
+def _is_valid_hostname(hostname: str) -> bool:
+    """Valida sintaxe estrita de hostname conforme RFC 1123, IPv4 ou IPv6."""
+    if not hostname or len(hostname) > 253:
+        return False
+    if any(c in hostname for c in " \t\r\n\x00"):
+        return False
+    # Valida IPv4
+    try:
+        ipaddress.IPv4Address(hostname)
+        return True
+    except ValueError:
+        pass
+    # Valida IPv6
+    try:
+        ipaddress.IPv6Address(hostname)
+        return True
+    except ValueError:
+        pass
+    labels = hostname.rstrip(".").split(".")
+    if not labels or any(not label for label in labels):
+        return False
+    # Regra ICANN: se possui múltiplos labels, o último (TLD) não pode ser puramente numérico
+    if len(labels) > 1 and labels[-1].isdigit():
+        return False
+    return all(_HOST_LABEL_PATTERN.match(label) for label in labels)
+
+
+def _is_safe_url(raw_url: str) -> bool:
+    """Valida se uma URL possui esquema http/https estrito, hostname válido e autoridade íntegra."""
+    if not raw_url:
+        return False
+    try:
+        parsed = urllib.parse.urlsplit(raw_url.strip())
+        if parsed.scheme not in ("http", "https"):
+            return False
+        if not parsed.netloc or not parsed.hostname or "@" in parsed.netloc:
+            return False
+        if not _is_valid_hostname(parsed.hostname):
+            return False
+        # Valida que a porta (se fornecida) é um inteiro válido entre 0 e 65535
+        _ = parsed.port
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
 def format_inline(text: str) -> str:
     """Aplica formatação inline básica em markdown com estética autêntica de jornal impresso e papel de época."""
     # REGRA DE OURO: Elimina sumariamente qualquer travessão longo '\u2014' e resíduos
@@ -43,12 +94,23 @@ def format_inline(text: str) -> str:
     text = re.sub(r'^[)\s]+', '', text)
     text = text.replace(" )**", " **").replace(")**", "**")
 
-    # Links primeiro (Azul Safira clássico com sublinhado nítido para destaque imediato e abertura segura em nova aba)
-    t = re.sub(
-        r'\[([^\]]+)\]\(([^)]+)\)',
-        r'<a href="\2" target="_blank" rel="noopener noreferrer" style="color: #1d4ed8; text-decoration: underline; font-weight: 600;">\1</a>',
-        text
-    )
+    # Sanitização: escapa caracteres HTML brutos (<, >, &) para evitar injeção de tags ou scripts
+    text = html.escape(text)
+
+    # Links com validação de esquema (apenas http e https com hostname/autoridade válidos) e escape seguro de atributos
+    def _link_replace(match):
+        raw_label = match.group(1)
+        raw_url = html.unescape(match.group(2).strip())
+        if _is_safe_url(raw_url):
+            safe_href = html.escape(raw_url, quote=True)
+            return (
+                f'<a href="{safe_href}" target="_blank" rel="noopener noreferrer" '
+                f'style="color: #1d4ed8; text-decoration: underline; font-weight: 600;">{raw_label}</a>'
+            )
+        # Esquema inseguro ou ausente (ex: javascript:, data:, caminhos locais): preserva apenas o texto seguro
+        return raw_label
+
+    t = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', _link_replace, text)
     # Negrito (Apenas o termo em destaque em negrito preto nítido)
     t = re.sub(r'\*\*([^*]+)\*\*', r'<strong style="color: #111111; font-weight: 700;">\1</strong>', t)
     # Itálico (Ênfase editorial itálica)
@@ -183,11 +245,13 @@ def render_bento_email(
                     match_header = re.match(r'[\*\-]\s+\*\*\[([^\]]+)\]\(([^)]+)\)\*\*[:\s\-]*\s*⭐\s+\*\*([^\*]+)\*\*\s+[\(|\|]?\s*([^)\n]+)[\)]?', l_str)
                     if match_header:
                         repo_name, repo_url, stars, lang = match_header.groups()
+                        clean_repo_url = repo_url.strip()
+                        safe_url = html.escape(clean_repo_url, quote=True) if _is_safe_url(clean_repo_url) else None
                         curr_repo = {
-                            "name": repo_name,
-                            "url": repo_url,
-                            "stars": stars.strip(),
-                            "lang": lang.strip(),
+                            "name": html.escape(repo_name),
+                            "url": safe_url,
+                            "stars": html.escape(stars.strip()),
+                            "lang": html.escape(lang.strip()),
                             "desc": []
                         }
                         gh_items.append(curr_repo)
@@ -204,10 +268,14 @@ def render_bento_email(
             for r in gh_items:
                 if "name" in r:
                     desc_text = " ".join(r["desc"])
+                    if r.get("url"):
+                        link_or_name = f'<a href="{r["url"]}" style="color: #c2410c; font-weight: 700; text-decoration: underline; font-size: 14.5px; font-family: \'Courier New\', monospace;">{r["name"]}</a>'
+                    else:
+                        link_or_name = f'<span style="color: #c2410c; font-weight: 700; font-size: 14.5px; font-family: \'Courier New\', monospace;">{r["name"]}</span>'
                     repos_entries.append(f"""
                     <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dotted #d4cbb8;">
                         <div style="margin-bottom: 4px;">
-                            <a href="{r['url']}" style="color: #c2410c; font-weight: 700; text-decoration: underline; font-size: 14.5px; font-family: 'Courier New', monospace;">{r['name']}</a>
+                            {link_or_name}
                             <span style="display: inline-block; border: 1px solid #78350f; color: #78350f; font-size: 10px; font-weight: 900; padding: 1px 5px; margin-left: 6px; font-family: -apple-system, sans-serif;">⭐ {r['stars']}</span>
                             <span style="display: inline-block; border: 1px solid #334155; color: #334155; font-size: 10px; font-weight: 700; padding: 1px 5px; margin-left: 3px; font-family: -apple-system, sans-serif;">{r['lang']}</span>
                         </div>
@@ -245,10 +313,12 @@ def render_bento_email(
                     match_header = re.match(r'[\*\-]\s+\*\*\[([^\]]+)\]\(([^)]+)\)\*\*[:\s\-]*\s*📄\s+\*\*ArXiv:\s*([^\*]+)\*\*', l_str)
                     if match_header:
                         p_title, p_url, p_arxiv = match_header.groups()
+                        clean_p_url = p_url.strip()
+                        safe_url = html.escape(clean_p_url, quote=True) if _is_safe_url(clean_p_url) else None
                         curr_paper = {
-                            "title": p_title,
-                            "url": p_url,
-                            "arxiv": p_arxiv.strip(),
+                            "title": html.escape(p_title),
+                            "url": safe_url,
+                            "arxiv": html.escape(p_arxiv.strip()),
                             "desc": []
                         }
                         paper_items.append(curr_paper)
@@ -265,10 +335,14 @@ def render_bento_email(
             for p in paper_items:
                 if "title" in p:
                     desc_text = " ".join(p["desc"])
+                    if p.get("url"):
+                        link_or_title = f'<a href="{p["url"]}" style="color: #be185d; font-weight: 700; text-decoration: underline; font-size: 14.5px; font-family: \'Times New Roman\', serif;">{p["title"]}</a>'
+                    else:
+                        link_or_title = f'<span style="color: #be185d; font-weight: 700; font-size: 14.5px; font-family: \'Times New Roman\', serif;">{p["title"]}</span>'
                     paper_entries.append(f"""
                     <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dotted #d4cbb8;">
                         <div style="margin-bottom: 4px;">
-                            <a href="{p['url']}" style="color: #be185d; font-weight: 700; text-decoration: underline; font-size: 14.5px; font-family: 'Times New Roman', serif;">{p['title']}</a>
+                            {link_or_title}
                             <span style="display: inline-block; border: 1px solid #be185d; color: #be185d; font-size: 10px; font-weight: 900; padding: 1px 5px; margin-left: 6px; font-family: -apple-system, sans-serif;">📄 ARXIV: {p['arxiv']}</span>
                         </div>
                         <p style="color: #292524; font-size: 13.5px; line-height: 1.55; margin: 0; text-align: justify; font-weight: 400;">{desc_text}</p>
@@ -402,14 +476,17 @@ def render_bento_email(
         if "Radar Perfis" in title_clean or "Radar" in title_clean:
             title_clean = re.sub(r'\s*\(.*?\)', '', title_clean).strip()
 
+        title_clean_escaped = html.escape(title_clean)
+        title_clean_comment = title_clean_escaped.replace("--", "-")
+
         is_radar = ("1." in title or "Ferramentas" in title or "Agentes" in title or "Radar" in title) and not any('name="radar-x"' in c for c in articles_html)
         radar_anchor = '<a name="radar-x" id="radar-x" style="display: block; line-height: 0; font-size: 0; height: 0; text-decoration: none; margin: 0; padding: 0;">&nbsp;</a>\n        ' if is_radar else ''
 
         articles_html.append(f"""
-        <!-- SEÇÃO: {title_clean} -->
+        <!-- SEÇÃO: {title_clean_comment} -->
         {radar_anchor}<div class="newspaper-section" style="margin-bottom: 24px;">
             <div style="border-top: 2px solid {accent_color}; border-bottom: 1px solid {accent_color}; padding: 7px 0; margin-bottom: 14px; text-align: center;">
-                <h2 style="font-family: 'Times New Roman', Georgia, serif; color: {accent_color}; font-size: 15px; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; line-height: 1.35; text-align: center;">{title_clean}</h2>
+                <h2 style="font-family: 'Times New Roman', Georgia, serif; color: {accent_color}; font-size: 15px; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; line-height: 1.35; text-align: center;">{title_clean_escaped}</h2>
             </div>
             {''.join(rendered_items)}
         </div>
