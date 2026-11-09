@@ -1,6 +1,6 @@
 import os
-import smtplib
 import webbrowser
+from src.core.smtp import conectar_smtp_ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -58,9 +58,7 @@ class EmailDeliveryChannel:
 
         logger.info(f"Conectando ao servidor SMTP do Gmail para enviar para {destinatario_final}...")
         try:
-            with smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, timeout=self.timeout) as server:
-                senha_limpa = senha_app.replace(" ", "")
-                server.login(remetente, senha_limpa)
+            with conectar_smtp_ssl(remetente, senha_app, host=self.smtp_host, port=self.smtp_port, timeout=self.timeout) as server:
                 server.sendmail(remetente, [destinatario_final], msg.as_string())
 
             logger.info(f"✅ E-mail enviado com sucesso para {destinatario_final}!")
