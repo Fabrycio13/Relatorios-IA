@@ -48,6 +48,7 @@ Antes de planejar ou alterar código, consulte a documentação oficial existent
 * **Tipagem e Protocolos Pragmáticos:** Utilize `typing.Protocol` para desacoplamento de interfaces e `dataclasses` para entidades de domínio. Utilize `@runtime_checkable` **apenas** quando houver necessidade real comprovada de verificação de tipos em tempo de execução (`isinstance`).
 * **Segurança de Segredos:** Jamais versione ou logue credenciais do `.env` ou cookies da pasta de sessão do Playwright (`.session/`). Senhas e tokens devem ser manipulados exclusivamente em memória e limpos de espaços em branco.
 * **Preservação de Compatibilidade:** Ao refatorar funções públicas ou seams existentes (ex: `enviar_relatorio_email`), preserve a assinatura original funcionando como facade para evitar quebrar pontos de chamada legados.
+* **Segurança por Padrão (Sanitização e TLS):** Dados externos (Markdown, feeds, redes sociais, IA) nunca devem ser interpolados diretamente no HTML sem tratamento contextual: utilize `format_inline()` para Markdown suportado e `html.escape(..., quote=True)` para atributos e textos puros. URLs devem ser validadas com `_is_safe_url()` antes da criação de hyperlinks (`<a>`); o escape isolado de caracteres não torna uma URL segura. Conexões de rede criptografadas via `smtplib.SMTP_SSL` devem obrigatoriamente fornecer `context=ssl.create_default_context()`, preservando verificação ativa de certificados e hostname. Novos campos alimentados por dados externos exigem testes de regressão correspondentes.
 
 ---
 
