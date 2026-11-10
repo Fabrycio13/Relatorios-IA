@@ -44,6 +44,8 @@ A estrutura do projeto adota responsabilidade única estrita em cada módulo:
 | **`src/core/retry.py`** | Mecanismo de resiliência com backoff exponencial e jitter aleatório para chamadas de rede externas. | `retry_with_backoff(func, max_retries, initial_delay)` |
 | **`src/core/notifier.py`** | Emissor de notificações nativas do Windows (Toast) via PowerShell para alertar início, conclusão e falhas. | `notificar_windows(titulo, mensagem)` |
 | **`src/core/healthcheck.py`** | Diagnóstico rápido (< 5s) das credenciais e conectividade de todas as 5 integrações externas. | `executar_healthcheck()` |
+| **`src/core/lock.py`** | Abstração de trava de exclusão mútua em nível de SO (`msvcrt` no Windows / `fcntl` no Linux) para prevenção de concorrência. | `TaskLock(lock_file)` |
+| **`src/core/smtp.py`** | Conexão de rede SMTP segura via TLS com validação ativa de certificados e hostname (`ssl.create_default_context()`). | `criar_conexao_smtp_ssl(host, port, timeout)` |
 | **`src/collectors/base.py`** | Protocolo estrutural `IngestionSource` para desacoplamento de fontes de dados. | `IngestionSource(name, target_field, collect())` |
 | **`src/collectors/pipeline.py`** | Orquestrador de ingestão unificado com isolamento de falhas por fonte e persistência de snapshot. | `IngestionPipeline().run(target_source)` |
 | **`src/collectors/twitter.py`** | Automação com Playwright (Chromium headless) com sessão persistente (`.session/`) para raspar Feed e Radar VIP. | `TwitterSource`, `coletar_tweets_vip` |
@@ -51,6 +53,7 @@ A estrutura do projeto adota responsabilidade única estrita em cada módulo:
 | **`src/collectors/huggingface.py`**| Cliente HTTP nativo que busca e elenca os artigos científicos mais votados do Hugging Face Daily Papers. | `HuggingFaceSource`, `coletar_papers_huggingface` |
 | **`src/processors/prompts.py`** | Banco de prompts isolados para curadoria, síntese analítica, tradução técnica e Takeaway de Engenharia. | `get_prompt_resumo_ia`, `get_prompt_github`, etc. |
 | **`src/processors/ai_summarizer.py`**| Orquestrador de inferência com OpenAI (`gpt-6-luna`), consumindo `DailyIngestionBatch` em memória. | `gerar_resumo_ia(batch=None)` |
+| **`src/delivery/banner_selector.py`** | Seletor rotativo de banners com hierarquia em 3 Tiers, catálogo de exaustão e feriados móveis/fixos. | `BannerSelector().selecionar_banner()` |
 | **`src/delivery/renderer.py`** | Transforma o Markdown final em HTML responsivo estilo Bento Grid Modular com imagens servidas via GitHub Raw. | `render_bento_email(markdown_content)` |
 | **`src/delivery/base.py`** | Protocolo `DeliveryChannel` e adaptadores de entrega (`EmailDeliveryChannel`, `FilePreviewDeliveryChannel`). | `DeliveryChannel.deliver(subject, html, recipient)` |
 | **`src/delivery/dispatcher.py`**| Orquestrador de entrega que lê o Markdown, renderiza o HTML e despacha para o canal injetado. | `despachar_relatorio(caminho, channel, destinatario)` |
