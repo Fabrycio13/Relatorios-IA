@@ -35,11 +35,12 @@ Especificações de produto aprovadas e implementadas:
 * **[`specs/0003-delivery-channel.md`](specs/0003-delivery-channel.md)**: Protocolo `DeliveryChannel` e despachador de entregas.
 * **[`specs/0004-dizer-do-dia-takeaway-editorial.md`](specs/0004-dizer-do-dia-takeaway-editorial.md)**: Síntese editorial e citação de impacto no resumo.
 * **[`specs/0005-banners-rotativos-e-comemorativos.md`](specs/0005-banners-rotativos-e-comemorativos.md)**: Sistema de hierarquia em 3 Tiers, ciclo de exaustão e feriados.
+* **[`specs/0006-seguranca-sanitizacao-e-governanca.md`](specs/0006-seguranca-sanitizacao-e-governanca.md)**: Governança de segurança, invariantes anti-XSS no renderer Bento Grid, sanitização contextual, TLS com validação de certificados no SMTP e fronteiras de confiança.
 
 ---
 
 ### 🎟️ Tickets de Implementação (`docs/tickets/`)
-Critérios de aceitação e rastreabilidade de tarefas executadas (Tickets 01 ao 12).
+Critérios de aceitação e rastreabilidade de tarefas executadas (Tickets 01 ao 16).
 
 ---
 
@@ -47,3 +48,4 @@ Critérios de aceitação e rastreabilidade de tarefas executadas (Tickets 01 ao
 * **[`retrospectives/0001-modernizacao-arquitetural.md`](retrospectives/0001-modernizacao-arquitetural.md)**: Lições da transição para Clean Architecture.
 * **[`retrospectives/0002-qualidade-coleta-e-rastreabilidade.md`](retrospectives/0002-qualidade-coleta-e-rastreabilidade.md)**: Melhorias em resiliência e sanitização de fontes.
 * **[`retrospectives/0003-banners-rotativos-e-concorrencia.md`](retrospectives/0003-banners-rotativos-e-concorrencia.md)**: Travas de concorrência, atomismo e rotação cíclica.
+* **[`retrospectives/0004-seguranca-sanitizacao-e-governanca.md`](retrospectives/0004-seguranca-sanitizacao-e-governanca.md)**: Lições da Spec 0006, governança Git, modelagem adversarial e execução segura no Windows.
