@@ -19,7 +19,7 @@ Antes de planejar ou alterar código, consulte a documentação oficial existent
 
 ---
 
-## 2. As Três Regras Mandatórias de Isolamento (Lições Comprovadas)
+## 2. Regras Mandatórias de Isolamento e Integridade (Lições Comprovadas)
 
 1. **Isolamento de Testes e Estado de Produção:**
    * Testes automatizados **jamais** devem modificar arquivos de estado real, credenciais, agendamentos do Windows ou realizar conexões de rede / envios reais de e-mail.
@@ -37,6 +37,13 @@ Antes de planejar ou alterar código, consulte a documentação oficial existent
    * **Guardrails Automáticos:** A suíte utiliza `tests/guardrails.py` para interceptar sockets TCP/UDP, resolução DNS e inicialização real de navegadores Playwright.
    * **Comando Canônico:** A suíte completa deve ser executada com `python -m unittest discover -s tests -t . -v` para assegurar a carga do pacote `tests/__init__.py`. Execuções seletivas devem utilizar notação de módulo pontuada (`python -m unittest tests.<modulo> -v`).
    * **Limite de Subprocessos Filhos:** Subprocessos crus (`subprocess.Popen([sys.executable, ...])`) possuem espaço de memória independente e não herdam automaticamente os interceptores do processo-pai; testes de concorrência multiprocesso devem se ater a operações locais de lock/IPC.
+
+4. **Isolamento de Branches e Preservação da Working Tree (Preflight Git):**
+   * **Preflight Mandatório:** Antes de planejar código ou criar branches, execute `git status --short` e `git branch --show-current`.
+   * **Working Tree Suja e Parada Obrigatória:** Se houver arquivos modificados, adicionados ou não rastreados que não pertençam à tarefa atual, **interrompa imediatamente** qualquer operação de troca ou criação de branch. Apresente o `git status --short` ao desenvolvedor e aguarde decisão humana explícita.
+   * **Proibição Estrita de Comandos Destrutivos:** Jamais execute automaticamente qualquer operação que descarte, sobrescreva, mova ou oculte alterações locais (incluindo `git stash`, `git reset`, `git clean`, `git checkout`, `git switch` ou `git restore`) quando a working tree contiver alterações locais não salvas.
+   * **Atualização Remota Obrigatória:** Antes de derivar novas branches de `origin/main`, execute `git fetch origin`. Caso o fetch falhe (timeout, ausência de rede ou credenciais), **interrompa o fluxo** e informe a limitação ao usuário antes de prosseguir.
+   * **Git Worktree como Contingência (Exclusivamente sob Decisão Humana):** O uso de `git worktree add` não é fluxo padrão e jamais deve ser adotado automaticamente pelo agente. Trata-se de recurso de contingência para quando alterações locais conflitarem e não puderem ser comitadas de imediato, exigindo aprovação humana explícita e validação prévia de compatibilidade com o workspace e ferramentas de edição. A replicação de arquivos não rastreados necessários deve ser estritamente seletiva e autorizada, sendo expressamente proibido copiar automaticamente arquivos com credenciais ou segredos (como `.env`).
 
 ---
 
@@ -61,6 +68,7 @@ Antes de planejar ou alterar código, consulte a documentação oficial existent
   * *Atenção:* O código de saída é um contrato operacional, não uma garantia absoluta de entrega. Exija testes antes de modificar esse comportamento.
 * **Preservação de Scripts Operacionais:** Não altere a lógica de `executar.bat`, `scripts/executar_silencioso.vbs` ou `scripts/setup_task.ps1` sem demanda explícita.
 * **Segurança Estrita do Modo `--preview`:** O comando `python main.py --preview` (ou com `--step email --preview`) deve renderizar o layout Bento Grid localmente em `reports/preview.html`, disparar o navegador e emitir Toast, garantindo **zero conexões SMTP** e **zero alterações** na trava diária.
+* **Execução Segura no Terminal Windows (PowerShell):** Comandos simples de inspeção em uma única linha (ex: `python -c "import sys; print(sys.version)"`) são permitidos. Para rotinas que envolvam lógica multilinha, manipulação de JSON complexo ou caracteres acentuados, evite passar strings embutidas em `python -c` devido a problemas conhecidos de escape e codificação do PowerShell. Prefira gravar a rotina em um script Python temporário em pasta descartável (ex: diretório temporário do SO ou scratch do ambiente) com codificação UTF-8 explícita e executá-lo via `python <caminho>`.
 
 ---
 
