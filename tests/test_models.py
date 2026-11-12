@@ -203,7 +203,8 @@ class TestModels(unittest.TestCase):
             self.assertEqual(resilient_batch.papers, [])
 
             # 3. Snapshot legado sem snapshot_metadata.json (deve usar mtime como fallback)
-            corrupt_file.unlink()
+            if corrupt_file.exists():
+                corrupt_file.unlink()
             good_file = tmp_path / "tweets_coletados.json"
             good_file.write_text("[]", encoding="utf-8")
             legacy_batch = DailyIngestionBatch.load_snapshot(str(tmp_path))

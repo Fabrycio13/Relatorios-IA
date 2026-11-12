@@ -170,6 +170,24 @@ class TestManifestSchemaAndFreshness(unittest.TestCase):
         manifesto_v2 = self._criar_manifesto_v2_valido()
         self.assertFalse(is_manifesto_v1(manifesto_v2))
 
+    def test_retrocompatibilidade_manifesto_v1_sem_collected_at_na_raiz(self):
+        """Manifesto v1 original sem collected_at na raiz é reconhecido e migrado para v2."""
+        # Manifesto gerado pela versão original do save_snapshot em execuções de fonte isolada:
+        v1_legitimo = {
+            "sources": {
+                "twitter": "2026-10-27T08:00:00.000000+00:00",
+            }
+        }
+        self.assertTrue(is_manifesto_v1(v1_legitimo), "Deve reconhecer manifesto v1 sem collected_at raiz")
+
+        migrado = migrar_manifesto_v1_para_v2(v1_legitimo)
+        self.assertEqual(migrado["version"], 2)
+        # collected_at deve ser derivado do timestamp de twitter sem inventar hora atual
+        self.assertEqual(migrado["collected_at"], "2026-10-27T08:00:00.000000+00:00")
+        self.assertEqual(migrado["sources"]["twitter"]["updated_at"], "2026-10-27T08:00:00.000000+00:00")
+        self.assertEqual(migrado["sources"]["twitter"]["quality"], "legacy_unverified")
+        self.assertTrue(validar_schema_manifesto(migrado), "Manifesto migrado deve ser válido no schema v2")
+
     # 5. Migração não destrutiva e classificação legacy_unverified
     def test_migracao_v1_para_v2_produz_manifesto_valido_com_legacy_unverified(self):
         v1_data = {
@@ -465,9 +483,9 @@ class TestManifestSchemaAndFreshness(unittest.TestCase):
             "sources": {"twitter": {"count": 10}}
         }))
 
-        # sem collected_at não é v1
+        # sem sources não é v1
         self.assertFalse(is_manifesto_v1({
-            "sources": {"twitter": "2026-10-27T08:00:00"}
+            "collected_at": "2026-10-27T08:00:00"
         }))
 
         # sources vazio não é v1

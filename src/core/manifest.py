@@ -164,8 +164,9 @@ def is_manifesto_v1(data: Any) -> bool:
     if "version" in data and data["version"] is not None:
         return False
 
+    # collected_at pode estar ausente na raiz em coletas isoladas da versão original
     collected_at = data.get("collected_at")
-    if not isinstance(collected_at, str) or not collected_at:
+    if collected_at is not None and (not isinstance(collected_at, str) or not collected_at):
         return False
 
     sources = data.get("sources")
@@ -189,9 +190,15 @@ def migrar_manifesto_v1_para_v2(v1_data: dict[str, Any], data_dir: Path | None =
     Opera estritamente em memória sem modificar arquivos de produção.
     """
     collected_at = v1_data.get("collected_at")
+    raw_sources = v1_data.get("sources") if isinstance(v1_data.get("sources"), dict) else {}
+
+    # Se collected_at não constava na raiz (ex: coleta isolada original), deriva do timestamp
+    # mais recente das fontes presentes sem inventar o horário atual
+    if not collected_at or not isinstance(collected_at, str):
+        ts_values = [v for v in raw_sources.values() if isinstance(v, str) and v]
+        collected_at = max(ts_values) if ts_values else None
 
     v2_sources: dict[str, Any] = {}
-    raw_sources = v1_data.get("sources") if isinstance(v1_data.get("sources"), dict) else {}
 
     for src_key, raw_val in raw_sources.items():
         # Preserva estritamente o timestamp histórico sem inventar datetime.now()
