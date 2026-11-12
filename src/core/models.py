@@ -377,8 +377,8 @@ def _validar_arquivo_dados(
                 return False, []
             return True, parsed
 
-        # Fontes legadas sem verificação estrita de hash (legacy_unverified ou snapshot sem manifesto)
-        if quality == "legacy_unverified" or not tem_meta:
+        # Fontes legadas sem verificação estrita de hash (legacy_unverified, não registradas ou snapshot sem manifesto)
+        if quality in ("legacy_unverified", None) or not tem_meta:
             return True, parsed
 
         return False, []
@@ -518,6 +518,8 @@ class DailyIngestionBatch:
     repos: list[GitHubRepo] = field(default_factory=list)
     papers: list[ResearchPaper] = field(default_factory=list)
     collected_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    results: dict[str, SourceCollectionResult] = field(default_factory=dict)
+    sources_metadata: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     def is_empty(self) -> bool:
         """Retorna True se nenhuma das fontes coletou itens."""
@@ -530,6 +532,7 @@ class DailyIngestionBatch:
             "repos": [r.to_dict() for r in self.repos],
             "papers": [p.to_dict() for p in self.papers],
             "collected_at": self.collected_at,
+            "sources_metadata": self.sources_metadata,
         }
 
     @classmethod
@@ -540,6 +543,8 @@ class DailyIngestionBatch:
             repos=[GitHubRepo.from_dict(r) for r in data.get("repos") or []],
             papers=[ResearchPaper.from_dict(p) for p in data.get("papers") or []],
             collected_at=str(data.get("collected_at") or datetime.now().isoformat()),
+            results={},
+            sources_metadata=data.get("sources_metadata") or {},
         )
 
     def save_snapshot(
@@ -709,6 +714,14 @@ class DailyIngestionBatch:
             # Grava manifesto v2
             _atomic_write_snapshot_json(meta_file, meta, dir_path)
 
+            self.sources_metadata = dict(sources_dict)
+            if results:
+                self.results = dict(results)
+            elif result and source:
+                canonical = SOURCE_ALIASES_MAP.get(source.lower().removeprefix("collect-").strip())
+                if canonical:
+                    self.results[canonical] = result
+
     @classmethod
     def load_snapshot(cls, data_dir: Path | str, timeout: float = 10.0) -> "DailyIngestionBatch":
         """Reconstitui o DailyIngestionBatch a partir dos arquivos JSON com integridade verificada."""
@@ -825,5 +838,6 @@ class DailyIngestionBatch:
                 repos=[GitHubRepo.from_dict(r) for r in repos_raw],
                 papers=[ResearchPaper.from_dict(p) for p in papers_raw],
                 collected_at=collected_at,
+                sources_metadata=dict(meta.get("sources", {})) if meta else {},
             )
 

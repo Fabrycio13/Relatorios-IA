@@ -437,8 +437,8 @@ class TestCollectorsPure(unittest.TestCase):
             # Em disco, tweets_coletados.json deve permanecer com o dado pré-existente
             self.assertEqual(tweets_file.read_text(encoding="utf-8"), json.dumps(existing))
 
-    def test_pipeline_legacy_fallback_accepts_only_explicit_list(self):
-        """Fallback transitório aceita apenas list legada; lista vazia vira EMPTY, com itens vira SUCCESS."""
+    def test_pipeline_rejects_plain_list_without_source_collection_result(self):
+        """Pipeline rejeita lista plana sem SourceCollectionResult marcando FAILED."""
         sample_tweet = Tweet(author_name="A", author_handle="@a", timestamp="", text="T", url="")
         legacy_source = MagicMock(spec=IngestionSource)
         legacy_source.name = "twitter"
@@ -447,12 +447,8 @@ class TestCollectorsPure(unittest.TestCase):
 
         pipeline = IngestionPipeline(sources=[legacy_source], data_dir=self.data_dir)
         batch = pipeline.run("twitter")
-        self.assertEqual(len(batch.tweets), 1)
-
-        # Agora com lista vazia []
-        legacy_source.collect.return_value = []
-        batch_empty = pipeline.run("twitter")
-        self.assertEqual(len(batch_empty.tweets), 0)
+        self.assertEqual(batch.results["twitter"].status, SourceStatus.FAILED)
+        self.assertEqual(len(batch.tweets), 0)
 
     # 18. Cenário 2: Pipeline com subconjunto de fontes preserva fontes não executadas e metadados
     def test_pipeline_subset_sources_preserves_unexecuted_sources_and_metadata(self):
