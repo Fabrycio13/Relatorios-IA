@@ -118,7 +118,8 @@ class TestTwitterCollector(unittest.TestCase):
         self.assertIsNotNone(tweet_rel)
         self.assertEqual(tweet_rel.url, "https://x.com/johndoe/status/987654321")
         self.assertEqual(tweet_rel.likes, "42")
-        self.assertEqual(tweet_rel.external_links, ["https://t.co/abc123xyz"])
+        self.assertEqual(tweet_rel.external_links, ("https://t.co/abc123xyz",))
+        self.assertIs(type(tweet_rel.external_links), tuple)
 
         # 2. URL absoluta pré-existente
         art_abs = make_mock_article(

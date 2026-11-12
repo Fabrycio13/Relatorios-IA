@@ -1,12 +1,124 @@
 import json
 import os
 import re
-from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, Generic, TypeVar
 
-@dataclass
+T = TypeVar("T")
+
+
+class SourceStatus(str, Enum):
+    """Status de execução de uma fonte de coleta de dados."""
+    SUCCESS = "success"
+    EMPTY = "empty"
+    PARTIAL = "partial"
+    FAILED = "failed"
+    NOT_RUN = "not_run"
+
+
+@dataclass(frozen=True)
+class SourceCollectionResult(Generic[T]):
+    """Estrutura imutável de resultado de coleta de dados de uma fonte."""
+    source_name: str
+    status: SourceStatus
+    items: tuple[T, ...] = field(default_factory=tuple)
+    collected_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    successful_operations: tuple[str, ...] = field(default_factory=tuple)
+    failed_operations: tuple[str, ...] = field(default_factory=tuple)
+    error_message: str | None = None
+    rate_limited: bool = False
+
+    def __post_init__(self) -> None:
+        # Validação estrita do campo status
+        if isinstance(self.status, str) and not isinstance(self.status, bool):
+            try:
+                object.__setattr__(self, "status", SourceStatus(self.status))
+            except ValueError:
+                raise ValueError(f"Invalid status: {self.status!r}. Must be a valid SourceStatus value.")
+        elif not isinstance(self.status, SourceStatus):
+            raise TypeError(f"status must be a SourceStatus instance, got {type(self.status).__name__}")
+
+        # Normalização e validação das sequências de identificadores de operações
+        def _normalize_ops(ops: Any, field_name: str) -> tuple[str, ...]:
+            if isinstance(ops, (str, bytes)) or not hasattr(ops, "__iter__"):
+                raise TypeError(f"{field_name} must be a sequence of strings, got {type(ops).__name__}")
+            normalized = []
+            for item in ops:
+                if not isinstance(item, str) or isinstance(item, bool):
+                    raise TypeError(f"All operations in {field_name} must be strings, got {type(item).__name__}")
+                normalized.append(item)
+            return tuple(normalized)
+
+        succ_ops = _normalize_ops(self.successful_operations, "successful_operations")
+        fail_ops = _normalize_ops(self.failed_operations, "failed_operations")
+        object.__setattr__(self, "successful_operations", succ_ops)
+        object.__setattr__(self, "failed_operations", fail_ops)
+
+        # Conversão defensiva de itens para tupla nativa
+        if not isinstance(self.items, tuple):
+            try:
+                object.__setattr__(self, "items", tuple(self.items))
+            except TypeError:
+                raise TypeError("items must be an iterable sequence")
+
+        # Invariantes estritos de consistência de estado:
+        if self.status == SourceStatus.SUCCESS:
+            if len(self.items) == 0:
+                raise ValueError("SUCCESS requires at least one item. Use EMPTY when no items are collected.")
+            if len(self.successful_operations) == 0:
+                raise ValueError("SUCCESS requires at least one successful operation.")
+            if len(self.failed_operations) > 0:
+                raise ValueError("SUCCESS cannot have failed operations. Use PARTIAL if failures occurred.")
+            if self.error_message:
+                raise ValueError("SUCCESS cannot have an error_message.")
+
+        elif self.status == SourceStatus.EMPTY:
+            if len(self.items) != 0:
+                raise ValueError("EMPTY requires items to be empty.")
+            if len(self.successful_operations) == 0:
+                raise ValueError("EMPTY requires at least one successful operation.")
+            if len(self.failed_operations) > 0:
+                raise ValueError("EMPTY cannot have failed operations.")
+            if self.error_message:
+                raise ValueError("EMPTY cannot have an error_message.")
+
+        elif self.status == SourceStatus.PARTIAL:
+            if len(self.successful_operations) == 0:
+                raise ValueError("PARTIAL requires at least one successful operation.")
+            if len(self.failed_operations) == 0:
+                raise ValueError("PARTIAL requires at least one failed operation.")
+            if not self.error_message:
+                raise ValueError("PARTIAL requires an error_message describing the partial failure.")
+
+        elif self.status == SourceStatus.FAILED:
+            if len(self.items) != 0:
+                raise ValueError("FAILED cannot have items.")
+            if len(self.successful_operations) > 0:
+                raise ValueError("FAILED cannot have successful operations. Use PARTIAL if some operations succeeded.")
+            if len(self.failed_operations) == 0:
+                raise ValueError("FAILED requires at least one failed operation.")
+            if not self.error_message:
+                raise ValueError("FAILED requires an error_message.")
+
+        elif self.status == SourceStatus.NOT_RUN:
+            if len(self.items) != 0:
+                raise ValueError("NOT_RUN cannot have items.")
+            if len(self.successful_operations) > 0:
+                raise ValueError("NOT_RUN cannot have successful operations.")
+            if len(self.failed_operations) > 0:
+                raise ValueError("NOT_RUN cannot have failed operations.")
+            if self.error_message is not None:
+                raise ValueError("NOT_RUN cannot have an error_message.")
+
+    @property
+    def has_usable_data(self) -> bool:
+        return len(self.items) > 0 and self.status in (SourceStatus.SUCCESS, SourceStatus.PARTIAL)
+
+
+@dataclass(frozen=True)
 class Tweet:
     """Modelo de dados tipado para representar um post coletado no X (Twitter)."""
     author_name: str
@@ -18,7 +130,11 @@ class Tweet:
     reposts: str = "0"
     replies: str = "0"
     views: str = "0"
-    external_links: list[str] = field(default_factory=list)
+    external_links: tuple[str, ...] = field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.external_links, tuple):
+            object.__setattr__(self, "external_links", tuple(self.external_links or ()))
 
     def sanitized_text(self) -> str:
         """Remove caracteres de controle invisíveis e normaliza espaços para segurança contra prompt injection."""
@@ -31,7 +147,18 @@ class Tweet:
         return cleaned.strip()
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {
+            "author_name": self.author_name,
+            "author_handle": self.author_handle,
+            "timestamp": self.timestamp,
+            "text": self.text,
+            "url": self.url,
+            "likes": self.likes,
+            "reposts": self.reposts,
+            "replies": self.replies,
+            "views": self.views,
+            "external_links": list(self.external_links),
+        }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Tweet":
@@ -45,10 +172,10 @@ class Tweet:
             reposts=str(data.get("reposts") or "0"),
             replies=str(data.get("replies") or "0"),
             views=str(data.get("views") or "0"),
-            external_links=list(data.get("external_links") or [])
+            external_links=tuple(data.get("external_links") or ())
         )
 
-@dataclass
+@dataclass(frozen=True)
 class GitHubRepo:
     """Modelo de dados tipado para representar um repositório em alta no GitHub."""
     name: str
@@ -58,10 +185,23 @@ class GitHubRepo:
     language: str
     url: str
     created_at: str = ""
-    topics: list[str] = field(default_factory=list)
+    topics: tuple[str, ...] = field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.topics, tuple):
+            object.__setattr__(self, "topics", tuple(self.topics or ()))
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {
+            "name": self.name,
+            "full_name": self.full_name,
+            "stars": self.stars,
+            "description": self.description,
+            "language": self.language,
+            "url": self.url,
+            "created_at": self.created_at,
+            "topics": list(self.topics),
+        }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "GitHubRepo":
@@ -73,21 +213,32 @@ class GitHubRepo:
             language=str(data.get("language") or "N/A"),
             url=str(data.get("url") or ""),
             created_at=str(data.get("created_at") or ""),
-            topics=list(data.get("topics") or [])
+            topics=tuple(data.get("topics") or ())
         )
 
-@dataclass
+@dataclass(frozen=True)
 class ResearchPaper:
     """Modelo de dados tipado para representar um artigo científico em alta (Hugging Face / ArXiv)."""
     title: str
     arxiv_id: str
     summary: str
-    authors: list[str]
-    upvotes: int
-    url: str
+    authors: tuple[str, ...] = field(default_factory=tuple)
+    upvotes: int = 0
+    url: str = ""
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.authors, tuple):
+            object.__setattr__(self, "authors", tuple(self.authors or ()))
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {
+            "title": self.title,
+            "arxiv_id": self.arxiv_id,
+            "summary": self.summary,
+            "authors": list(self.authors),
+            "upvotes": self.upvotes,
+            "url": self.url,
+        }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "ResearchPaper":
@@ -95,7 +246,7 @@ class ResearchPaper:
             title=str(data.get("title") or "Sem título"),
             arxiv_id=str(data.get("arxiv_id") or ""),
             summary=str(data.get("summary") or "Sem resumo disponível"),
-            authors=list(data.get("authors") or []),
+            authors=tuple(data.get("authors") or ()),
             upvotes=int(data.get("upvotes") or 0),
             url=str(data.get("url") or f"https://huggingface.co/papers/{data.get('arxiv_id', '')}")
         )

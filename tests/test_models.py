@@ -22,10 +22,13 @@ class TestModels(unittest.TestCase):
         d = t.to_dict()
         self.assertEqual(d["author_name"], "Matt Pocock")
         self.assertEqual(d["likes"], "1500")
+        self.assertEqual(d["external_links"], ["https://github.com/example/repo"])
+        self.assertIs(type(d["external_links"]), list)
 
         t2 = Tweet.from_dict(d)
         self.assertEqual(t2.author_handle, "@mattpocockuk")
-        self.assertEqual(t2.external_links, ["https://github.com/example/repo"])
+        self.assertEqual(t2.external_links, ("https://github.com/example/repo",))
+        self.assertIs(type(t2.external_links), tuple)
 
     def test_tweet_sanitization_against_prompt_injection(self):
         malicious_text = "Normal text\x00\x08 with hidden \x1b control \t\t chars and multiple   spaces."
