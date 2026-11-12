@@ -582,10 +582,15 @@ class DailyIngestionBatch:
                 if result and len(target_sources) == 1:
                     src_status = result.status if isinstance(result.status, SourceStatus) else SourceStatus(result.status)
                     items = list(result.items)
-                elif results and src in results:
-                    r = results[src]
-                    src_status = r.status if isinstance(r.status, SourceStatus) else SourceStatus(r.status)
-                    items = list(r.items)
+                elif results is not None:
+                    if src in results:
+                        r = results[src]
+                        src_status = r.status if isinstance(r.status, SourceStatus) else SourceStatus(r.status)
+                        items = list(r.items)
+                    else:
+                        # results foi fornecido explicitamente, mas src não foi executada nesta rodada
+                        src_status = SourceStatus.NOT_RUN
+                        items = []
                 else:
                     if src == "twitter":
                         raw_items = self.tweets
@@ -664,10 +669,13 @@ class DailyIngestionBatch:
                 }
 
             # Se for fonte única não gravada (ex: FAILED ou PARTIAL vazio), mas já existia no manifesto,
-            # seu updated_at e dados permanecem intactos. Se não existia, registra falha sem inventar hash:
+            # seu updated_at e dados permanecem intactos. Se não existia, registra falha sem inventar hash.
+            # Fontes com NOT_RUN são omitidas da persistência se não existirem no manifesto.
             for src in target_sources:
                 if src not in written_sources and src not in sources_dict:
                     src_status, _ = source_payloads[src]
+                    if src_status == SourceStatus.NOT_RUN:
+                        continue
                     sources_dict[src] = {
                         "updated_at": ts_com_fuso,
                         "sha256": None,
@@ -677,7 +685,11 @@ class DailyIngestionBatch:
                     }
 
             meta["version"] = 2
-            meta["collected_at"] = ts_com_fuso
+            # Preserva collected_at anterior caso seja execução parcial ou fonte única
+            if (source or (results is not None and len(written_sources) < len(CANONICAL_SOURCES))) and meta.get("collected_at"):
+                pass
+            else:
+                meta["collected_at"] = ts_com_fuso
             meta["last_attempt"] = {
                 "started_at": ts_com_fuso,
                 "completed_at": datetime.now(timezone.utc).isoformat(),
