@@ -49,3 +49,4 @@ Critérios de aceitação e rastreabilidade de tarefas executadas (Tickets 01 ao
 * **[`retrospectives/0002-qualidade-coleta-e-rastreabilidade.md`](retrospectives/0002-qualidade-coleta-e-rastreabilidade.md)**: Melhorias em resiliência e sanitização de fontes.
 * **[`retrospectives/0003-banners-rotativos-e-concorrencia.md`](retrospectives/0003-banners-rotativos-e-concorrencia.md)**: Travas de concorrência, atomismo e rotação cíclica.
 * **[`retrospectives/0004-seguranca-sanitizacao-e-governanca.md`](retrospectives/0004-seguranca-sanitizacao-e-governanca.md)**: Lições da Spec 0006, governança Git, modelagem adversarial e execução segura no Windows.
+* **[`retrospectives/0005-resiliencia-snapshots-e-integridade-ingestao.md`](retrospectives/0005-resiliencia-snapshots-e-integridade-ingestao.md)**: Resiliência de snapshots (Spec 0007), persistência atômica, eliminação do DEF-01/ARC-01 e recuperação pós-crash.
