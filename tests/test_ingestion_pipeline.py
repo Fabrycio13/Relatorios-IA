@@ -3,7 +3,14 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from src.core.models import Tweet, GitHubRepo, ResearchPaper, DailyIngestionBatch
+from src.core.models import (
+    Tweet,
+    GitHubRepo,
+    ResearchPaper,
+    DailyIngestionBatch,
+    SourceCollectionResult,
+    SourceStatus,
+)
 from src.collectors.base import IngestionSource
 from src.collectors.pipeline import IngestionPipeline
 
@@ -17,7 +24,14 @@ class DummySource:
 
     def collect(self):
         self.called = True
-        return self.items
+        items_tuple = tuple(self.items)
+        st = SourceStatus.SUCCESS if items_tuple else SourceStatus.EMPTY
+        return SourceCollectionResult(
+            source_name=self.name,
+            status=st,
+            items=items_tuple,
+            successful_operations=(self.name,),
+        )
 
 
 class FailingSource:

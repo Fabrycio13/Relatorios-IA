@@ -1,8 +1,7 @@
 import json
 import urllib.request
-from src.core.config import PAPERS_DATA_FILE
 from src.core.logger import get_logger
-from src.core.models import ResearchPaper
+from src.core.models import ResearchPaper, SourceCollectionResult, SourceStatus
 from src.core.retry import retry_with_backoff
 
 logger = get_logger("huggingface_collector")
@@ -16,10 +15,11 @@ def _consultar_api_daily_papers() -> list[dict]:
     with urllib.request.urlopen(req, timeout=20) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
-def coletar_papers_huggingface(limite_top: int = 3) -> list[ResearchPaper]:
+def coletar_papers_huggingface(limite_top: int = 3) -> SourceCollectionResult[ResearchPaper]:
     """
     Coleta os artigos científicos (papers) de IA mais votados do dia no Hugging Face Daily Papers.
     Traz os papers mais relevantes e discutidos pela comunidade global de pesquisa.
+    Retorna resultado puro em memória (SourceCollectionResult) sem persistência em disco.
     """
     logger.info("=" * 60)
     logger.info(f"Coletando Top {limite_top} Papers em Destaque no Hugging Face...")
@@ -34,7 +34,14 @@ def coletar_papers_huggingface(limite_top: int = 3) -> list[ResearchPaper]:
         )
     except Exception as e:
         logger.warning(f"Não foi possível obter papers do Hugging Face após retries: {e}")
-        return []
+        return SourceCollectionResult(
+            source_name="papers",
+            status=SourceStatus.FAILED,
+            items=(),
+            successful_operations=(),
+            failed_operations=("hf_daily_papers",),
+            error_message=str(e),
+        )
 
     papers: list[ResearchPaper] = []
 
@@ -54,7 +61,7 @@ def coletar_papers_huggingface(limite_top: int = 3) -> list[ResearchPaper]:
             title=title.strip(),
             arxiv_id=arxiv_id.strip(),
             summary=summary.strip(),
-            authors=authors[:4],
+            authors=tuple(authors[:4]),
             upvotes=upvotes,
             url=f"https://huggingface.co/papers/{arxiv_id.strip()}"
         )
@@ -67,12 +74,16 @@ def coletar_papers_huggingface(limite_top: int = 3) -> list[ResearchPaper]:
     for p in papers:
         logger.info(f"  * [{p.arxiv_id}] {p.title}")
 
-    # Salva no disco usando serialização de Dataclass
-    with open(PAPERS_DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump([p.to_dict() for p in papers], f, ensure_ascii=False, indent=2)
+    items_tuple = tuple(papers)
+    status = SourceStatus.SUCCESS if len(items_tuple) > 0 else SourceStatus.EMPTY
 
-    logger.info(f"Papers salvos com sucesso em: {PAPERS_DATA_FILE}")
-    return papers
+    return SourceCollectionResult(
+        source_name="papers",
+        status=status,
+        items=items_tuple,
+        successful_operations=("hf_daily_papers",),
+        failed_operations=(),
+    )
 
 if __name__ == "__main__":
     coletar_papers_huggingface()

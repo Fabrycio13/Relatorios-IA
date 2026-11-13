@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 
-from src.core.models import Tweet, GitHubRepo, ResearchPaper
+from src.core.models import Tweet, GitHubRepo, ResearchPaper, SourceCollectionResult, SourceStatus
 from src.collectors.base import (
     IngestionSource,
     TwitterSource,
@@ -34,60 +34,93 @@ class TestCollectorsProtocol(unittest.TestCase):
         dummy_tweet = Tweet(
             author_name="A", author_handle="@a", timestamp="", text="T", url=""
         )
-        mock_coletar.return_value = [dummy_tweet]
+        mock_coletar.return_value = SourceCollectionResult(
+            source_name="twitter",
+            status=SourceStatus.SUCCESS,
+            items=(dummy_tweet,),
+            successful_operations=("feed",),
+            failed_operations=(),
+        )
 
         source = TwitterSource(headless=True)
-        items = source.collect()
+        result = source.collect()
 
         mock_coletar.assert_called_once_with(headless=True)
-        self.assertEqual(len(items), 1)
-        self.assertEqual(items[0].author_handle, "@a")
+        self.assertIsInstance(result, SourceCollectionResult)
+        self.assertEqual(result.status, SourceStatus.SUCCESS)
+        self.assertEqual(len(result.items), 1)
+        self.assertEqual(result.items[0].author_handle, "@a")
 
     @patch("src.collectors.base.coletar_tweets_vip", side_effect=RuntimeError("Falha de scraping"))
     def test_twitter_source_collect_failure_is_graceful(self, mock_coletar):
         source = TwitterSource()
-        items = source.collect()
-        self.assertEqual(items, [])
+        result = source.collect()
+        self.assertIsInstance(result, SourceCollectionResult)
+        self.assertEqual(result.status, SourceStatus.FAILED)
+        self.assertEqual(result.items, ())
+        self.assertIn("Falha de scraping", str(result.error_message))
 
     @patch("src.collectors.base.coletar_github_trending")
     def test_github_source_collect_success(self, mock_coletar):
         dummy_repo = GitHubRepo(
             name="r", full_name="org/r", stars=10, description="", language="Python", url=""
         )
-        mock_coletar.return_value = [dummy_repo]
+        mock_coletar.return_value = SourceCollectionResult(
+            source_name="github",
+            status=SourceStatus.SUCCESS,
+            items=(dummy_repo,),
+            successful_operations=("feed",),
+            failed_operations=(),
+        )
 
         source = GitHubSource(dias_atras=7, limite_top=6)
-        items = source.collect()
+        result = source.collect()
 
         mock_coletar.assert_called_once_with(dias_atras=7, limite_top=6)
-        self.assertEqual(len(items), 1)
-        self.assertEqual(items[0].name, "r")
+        self.assertIsInstance(result, SourceCollectionResult)
+        self.assertEqual(result.status, SourceStatus.SUCCESS)
+        self.assertEqual(len(result.items), 1)
+        self.assertEqual(result.items[0].name, "r")
 
     @patch("src.collectors.base.coletar_github_trending", side_effect=Exception("API Rate Limit"))
     def test_github_source_collect_failure_is_graceful(self, mock_coletar):
         source = GitHubSource()
-        items = source.collect()
-        self.assertEqual(items, [])
+        result = source.collect()
+        self.assertIsInstance(result, SourceCollectionResult)
+        self.assertEqual(result.status, SourceStatus.FAILED)
+        self.assertEqual(result.items, ())
+        self.assertIn("API Rate Limit", str(result.error_message))
 
     @patch("src.collectors.base.coletar_papers_huggingface")
     def test_huggingface_source_collect_success(self, mock_coletar):
         dummy_paper = ResearchPaper(
             title="P", arxiv_id="1", summary="", authors=["A"], upvotes=1, url=""
         )
-        mock_coletar.return_value = [dummy_paper]
+        mock_coletar.return_value = SourceCollectionResult(
+            source_name="papers",
+            status=SourceStatus.SUCCESS,
+            items=(dummy_paper,),
+            successful_operations=("feed",),
+            failed_operations=(),
+        )
 
         source = HuggingFaceSource(limite_top=3)
-        items = source.collect()
+        result = source.collect()
 
         mock_coletar.assert_called_once_with(limite_top=3)
-        self.assertEqual(len(items), 1)
-        self.assertEqual(items[0].title, "P")
+        self.assertIsInstance(result, SourceCollectionResult)
+        self.assertEqual(result.status, SourceStatus.SUCCESS)
+        self.assertEqual(len(result.items), 1)
+        self.assertEqual(result.items[0].title, "P")
 
     @patch("src.collectors.base.coletar_papers_huggingface", side_effect=Exception("HF API Timeout"))
     def test_huggingface_source_collect_failure_is_graceful(self, mock_coletar):
         source = HuggingFaceSource()
-        items = source.collect()
-        self.assertEqual(items, [])
+        result = source.collect()
+        self.assertIsInstance(result, SourceCollectionResult)
+        self.assertEqual(result.status, SourceStatus.FAILED)
+        self.assertEqual(result.items, ())
+        self.assertIn("HF API Timeout", str(result.error_message))
 
 
 if __name__ == "__main__":

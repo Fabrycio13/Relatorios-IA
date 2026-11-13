@@ -14,6 +14,7 @@ except Exception:
 
 from src.core.config import STATUS_FILE, config
 from src.core.logger import get_logger
+from src.core.models import SourceStatus
 from src.core.healthcheck import executar_healthcheck
 from src.core.notifier import notificar_windows
 from src.collectors import IngestionPipeline
@@ -192,10 +193,25 @@ def main():
                 pipeline = IngestionPipeline()
                 batch = pipeline.run(target_source=args.step)
 
-                # Aborta com código 1 caso o usuário tenha rodado um step exclusivo e a fonte não retornou dados
+                # Avalia resultado da coleta para step exclusivo
                 if args.step in ["collect-twitter", "collect-github", "collect-papers"]:
-                    if batch.is_empty():
+                    canonical_src = args.step.removeprefix("collect-")
+                    res = batch.results.get(canonical_src) if hasattr(batch, "results") else None
+                    if res:
+                        if res.status == SourceStatus.FAILED:
+                            logger.error(f"❌ Falha na coleta da fonte exclusiva '{args.step}': {res.error_message}")
+                            sys.exit(1)
+                        elif res.status == SourceStatus.EMPTY:
+                            logger.info(f"ℹ️ Coleta da fonte exclusiva '{args.step}' executou com sucesso (0 novos itens coletados).")
+                        else:
+                            logger.info(f"✅ Coleta da fonte exclusiva '{args.step}' concluída com sucesso ({len(res.items)} itens).")
+                    elif batch.is_empty():
                         logger.error(f"❌ Falha na coleta da fonte exclusiva '{args.step}'. Nenhum item obtido.")
+                        sys.exit(1)
+
+                if args.step == "collect":
+                    if hasattr(batch, "results") and batch.results and all(r.status == SourceStatus.FAILED for r in batch.results.values()):
+                        logger.error("❌ Todas as fontes configuradas falharam na coleta.")
                         sys.exit(1)
 
             # Etapa de Síntese Inteligente com IA

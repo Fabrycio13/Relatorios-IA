@@ -1,6 +1,12 @@
 from typing import Protocol, Any, runtime_checkable
 from src.core.logger import get_logger
-from src.core.models import Tweet, GitHubRepo, ResearchPaper
+from src.core.models import (
+    Tweet,
+    GitHubRepo,
+    ResearchPaper,
+    SourceCollectionResult,
+    SourceStatus,
+)
 from src.collectors.twitter import coletar_tweets_vip
 from src.collectors.github import coletar_github_trending
 from src.collectors.huggingface import coletar_papers_huggingface
@@ -14,8 +20,8 @@ class IngestionSource(Protocol):
     name: str
     target_field: str
 
-    def collect(self) -> list[Any]:
-        """Executa a coleta da fonte e retorna a lista de entidades de domínio correspondente."""
+    def collect(self) -> SourceCollectionResult[Any]:
+        """Executa a coleta da fonte e retorna o resultado estruturado correspondente."""
         ...
 
 
@@ -27,12 +33,24 @@ class TwitterSource:
     def __init__(self, headless: bool = True):
         self.headless = headless
 
-    def collect(self) -> list[Tweet]:
+    def collect(self) -> SourceCollectionResult[Tweet]:
         try:
-            return coletar_tweets_vip(headless=self.headless) or []
+            res = coletar_tweets_vip(headless=self.headless)
+            if isinstance(res, SourceCollectionResult):
+                return res
+            raise TypeError(
+                f"Retorno inválido de coletar_tweets_vip: esperado SourceCollectionResult, recebido {type(res).__name__}"
+            )
         except Exception as e:
             logger.warning(f"Erro ao coletar dados do Twitter: {e}")
-            return []
+            return SourceCollectionResult(
+                source_name="twitter",
+                status=SourceStatus.FAILED,
+                items=(),
+                successful_operations=(),
+                failed_operations=("scrape",),
+                error_message=str(e),
+            )
 
 
 class GitHubSource:
@@ -44,12 +62,24 @@ class GitHubSource:
         self.dias_atras = dias_atras
         self.limite_top = limite_top
 
-    def collect(self) -> list[GitHubRepo]:
+    def collect(self) -> SourceCollectionResult[GitHubRepo]:
         try:
-            return coletar_github_trending(dias_atras=self.dias_atras, limite_top=self.limite_top) or []
+            res = coletar_github_trending(dias_atras=self.dias_atras, limite_top=self.limite_top)
+            if isinstance(res, SourceCollectionResult):
+                return res
+            raise TypeError(
+                f"Retorno inválido de coletar_github_trending: esperado SourceCollectionResult, recebido {type(res).__name__}"
+            )
         except Exception as e:
             logger.warning(f"Erro ao coletar dados do GitHub Trending: {e}")
-            return []
+            return SourceCollectionResult(
+                source_name="github",
+                status=SourceStatus.FAILED,
+                items=(),
+                successful_operations=(),
+                failed_operations=("search",),
+                error_message=str(e),
+            )
 
 
 class HuggingFaceSource:
@@ -60,9 +90,21 @@ class HuggingFaceSource:
     def __init__(self, limite_top: int = 3):
         self.limite_top = limite_top
 
-    def collect(self) -> list[ResearchPaper]:
+    def collect(self) -> SourceCollectionResult[ResearchPaper]:
         try:
-            return coletar_papers_huggingface(limite_top=self.limite_top) or []
+            res = coletar_papers_huggingface(limite_top=self.limite_top)
+            if isinstance(res, SourceCollectionResult):
+                return res
+            raise TypeError(
+                f"Retorno inválido de coletar_papers_huggingface: esperado SourceCollectionResult, recebido {type(res).__name__}"
+            )
         except Exception as e:
             logger.warning(f"Erro ao coletar papers do Hugging Face: {e}")
-            return []
+            return SourceCollectionResult(
+                source_name="papers",
+                status=SourceStatus.FAILED,
+                items=(),
+                successful_operations=(),
+                failed_operations=("daily_papers",),
+                error_message=str(e),
+            )

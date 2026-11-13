@@ -6,9 +6,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from playwright.sync_api import sync_playwright, Page
 
-from src.core.config import BASE_DIR, TWEETS_DATA_FILE, config
+from src.core.config import BASE_DIR, config
 from src.core.logger import get_logger
-from src.core.models import Tweet
+from src.core.models import Tweet, SourceCollectionResult, SourceStatus
 
 logger = get_logger("twitter_collector")
 SESSION_DIR = BASE_DIR / ".session"
@@ -238,8 +238,11 @@ def coletar_tweets_vip(
     scroll_delay: float = 1.5,
     max_consecutive_old: int = MAX_CONSECUTIVE_OLD_TWEETS,
     max_empty_scrolls: int = MAX_EMPTY_SCROLLS,
-) -> list[Tweet]:
-    """Coleta tweets recentes do feed Seguindo e dos perfis do Radar VIP com timeout global de 5 minutos."""
+) -> SourceCollectionResult[Tweet]:
+    """
+    Coleta tweets recentes do feed Seguindo e dos perfis do Radar VIP com timeout global de 5 minutos.
+    Retorna resultado puro em memória (SourceCollectionResult) sem persistência em disco.
+    """
     start_time = time.time()
     logger.info("=" * 60)
     logger.info("Coletando posts do X (Feed Seguindo / Following)...")
@@ -249,119 +252,194 @@ def coletar_tweets_vip(
     tweets_coletados: list[Tweet] = []
     seen_texts: set[str] = set()
     limite_tempo = datetime.now(timezone.utc) - timedelta(hours=48)
+    successful_ops: list[str] = []
+    failed_ops: list[str] = []
+    last_error: str | None = None
+    rate_limited: bool = False
 
-    with sync_playwright() as p:
-        launch_args = {
-            "user_data_dir": str(SESSION_DIR),
-            "headless": headless,
-            "user_agent": USER_AGENT,
-            "viewport": {"width": 1280, "height": 900},
-            "args": ["--disable-blink-features=AutomationControlled"]
-        }
+    try:
+        with sync_playwright() as p:
+            launch_args = {
+                "user_data_dir": str(SESSION_DIR),
+                "headless": headless,
+                "user_agent": USER_AGENT,
+                "viewport": {"width": 1280, "height": 900},
+                "args": ["--disable-blink-features=AutomationControlled"]
+            }
 
-        context = None
-        if sys.platform == "win32" and not os.environ.get("CI"):
+            context = None
+            if sys.platform == "win32" and not os.environ.get("CI"):
+                try:
+                    context = p.chromium.launch_persistent_context(channel="chrome", **launch_args)
+                except Exception:
+                    pass
+
+            if context is None:
+                try:
+                    context = p.chromium.launch_persistent_context(**launch_args)
+                except Exception as e:
+                    logger.error(f"Erro ao abrir contexto do Chromium: {e}")
+                    return SourceCollectionResult(
+                        source_name="twitter",
+                        status=SourceStatus.FAILED,
+                        items=(),
+                        successful_operations=(),
+                        failed_operations=("context",),
+                        error_message=f"Erro ao abrir contexto do Chromium: {e}",
+                    )
+
+            context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined});")
+            carregar_cookies_se_existir(context)
+
+            page = context.pages[0] if context.pages else context.new_page()
+
+            logger.info("Acessando https://x.com/home ...")
+            home_loaded = False
             try:
-                context = p.chromium.launch_persistent_context(channel="chrome", **launch_args)
-            except Exception:
-                pass
-
-        if context is None:
-            try:
-                context = p.chromium.launch_persistent_context(**launch_args)
+                page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=45000)
+                successful_ops.append("home")
+                home_loaded = True
             except Exception as e:
-                logger.error(f"Erro ao abrir contexto do Chromium: {e}")
-                return []
+                logger.warning(f"Aviso no carregamento inicial do X: {e}")
+                failed_ops.append("home")
+                last_error = f"Erro no carregamento inicial do X: {e}"
+            time.sleep(3)
 
-        context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined});")
-        carregar_cookies_se_existir(context)
+            current_url = getattr(page, "url", "")
+            logger.info(f"Página acessada. URL: {current_url} | Título: {page.title()}")
 
-        page = context.pages[0] if context.pages else context.new_page()
+            if current_url and ("login" in current_url or "onboarding" in current_url):
+                logger.warning("A sessão ainda não está autenticada no X.")
+                context.close()
+                return SourceCollectionResult(
+                    source_name="twitter",
+                    status=SourceStatus.FAILED,
+                    items=(),
+                    successful_operations=(),
+                    failed_operations=("auth",),
+                    error_message="A sessão ainda não está autenticada no X.",
+                )
 
-        logger.info("Acessando https://x.com/home ...")
-        try:
-            page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=45000)
-        except Exception as e:
-            logger.warning(f"Aviso no carregamento inicial do X: {e}")
-        time.sleep(3)
+            # 1. Coleta no Feed Principal
+            if home_loaded:
+                # Clica na aba Seguindo/Following se visível para garantir feed cronológico
+                _selecionar_aba_seguindo(page)
+                try:
+                    feed_tweets, seen_texts = coletar_feed_principal(
+                        page=page,
+                        limite_tempo=limite_tempo,
+                        start_time=start_time,
+                        max_scrolls=max_scrolls,
+                        max_consecutive_old=max_consecutive_old,
+                        max_empty_scrolls=max_empty_scrolls,
+                        scroll_delay=scroll_delay,
+                        seen_texts=seen_texts,
+                    )
+                    tweets_coletados.extend(feed_tweets)
+                    if time.time() - start_time > MAX_EXECUTION_SECONDS:
+                        logger.warning("Timeout global de segurança de 5 minutos atingido no feed.")
+                        failed_ops.append("feed:timeout")
+                        last_error = "Timeout global de 5 minutos atingido no feed"
+                    else:
+                        successful_ops.append("feed")
+                except Exception as e:
+                    logger.warning(f"Aviso ao coletar feed principal do Twitter: {e}")
+                    failed_ops.append("feed")
+                    last_error = str(e)
+                    if "rate limit" in str(e).lower() or "429" in str(e):
+                        rate_limited = True
+            else:
+                logger.warning("Feed principal ignorado devido à falha de carregamento da página inicial.")
+                failed_ops.append("feed")
 
-        current_url = page.url
-        logger.info(f"Página acessada. URL: {current_url} | Título: {page.title()}")
+            # 2. Coleta no Radar VIP (Perfis de Referência)
+            vip_profiles = [
+                ("mattpocockuk", "Matt Pocock"),
+                ("svpino", "Santiago Valdarrama"),
+                ("swyx", "Swyx / Latent Space"),
+                ("karpathy", "Andrej Karpathy"),
+                ("jxnlco", "Jason Liu"),
+                ("chipro", "Chip Huyen")
+            ]
 
-        if "login" in current_url or "onboarding" in current_url:
-            logger.warning("A sessão ainda não está autenticada no X.")
+            logger.info("\n--- COLETANDO RADAR VIP DE PERFIS ESPECÍFICOS ---")
+            for i, (handle, nome_vip) in enumerate(vip_profiles):
+                op_id = f"profile:{handle}"
+                if time.time() - start_time > MAX_EXECUTION_SECONDS:
+                    logger.warning(f"Timeout global atingido. Interrompendo coleta VIP em @{handle}.")
+                    last_error = f"Timeout global de segurança ({MAX_EXECUTION_SECONDS}s) atingido durante Radar VIP"
+                    for remaining_handle, _ in vip_profiles[i:]:
+                        failed_ops.append(f"profile:{remaining_handle}")
+                    break
+
+                url_perfil = f"https://x.com/{handle}"
+                logger.info(f"Acessando perfil VIP de {nome_vip} (@{handle})...")
+                try:
+                    page.goto(url_perfil, wait_until="domcontentloaded", timeout=25000)
+                    time.sleep(2)
+                    articles_vip = page.locator("article[data-testid='tweet']").all()[:5]
+                    for art in articles_vip:
+                        tweet_obj = _extrair_tweet(art, fallback_name=nome_vip, fallback_handle=f"@{handle}")
+                        if not tweet_obj or tweet_obj.text in seen_texts:
+                            continue
+
+                        # Janela flexível de 4 dias para autores VIP
+                        if tweet_obj.timestamp:
+                            try:
+                                tweet_dt = datetime.fromisoformat(tweet_obj.timestamp.replace("Z", "+00:00"))
+                                if tweet_dt < (datetime.now(timezone.utc) - timedelta(days=4)):
+                                    continue
+                            except Exception:
+                                pass
+
+                        seen_texts.add(tweet_obj.text)
+                        tweets_coletados.append(tweet_obj)
+                    successful_ops.append(op_id)
+                except Exception as e:
+                    logger.warning(f"Aviso ao consultar perfil de @{handle}: {e}")
+                    failed_ops.append(op_id)
+                    last_error = str(e)
+                    if "rate limit" in str(e).lower() or "429" in str(e):
+                        rate_limited = True
+
             context.close()
-            return []
-
-        # Clica na aba Seguindo/Following se visível para garantir feed cronológico
-        _selecionar_aba_seguindo(page)
-
-        # 1. Coleta no Feed Principal
-        feed_tweets, seen_texts = coletar_feed_principal(
-            page=page,
-            limite_tempo=limite_tempo,
-            start_time=start_time,
-            max_scrolls=max_scrolls,
-            max_consecutive_old=max_consecutive_old,
-            max_empty_scrolls=max_empty_scrolls,
-            scroll_delay=scroll_delay,
-            seen_texts=seen_texts,
+    except Exception as e:
+        logger.error(f"Erro fatal na execução do Playwright no coletor do Twitter: {e}")
+        return SourceCollectionResult(
+            source_name="twitter",
+            status=SourceStatus.FAILED,
+            items=(),
+            successful_operations=(),
+            failed_operations=("playwright",),
+            error_message=str(e),
+            rate_limited=rate_limited,
         )
-        tweets_coletados.extend(feed_tweets)
 
-        # 2. Coleta no Radar VIP (Perfis de Referência)
-        vip_profiles = [
-            ("mattpocockuk", "Matt Pocock"),
-            ("svpino", "Santiago Valdarrama"),
-            ("swyx", "Swyx / Latent Space"),
-            ("karpathy", "Andrej Karpathy"),
-            ("jxnlco", "Jason Liu"),
-            ("chipro", "Chip Huyen")
-        ]
+    items_tuple = tuple(tweets_coletados)
+    logger.info(f"Total de tweets coletados: {len(items_tuple)}")
 
-        logger.info("\n--- COLETANDO RADAR VIP DE PERFIS ESPECÍFICOS ---")
-        for handle, nome_vip in vip_profiles:
-            if time.time() - start_time > MAX_EXECUTION_SECONDS:
-                logger.warning(f"Timeout global atingido. Interrompendo coleta VIP em @{handle}.")
-                break
+    # Determinação rigorosa de status
+    if len(failed_ops) == 0:
+        status = SourceStatus.SUCCESS if len(items_tuple) > 0 else SourceStatus.EMPTY
+        err_msg = None
+    elif len(successful_ops) > 0:
+        # Alguma operação obteve êxito, mas houve falhas parciais (ex: perfis VIP restantes ou timeout) -> PARTIAL
+        status = SourceStatus.PARTIAL
+        err_msg = last_error or "Falha parcial na coleta do Twitter"
+    else:
+        # Nenhuma operação obteve êxito -> FAILED
+        status = SourceStatus.FAILED
+        err_msg = last_error or "Nenhuma operação de coleta do Twitter obteve êxito"
 
-            url_perfil = f"https://x.com/{handle}"
-            logger.info(f"Acessando perfil VIP de {nome_vip} (@{handle})...")
-            try:
-                page.goto(url_perfil, wait_until="domcontentloaded", timeout=25000)
-                time.sleep(2)
-                articles_vip = page.locator("article[data-testid='tweet']").all()[:5]
-                for art in articles_vip:
-                    tweet_obj = _extrair_tweet(art, fallback_name=nome_vip, fallback_handle=f"@{handle}")
-                    if not tweet_obj or tweet_obj.text in seen_texts:
-                        continue
-
-                    # Janela flexível de 4 dias para autores VIP
-                    if tweet_obj.timestamp:
-                        try:
-                            tweet_dt = datetime.fromisoformat(tweet_obj.timestamp.replace("Z", "+00:00"))
-                            if tweet_dt < (datetime.now(timezone.utc) - timedelta(days=4)):
-                                continue
-                        except Exception:
-                            pass
-
-                    seen_texts.add(tweet_obj.text)
-                    tweets_coletados.append(tweet_obj)
-            except Exception as e:
-                logger.warning(f"Aviso ao consultar perfil de @{handle}: {e}")
-
-        context.close()
-
-    if len(tweets_coletados) == 0:
-        logger.error("Nenhum tweet coletado nesta execução. O arquivo anterior foi preservado.")
-        return []
-
-    logger.info(f"Total de tweets coletados: {len(tweets_coletados)}")
-    with open(TWEETS_DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump([t.to_dict() for t in tweets_coletados], f, ensure_ascii=False, indent=2)
-
-    logger.info(f"Arquivo gerado em: {TWEETS_DATA_FILE}")
-    return tweets_coletados
+    return SourceCollectionResult(
+        source_name="twitter",
+        status=status,
+        items=items_tuple,
+        successful_operations=tuple(successful_ops),
+        failed_operations=tuple(failed_ops),
+        error_message=err_msg,
+        rate_limited=rate_limited,
+    )
 
 if __name__ == "__main__":
     is_headless = "--headed" not in sys.argv
