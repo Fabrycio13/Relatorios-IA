@@ -585,6 +585,42 @@
         "estilo": "Pintura Digital Estilizada Iluminada",
         "prompt": "Rolling green hills under bright summer sunshine, fields of lavender and sunflowers, traditional rustic windmills spinning in gentle breeze, classic Studio Ghibli vista."
       }
+    },
+    {
+      "arquivo": "36_teodolito_convergencia.jpg",
+      "subpasta": "geral",
+      "titulo": "O Teodolito da Convergência",
+      "legenda": "O Teodolito da Convergência: Plataforma de observação alpina onde astrônomos calculam gradientes e otimizações matemáticas sobre desfiladeiros de névoa.",
+      "geracao": {
+        "data": "2026-11-05",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Masterpiece 19th-century copperplate steel engraving in the style of Gustave Doré and Albrecht Dürer. A high alpine mountain observation platform carved from craggy granite, where Victorian astronomers and mathematicians operate giant ornate theodolites, massive astrolabes, and brass surveying instruments on heavy tripods. They calculate mathematical gradients across a vast, dramatic mountain chasm filled with rolling mist and jagged alpine peaks. Extremely intricate ultra-fine cross-hatching, masterwork etched linework, high-density engraving textures, deep graphite and iron-gall ink tones on warm ivory antique paper. Classical chiaroscuro lighting with dramatic rays breaking through clouds. Single unified scene, 100% full-bleed edge-to-edge composition, strictly no borders, no margins, no frames, no text, no signatures, 16:9."
+      }
+    },
+    {
+      "arquivo": "37_porto_mares_calmas.jpg",
+      "subpasta": "geral",
+      "titulo": "O Porto das Marés Calmas",
+      "legenda": "O Porto das Marés Calmas: Vilarejo costeiro tradicional ao entardecer com lanternas douradas flutuando sobre águas espelhadas, simbolizando o repouso seguro das arquiteturas.",
+      "geracao": {
+        "data": "2026-11-05",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Pintura Digital Estilizada Iluminada",
+        "prompt": "Cinematic Japanese digital landscape painting in the style of Studio Ghibli and Makoto Shinkai. A serene coastal fishing village at twilight, traditional wooden pavilions and boats resting on mirror-like calm harbor waters. Warm glowing paper lanterns casting golden ripples, vibrant magenta and violet sunset sky with painted cumulus clouds, distant pine-covered hills. Luminous volumetric lighting, hand-painted painterly textures, peaceful tranquil atmosphere, wide 16:9 panoramic view, edge-to-edge full bleed, strictly no text, no letters, no borders, no frames."
+      }
+    },
+    {
+      "arquivo": "38_fundicao_silicios.jpg",
+      "subpasta": "geral",
+      "titulo": "A Fundição dos Silícios Arcaicos",
+      "legenda": "A Fundição dos Silícios Arcaicos: Monumental oficina vitoriana onde fornalhas incandescentes e artífices lapidam prismas gigantes de cristal e matrizes computacionais.",
+      "geracao": {
+        "data": "2026-11-05",
+        "modelo": "Imagen 3 / Antigravity Agent",
+        "estilo": "Chilogravura Vitoriana P&B",
+        "prompt": "Masterpiece 19th-century copperplate steel engraving in the style of Gustave Doré and Piranesi. A colossal industrial alchemy foundry and glassblowing hall with titanic stone arches, roaring crucible furnaces, heavy leather bellows, and Victorian craftsmen cutting and polishing giant crystalline quartz prisms amidst plumes of etched steam. Intricate cross-hatching, dramatic chiaroscuro contrasts, antique ivory parchment with dark iron-gall ink, ultra-fine mechanical and architectural details, single unified scene, 16:9 full-bleed, strictly no borders, no text, no signatures."
+      }
     }
   ]
 }
