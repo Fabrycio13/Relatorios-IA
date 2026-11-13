@@ -36,11 +36,12 @@ Especificações de produto aprovadas e implementadas:
 * **[`specs/0004-dizer-do-dia-takeaway-editorial.md`](specs/0004-dizer-do-dia-takeaway-editorial.md)**: Síntese editorial e citação de impacto no resumo.
 * **[`specs/0005-banners-rotativos-e-comemorativos.md`](specs/0005-banners-rotativos-e-comemorativos.md)**: Sistema de hierarquia em 3 Tiers, ciclo de exaustão e feriados.
 * **[`specs/0006-seguranca-sanitizacao-e-governanca.md`](specs/0006-seguranca-sanitizacao-e-governanca.md)**: Governança de segurança, invariantes anti-XSS no renderer Bento Grid, sanitização contextual, TLS com validação de certificados no SMTP e fronteiras de confiança.
+* **[`specs/0007-resiliencia-de-snapshots-e-integridade-da-ingestao.md`](specs/0007-resiliencia-de-snapshots-e-integridade-da-ingestao.md)**: Resiliência transacional de snapshots, integridade de ingestão e desacoplamento de I/O.
 
 ---
 
 ### 🎟️ Tickets de Implementação (`docs/tickets/`)
-Critérios de aceitação e rastreabilidade de tarefas executadas (Tickets 01 ao 16).
+Critérios de aceitação e rastreabilidade de tarefas executadas (Tickets 01 ao 22).
 
 ---
 
