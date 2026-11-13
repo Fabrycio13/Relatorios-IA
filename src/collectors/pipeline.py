@@ -40,6 +40,22 @@ def _marcar_inicio_execucao(data_dir: Path, trigger: str = "pipeline", target: s
             if not meta or not meta.get("version"):
                 meta = criar_manifesto_v2_vazio()
 
+            # Exclusividade de Processo: verifica se há processo ativo em execução
+            prev_attempt = meta.get("last_attempt", {})
+            if prev_attempt.get("status") == "running":
+                from src.core.manifest import is_execucao_em_andamento
+                if is_execucao_em_andamento(prev_attempt, check_liveness=True):
+                    prev_pid = prev_attempt.get("pid")
+                    raise RuntimeError(
+                        f"Execução concorrente bloqueada: processo {prev_pid} já está em andamento."
+                    )
+                else:
+                    prev_pid = prev_attempt.get("pid")
+                    logger.info(
+                        f"Execução anterior (PID {prev_pid}) foi interrompida antes do término. "
+                        "Iniciando nova execução."
+                    )
+
             meta["last_attempt"] = {
                 "started_at": datetime.now(timezone.utc).isoformat(),
                 "status": "running",
@@ -54,6 +70,8 @@ def _marcar_inicio_execucao(data_dir: Path, trigger: str = "pipeline", target: s
             meta_file = data_dir / SNAPSHOT_METADATA_FILE
             _atomic_backup_prev(meta_file, data_dir)
             _atomic_write_snapshot_json(meta_file, meta, data_dir)
+    except RuntimeError:
+        raise
     except Exception as e:
         logger.warning(f"Aviso ao inicializar last_attempt como running: {e}")
 

@@ -12,7 +12,7 @@ from src.core.config import (
     config
 )
 from src.core.logger import get_logger
-from src.core.models import Tweet, GitHubRepo, ResearchPaper, DailyIngestionBatch
+from src.core.models import Tweet, GitHubRepo, ResearchPaper, DailyIngestionBatch, obter_metadados_fonte
 from src.core.manifest import is_source_fresh, is_execucao_em_andamento
 from src.core.retry import retry_with_backoff
 from .prompts import get_prompt_resumo_ia, get_prompt_github, get_prompt_papers, get_prompt_takeaway
@@ -68,7 +68,7 @@ def _avaliar_frescor_e_qualidade(
     if not items:
         return False, False, False
 
-    info = sources_meta.get(source_name, {})
+    info = obter_metadados_fonte(sources_meta, source_name)
     quality = info.get("quality", "verified")
     updated_at = info.get("updated_at")
 
@@ -260,7 +260,7 @@ def gerar_resumo_ia(
         try:
             with open(dir_path / "snapshot_metadata.json", "r", encoding="utf-8") as f:
                 meta_json = json.load(f)
-                if is_execucao_em_andamento(meta_json.get("last_attempt", {})):
+                if is_execucao_em_andamento(meta_json.get("last_attempt", {}), check_liveness=True):
                     logger.warning("Execução em andamento ('running') detectada no disco. Dirty reads proibidos.")
                     return None
                 sources_meta = meta_json.get("sources") or {}

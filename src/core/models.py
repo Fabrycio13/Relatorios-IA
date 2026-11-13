@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 from dataclasses import dataclass, field
@@ -6,6 +7,8 @@ from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Generic, TypeVar
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
@@ -279,6 +282,39 @@ SOURCE_FILE_MAP: dict[str, str] = {
 }
 
 
+def obter_metadados_fonte(sources_meta: dict[str, Any], source_name: str) -> dict[str, Any]:
+    """Obtém o dicionário de metadados da fonte resolvendo nomes canônicos e aliases.
+
+    Suporta busca direta, busca pelo nome canônico e busca reversa através de aliases:
+    - 'github' <-> 'github_trending', 'repos'
+    - 'papers' <-> 'hf_papers'
+    - 'twitter' <-> 'tweets'
+    """
+    if not isinstance(sources_meta, dict) or not source_name:
+        return {}
+
+    # 1. Correspondência exata direta
+    if source_name in sources_meta and isinstance(sources_meta[source_name], dict):
+        return sources_meta[source_name]
+
+    # 2. Resolução via canonical
+    norm_source = source_name.lower().removeprefix("collect-").strip()
+    canonical = SOURCE_ALIASES_MAP.get(norm_source, norm_source)
+
+    if canonical in sources_meta and isinstance(sources_meta[canonical], dict):
+        return sources_meta[canonical]
+
+    # 3. Busca reversa por equivalência canônica
+    for key, val in sources_meta.items():
+        if not isinstance(val, dict):
+            continue
+        norm_key = key.lower().removeprefix("collect-").strip()
+        if SOURCE_ALIASES_MAP.get(norm_key, norm_key) == canonical:
+            return val
+
+    return {}
+
+
 def _carregar_e_validar_manifesto(data_dir: Path, quarantine_dir: Path) -> tuple[dict[str, Any], dict[str, Any], bool]:
     """Carrega o manifesto validando schema v2 ou migrando v1; quarentena arquivos inválidos.
 
@@ -542,7 +578,7 @@ class DailyIngestionBatch:
             tweets=[Tweet.from_dict(t) for t in data.get("tweets") or []],
             repos=[GitHubRepo.from_dict(r) for r in data.get("repos") or []],
             papers=[ResearchPaper.from_dict(p) for p in data.get("papers") or []],
-            collected_at=str(data.get("collected_at") or datetime.now().isoformat()),
+            collected_at=str(data.get("collected_at") or datetime.now(timezone.utc).isoformat()),
             results={},
             sources_metadata=data.get("sources_metadata") or {},
         )
@@ -742,9 +778,24 @@ class DailyIngestionBatch:
             if is_compromised:
                 return cls()
 
-            # 2. Proibição estrita de dirty reads: execução em andamento ('running')
-            if meta and is_execucao_em_andamento(meta.get("last_attempt", {})):
-                return cls(collected_at=str(meta.get("collected_at") or datetime.now(timezone.utc).isoformat()))
+            # 2. Proibição estrita de dirty reads e recuperação de crash de execução interrompida
+            if meta:
+                last_attempt = meta.get("last_attempt", {})
+                if last_attempt.get("status") == "running":
+                    if is_execucao_em_andamento(last_attempt, check_liveness=True):
+                        logger.warning("Execução em andamento ('running') detectada no disco. Dirty reads proibidos.")
+                        return cls(collected_at=str(meta.get("collected_at") or datetime.now(timezone.utc).isoformat()))
+                    else:
+                        pid = last_attempt.get("pid")
+                        logger.warning(
+                            f"Execução anterior (PID {pid}) foi interrompida abruptamente antes da finalização. "
+                            "Transicionando status para 'interrupted' sob trava."
+                        )
+                        meta["last_attempt"]["status"] = "interrupted"
+                        meta["last_attempt"]["completed_at"] = datetime.now(timezone.utc).isoformat()
+                        meta_file = dir_path / SNAPSHOT_METADATA_FILE
+                        _atomic_backup_prev(meta_file, dir_path)
+                        _atomic_write_snapshot_json(meta_file, meta, dir_path)
 
             meta_sincronizado = False
 
@@ -754,14 +805,9 @@ class DailyIngestionBatch:
                 active_file = dir_path / filename
                 prev_file = dir_path / f"{filename}.prev"
 
-                # Busca metadados da fonte no manifesto ativo e no manifesto .prev
-                src_info = {}
-                if meta and isinstance(meta.get("sources"), dict):
-                    src_info = meta["sources"].get(canonical_src) or meta["sources"].get(filename.removesuffix(".json")) or {}
-
-                prev_src_info = {}
-                if prev_meta and isinstance(prev_meta.get("sources"), dict):
-                    prev_src_info = prev_meta["sources"].get(canonical_src) or prev_meta["sources"].get(filename.removesuffix(".json")) or {}
+                # Busca metadados da fonte no manifesto ativo e no manifesto .prev resolvendo aliases
+                src_info = obter_metadados_fonte(meta.get("sources", {}), canonical_src) if meta else {}
+                prev_src_info = obter_metadados_fonte(prev_meta.get("sources", {}), canonical_src) if prev_meta else {}
 
                 src_status = src_info.get("status")
                 expected_sha = src_info.get("sha256")
@@ -770,6 +816,11 @@ class DailyIngestionBatch:
 
                 # Se a fonte foi marcada formalmente como failed ou not_run, não consome dados
                 if src_status in ("failed", "not_run"):
+                    return []
+
+                # Se o manifesto v2 existe mas a fonte não está registrada no manifesto ativo nem no .prev,
+                # o dado no disco não foi comitado; proíbe dirty reads sem deletar o arquivo do disco
+                if meta and meta.get("version") and not src_info and not prev_src_info:
                     return []
 
                 active_hashes = {expected_sha}

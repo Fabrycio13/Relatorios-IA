@@ -8,10 +8,11 @@ Implementa os contratos estritos da Spec 0007 v4.3 e Ticket 19:
   a política editorial de publicação (que pertence ao Ticket 22).
 """
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import hashlib
 import json
 import logging
+import os
 from pathlib import Path
 import re
 from typing import Any
@@ -312,16 +313,128 @@ def is_source_fresh(
     return -300.0 <= age_seconds <= (max_hours * 3600.0)
 
 
-def is_execucao_em_andamento(last_attempt: dict[str, Any]) -> bool:
+def is_pid_alive(pid: int | None) -> bool:
+    """Verifica se um processo com o PID fornecido está ativo no sistema operacional.
+
+    Compatível com Windows e POSIX.
+    Retorna True se o processo está em execução ativa.
+    Retorna False se o processo comprovadamente não existe ou já encerrou.
+    """
+    if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0:
+        return False
+
+    if os.name == "nt":
+        import ctypes
+        from ctypes import wintypes
+
+        kernel32 = ctypes.windll.kernel32
+        handle = kernel32.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+        if not handle:
+            return kernel32.GetLastError() == 5  # ERROR_ACCESS_DENIED (processo de outro usuário existe)
+
+        try:
+            exit_code = wintypes.DWORD()
+            if kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code)):
+                STILL_ACTIVE = 259
+                return exit_code.value == STILL_ACTIVE
+            return True
+        finally:
+            kernel32.CloseHandle(handle)
+    else:
+        try:
+            os.kill(pid, 0)
+            return True
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True
+        except OSError:
+            return False
+
+
+def is_pid_recycled(pid: int | None, started_at: datetime | str | None) -> bool:
+    """Verifica se o PID ativo foi reciclado pelo SO após o timestamp started_at registrado.
+
+    Retorna True se houver prova cabal de que o processo atualmente com o PID nasceu
+    após o início da tentativa (process creation time > started_at).
+    Retorna False se não houver prova de reciclagem.
+    """
+    if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0 or not started_at:
+        return False
+
+    if isinstance(started_at, str):
+        try:
+            started_at = datetime.fromisoformat(started_at)
+        except Exception:
+            return False
+
+    if not isinstance(started_at, datetime) or started_at.tzinfo is None:
+        return False
+
+    if os.name == "nt":
+        import ctypes
+        from ctypes import wintypes
+
+        kernel32 = ctypes.windll.kernel32
+        handle = kernel32.OpenProcess(0x1000, False, pid)
+        if not handle:
+            return False
+
+        try:
+            class FILETIME(ctypes.Structure):
+                _fields_ = [("dwLowDateTime", wintypes.DWORD), ("dwHighDateTime", wintypes.DWORD)]
+
+            creation_time = FILETIME()
+            exit_time = FILETIME()
+            kernel_time = FILETIME()
+            user_time = FILETIME()
+
+            if kernel32.GetProcessTimes(
+                handle,
+                ctypes.byref(creation_time),
+                ctypes.byref(exit_time),
+                ctypes.byref(kernel_time),
+                ctypes.byref(user_time),
+            ):
+                ft_val = (creation_time.dwHighDateTime << 32) + creation_time.dwLowDateTime
+                timestamp = (ft_val - 116444736000000000) / 10000000.0
+                if timestamp > 0:
+                    proc_created = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+                    if proc_created > started_at + timedelta(seconds=2):
+                        return True
+            return False
+        finally:
+            kernel32.CloseHandle(handle)
+
+    return False
+
+
+def is_execucao_em_andamento(last_attempt: dict[str, Any], check_liveness: bool = False) -> bool:
     """Retorna True se last_attempt estiver no status 'running'.
 
     O status 'running' representa formalmente uma execução ainda não finalizada.
     Processos leitores e o sintetizador são terminantemente proibidos de consumir
     dados transitórios de uma execução em andamento (proibição de dirty reads).
+
+    Se check_liveness for True:
+    - Verifica se o PID registrado ainda está ativo e pertence à execução original.
+    - Se o PID estiver comprovadamente morto ou reciclado, retorna False.
+    - Se não houver prova suficiente (incerteza), retorna True para evitar dirty reads.
     """
     if not isinstance(last_attempt, dict):
         return False
-    return last_attempt.get("status") == "running"
+    if last_attempt.get("status") != "running":
+        return False
+
+    if check_liveness:
+        pid = last_attempt.get("pid")
+        if isinstance(pid, int) and not isinstance(pid, bool) and pid > 0:
+            if not is_pid_alive(pid):
+                return False
+            if is_pid_recycled(pid, last_attempt.get("started_at")):
+                return False
+
+    return True
 
 
 def is_execucao_finalizada(last_attempt: dict[str, Any]) -> bool:
