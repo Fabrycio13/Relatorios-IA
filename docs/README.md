@@ -40,8 +40,17 @@ Especificações de produto aprovadas e implementadas:
 
 ---
 
-### 🎟️ Tickets de Implementação (`docs/tickets/`)
-Critérios de aceitação e rastreabilidade de tarefas executadas (Tickets 01 ao 22).
+### 🎟️ Tickets de Implementação ([`docs/tickets/`](tickets/))
+Critérios de aceitação e rastreabilidade de tarefas executadas (Tickets 01 ao 22), agrupados por especificação técnica:
+
+* **Specs 0001 a 0003 — Modernização Arquitetural e Ingestão:**
+  * [`Ticket 01`](tickets/01-daily-ingestion-batch-model.md) · [`02`](tickets/02-adapt-summarizer-to-batch.md) · [`03`](tickets/03-integrate-batch-in-main-checkpoint.md) · [`04`](tickets/04-ingestion-source-protocol-and-adapters.md) · [`05`](tickets/05-ingestion-pipeline-orchestrator.md) · [`06`](tickets/06-integrate-ingestion-pipeline-in-main-checkpoint.md) · [`07`](tickets/07-delivery-channel-protocol-and-adapters.md) · [`08`](tickets/08-delivery-dispatcher-and-preview-cli.md) · [`09`](tickets/09-e2e-delivery-integration-and-regression-checkpoint.md): lote diário `DailyIngestionBatch`, protocolos de ingestão e entrega, e testes E2E.
+* **Spec 0005 — Banners Rotativos e Festivos:**
+  * [`Ticket 10`](tickets/10-banner-comemorativo-feriados-e-fallback-e2e.md) · [`11`](tickets/11-catalogo-rotativo-persistencia-atomica-ciclo-envio-e2e.md) · [`12`](tickets/12-links-hd-cli-style-guide-checkpoint-e2e.md): hierarquia de seleção em 3 Tiers, catálogo geral rotativo, feriados fixos/móveis e links HD.
+* **Spec 0006 — Segurança, Sanitização e Governança:**
+  * [`Ticket 13`](tickets/13-invariantes-anti-xss-e-estrutura-bento-grid.md) · [`14`](tickets/14-diretriz-seguranca-por-padrao-agents-md.md) · [`15`](tickets/15-fronteiras-de-confianca-architecture-md.md) · [`16`](tickets/16-unificacao-conexao-smtp-segura-e-testes-protocolo.md): invariantes anti-XSS no Bento Grid, Safe by Default no `AGENTS.md`, fronteiras de confiança e unificação SMTP com TLS seguro.
+* **Spec 0007 — Resiliência de Snapshots e Integridade:**
+  * [`Ticket 17`](tickets/17-modelos-imutaveis-e-invariantes-de-resultado.md) · [`18`](tickets/18-lock-de-processo-e-primitivas-de-durabilidade.md) · [`19`](tickets/19-schema-do-manifesto-migracao-legada-e-frescor.md) · [`20`](tickets/20-persistencia-atomica-e-recuperacao-idempotente-de-snapshots.md) · [`21`](tickets/21-coletores-puros-em-memoria-e-desacoplamento-de-io.md) · [`22`](tickets/22-orquestracao-de-pipeline-cli-e-governanca-de-sintese.md): modelos imutáveis, lock de processo, manifesto v2, persistência atômica com `.prev` e quarentena, coletores puros e governança CLI.
 
 ---
 
