@@ -16,9 +16,9 @@ _Avoid_: Feed aleatório, monitoramento de hashtags, busca aberta
 A janela móvel retrospectiva das últimas 24 a 48 horas analisada para garantir que nenhuma discussão técnica relevante do dia anterior seja omitida.
 _Avoid_: Tempo real, streaming contínuo
 
-**Trava Antirrepetição**:
-O mecanismo de estado local que garante idempotência diária, impedindo que múltiplos boots ou reinicializações disparem relatórios duplicados na mesma data.
-_Avoid_: Cron cego, envio sem idempotência, trava de processo
+**Trava Antirrepetição (Trava Diária)**:
+O mecanismo de estado local persistente (`data/ultimo_envio.txt`) que garante idempotência diária de calendário (YYYY-MM-DD), impedindo que múltiplos boots ou reinicializações disparem relatórios duplicados na mesma data. Diferencia-se do lock de processo (`TaskLock`/`ultimo_envio.lock`), pois sobrevive ao encerramento do processo.
+_Avoid_: Cron cego, envio sem idempotência, trava de processo efêmera
 
 **Bento Grid Modular**:
 O padrão visual do e-mail estruturado em cartões independentes e blocos de alto contraste inspirados na interface dos produtos modernos da Apple.
@@ -38,13 +38,29 @@ _Avoid_: Conclusão genérica, resumo executivo superficial
 A entidade central fortemente tipada que agrega em memória os dados coletados de todas as fontes (X, GitHub, Papers) antes da etapa de síntese por IA.
 _Avoid_: Dicionário solto, JSON não tipado, payload dinâmico, variáveis globais
 
-**Snapshot Preventivo**:
-A gravação atômica intermediária em disco (`data/*.json`) do lote coletado acompanhado de metadados temporais, garantindo recuperação em caso de falha da LLM sem necessidade de nova raspagem na rede.
-_Avoid_: Cache permanente, log descartável, snapshot sem estampa temporal
+**Snapshot Preventivo e Persistência Atômica**:
+A gravação atômica intermediária em disco (`data/*.json`) do lote coletado centralizada em `DailyIngestionBatch.save_snapshot()`. Utiliza arquivos temporários identificados pelo PID (.tmp.<pid>), fsync explícito de dados e diretório (POSIX) e substituição atômica via `os.replace()`, prevenindo corrupção por crash e garantindo recuperação sem nova raspagem na rede.
+_Avoid_: Cache permanente, escrita direta não atômica, log descartável, snapshot sem estampa temporal
+
+**SourceCollectionResult e Estados de Coleta**:
+A estrutura imutável de resultado (`src/core/models.py`) retornada pelos coletores puros em memória, parametrizada pelos estados categóricos de `SourceStatus` (`SUCCESS`, `EMPTY`, `PARTIAL`, `FAILED`, `NOT_RUN`). Encapsula itens, identificadores de operações bem-sucedidas/falhas e mensagens de erro, desacoplando totalmente a coleta de qualquer I/O físico em disco.
+_Avoid_: Dicionário solto, tupla desestruturada, escrita direta em disco no coletor, mascaramento de falhas
+
+**Backup Rotativo (.prev) e Quarentena**:
+A estratégia de resiliência e tolerância a falhas que rotaciona o arquivo ativo anterior para a extensão `.prev` antes de cada nova gravação. Caso o arquivo ativo seja corrompido ou apresente divergência de hash, ele é isolado em `data/quarantine/` com timestamp microssegundos e UUID4 hex (32 caracteres), e o `.prev` íntegro é validado e promovido a ativo.
+_Avoid_: Sobrescrita destrutiva sem backup, exclusão cega de arquivos corrompidos, recuperação sem validação de integridade
+
+**Manifesto de Ingestão v2 e Integridade SHA-256**:
+O catálogo de metadados (`data/snapshot_metadata.json`) estruturado com versionamento explícito (`version: 2`), rastreabilidade de execução (`last_attempt` com status `running`/`completed`/`failed`, trigger e PID) e controle estrito por fonte, registrando o hash SHA-256 dos bytes físicos em disco, contagem de registros, status e carimbo temporal com fuso UTC.
+_Avoid_: Metadados planos v1 sem versionamento, suposição de integridade sem hash, hash inventado para arquivo ausente
+
+**Legacy Unverified e Fallback de Contingência**:
+O regime de compatibilidade que classifica metadados e snapshots históricos pré-Spec 0007 como `quality: 'legacy_unverified'`. Permite hidratação de contingência pelo sintetizador quando uma fonte falha no ciclo atual, desde que os dados estejam dentro da janela de frescor (até 36h) e acompanhados de aviso editorial explícito no relatório.
+_Avoid_: Suposição ingênua de integridade de dados históricos, descarte cego de dados legados, omissão de aviso editorial em fallback
 
 **IngestionSource (Protocolo de Ingestão)**:
-O protocolo estrutural (`typing.Protocol`) que padroniza como qualquer fonte externa é plugada e coletada pelo pipeline com isolamento de falhas.
-_Avoid_: Herança concreta rígida, acoplamento direto de coletores ao pipeline
+O protocolo estrutural (`typing.Protocol`) que padroniza como qualquer fonte externa é plugada e coletada pelo pipeline com isolamento de falhas e retorno puro em memória.
+_Avoid_: Herança concreta rígida, acoplamento direto de coletores ao pipeline, I/O nos coletores
 
 **DeliveryChannel (Canal de Entrega)**:
 O adaptador de saída que desacopla a geração do relatório do seu meio de apresentação (e-mail SMTP, preview local no navegador, etc.).
@@ -54,9 +70,9 @@ _Avoid_: Envio embutido no renderizador, acoplamento com provedores específicos
 O sistema determinístico de seleção visual que prioriza datas comemorativas fixas/móveis (Tier 1), alterna o catálogo geral por exaustão sem repetição (Tier 2) e garante imagem neutra de fallback (Tier 3).
 _Avoid_: Escolha randômica cega, repetição de artes em dias seguidos, ausência de fallback
 
-**TaskLock (Trava de SO)**:
-O mecanismo de trava de exclusão mútua em nível de sistema operacional (`msvcrt` no Windows / `fcntl` no Linux) que garante que colisões entre gatilhos de boot e agendamento encerrem de forma limpa (`sys.exit(0)`).
-_Avoid_: Flag booleana em memória, verificação ingênua de arquivo, polling de processos
+**TaskLock (Trava de SO / Lock de Processo)**:
+O mecanismo de trava de exclusão mútua em nível de sistema operacional (`msvcrt` no Windows / `fcntl` no Linux) que previne execuções concorrentes do pipeline (`data/ultimo_envio.lock`) ou colisões durante a gravação/leitura de snapshots (`data/snapshot.lock`). É efêmero e encerra de forma limpa (`sys.exit(0)`), diferindo da trava diária persistente (`ultimo_envio.txt`).
+_Avoid_: Flag booleana em memória, verificação ingênua de arquivo, polling de processos, confusão com trava diária
 
 **Fronteira de Blindagem (Safe by Default)**:
 A barreira determinística no renderizador que trata todo Markdown e dados de fontes externas como não confiáveis, aplicando escape contextual e validação de URLs antes de qualquer injeção no HTML.
