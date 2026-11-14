@@ -17,7 +17,7 @@ A janela móvel retrospectiva das últimas 24 a 48 horas analisada para garantir
 _Avoid_: Tempo real, streaming contínuo
 
 **Trava Antirrepetição (Trava Diária)**:
-O mecanismo de estado local persistente (`data/ultimo_envio.txt`) que garante idempotência diária de calendário (YYYY-MM-DD), impedindo que múltiplos boots ou reinicializações disparem relatórios duplicados na mesma data. Diferencia-se do lock de processo (`TaskLock`/`.pipeline.lock`), pois sobrevive ao encerramento do processo.
+O mecanismo de estado local persistente (`data/ultimo_envio.txt`) que garante idempotência diária de calendário (YYYY-MM-DD), impedindo que múltiplos boots ou reinicializações disparem relatórios duplicados na mesma data. Diferencia-se do lock de processo (`TaskLock`/`ultimo_envio.lock`), pois sobrevive ao encerramento do processo.
 _Avoid_: Cron cego, envio sem idempotência, trava de processo efêmera
 
 **Bento Grid Modular**:
@@ -39,7 +39,7 @@ A entidade central fortemente tipada que agrega em memória os dados coletados d
 _Avoid_: Dicionário solto, JSON não tipado, payload dinâmico, variáveis globais
 
 **Snapshot Preventivo e Persistência Atômica**:
-A gravação atômica intermediária em disco (`data/*.json`) do lote coletado centralizada em `DailyIngestionBatch.save_snapshot()`. Utiliza arquivos temporários com PID/UUID (`.tmp`), fsync explícito de dados e diretório (POSIX) e substituição atômica via `os.replace()`, prevenindo corrupção por crash e garantindo recuperação sem nova raspagem na rede.
+A gravação atômica intermediária em disco (`data/*.json`) do lote coletado centralizada em `DailyIngestionBatch.save_snapshot()`. Utiliza arquivos temporários identificados pelo PID (.tmp.<pid>), fsync explícito de dados e diretório (POSIX) e substituição atômica via `os.replace()`, prevenindo corrupção por crash e garantindo recuperação sem nova raspagem na rede.
 _Avoid_: Cache permanente, escrita direta não atômica, log descartável, snapshot sem estampa temporal
 
 **SourceCollectionResult e Estados de Coleta**:
@@ -47,7 +47,7 @@ A estrutura imutável de resultado (`src/core/models.py`) retornada pelos coleto
 _Avoid_: Dicionário solto, tupla desestruturada, escrita direta em disco no coletor, mascaramento de falhas
 
 **Backup Rotativo (.prev) e Quarentena**:
-A estratégia de resiliência e tolerância a falhas que rotaciona o arquivo ativo anterior para a extensão `.prev` antes de cada nova gravação. Caso o arquivo ativo seja corrompido ou apresente divergência de hash, ele é isolado em `data/quarantine/` com timestamp e UUID4, e o `.prev` íntegro é validado e promovido a ativo.
+A estratégia de resiliência e tolerância a falhas que rotaciona o arquivo ativo anterior para a extensão `.prev` antes de cada nova gravação. Caso o arquivo ativo seja corrompido ou apresente divergência de hash, ele é isolado em `data/quarantine/` com timestamp microssegundos e UUID4 hex (32 caracteres), e o `.prev` íntegro é validado e promovido a ativo.
 _Avoid_: Sobrescrita destrutiva sem backup, exclusão cega de arquivos corrompidos, recuperação sem validação de integridade
 
 **Manifesto de Ingestão v2 e Integridade SHA-256**:
@@ -71,7 +71,7 @@ O sistema determinístico de seleção visual que prioriza datas comemorativas f
 _Avoid_: Escolha randômica cega, repetição de artes em dias seguidos, ausência de fallback
 
 **TaskLock (Trava de SO / Lock de Processo)**:
-O mecanismo de trava de exclusão mútua em nível de sistema operacional (`msvcrt` no Windows / `fcntl` no Linux) que previne execuções concorrentes do pipeline (`data/.pipeline.lock`) ou colisões durante a gravação/leitura de snapshots (`data/snapshot.lock`). É efêmero e encerra de forma limpa (`sys.exit(0)`), diferindo da trava diária persistente (`ultimo_envio.txt`).
+O mecanismo de trava de exclusão mútua em nível de sistema operacional (`msvcrt` no Windows / `fcntl` no Linux) que previne execuções concorrentes do pipeline (`data/ultimo_envio.lock`) ou colisões durante a gravação/leitura de snapshots (`data/snapshot.lock`). É efêmero e encerra de forma limpa (`sys.exit(0)`), diferindo da trava diária persistente (`ultimo_envio.txt`).
 _Avoid_: Flag booleana em memória, verificação ingênua de arquivo, polling de processos, confusão com trava diária
 
 **Fronteira de Blindagem (Safe by Default)**:
