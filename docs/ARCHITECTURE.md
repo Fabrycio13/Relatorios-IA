@@ -6,27 +6,39 @@ Este documento descreve a arquitetura técnica, fluxo de dados, modelos de execu
 
 ## 1. Visão Geral e Fluxo do Pipeline
 
-O sistema opera como um pipeline orquestrado sequencial de 5 etapas com isolamento de falhas e garantia de idempotência diária:
+O sistema opera como um pipeline orquestrado sequencial de 5 etapas com isolamento de falhas, desacoplamento estrito de I/O e garantia de idempotência diária:
 
 ```mermaid
 flowchart TD
-    A[Disparo: 08:00 ou Logon pós-08:00] --> B[Trava de Idempotência: data/ultimo_envio.txt]
-    B -->|Já enviado hoje| C[Encerra silenciosamente]
-    B -->|Pendente / Force / Preview| D[Pré-checagem de Rede: Socket 8.8.8.8:53]
-    
-    D -->|Sem conexão em 60s| E[Toast Windows: Sem Conexão + Exit 2 -> Retry 5m]
-    D -->|Conexão Ativa| F[IngestionPipeline: Protocolo IngestionSource]
-    
-    F -->|X, GitHub, Papers| G[DailyIngestionBatch em Memória + Snapshot Preventivo]
-    G --> H[Síntese e Tradução com OpenAI gpt-6-luna]
-    H --> I[Gera Relatório Markdown: reports/Resumo_IA_YYYY-MM-DD.md]
-    
-    I --> J[DeliveryDispatcher: despachar_relatorio]
-    J -->|Modo Normal| K[EmailDeliveryChannel: Gmail SMTP SSL 465]
-    J -->|Modo --preview| M[FilePreviewDeliveryChannel: reports/preview.html + Browser]
-    
-    K --> L[Atualiza data/ultimo_envio.txt & Toast de Sucesso]
-    M --> N[Toast de Preview gerado - Não altera trava diária]
+    A["Disparo: 08:00 ou Logon pós-08:00"] --> B["Trava de Idempotência: data/ultimo_envio.txt"]
+    B -->|Já enviado hoje| C["Encerra silenciosamente (sys.exit 0)"]
+    B -->|Pendente / Force / Preview| LCK["Trava de Processo: data/.pipeline.lock (TaskLock)"]
+
+    LCK -->|Colisão Concorrente| C2["Encerra silenciosamente (ConcorrenciaDetectadaError)"]
+    LCK -->|Lock Adquirido| D["Pré-checagem de Rede: Socket 8.8.8.8:53"]
+
+    D -->|Sem conexão em 60s| E["Toast Windows: Sem Conexão + sys.exit 2 -> Retry 5m"]
+    D -->|Conexão Ativa| F["IngestionPipeline: Coletores Puros em Memória"]
+
+    F -->|Resultados Estruturados| G["SourceCollectionResult (Zero Locks / Sem I/O Direto)"]
+    G --> H["DailyIngestionBatch.save_snapshot() sob data/snapshot.lock"]
+
+    H -->|Rotação Atômica| H1["Backup .prev + Escrita .tmp com fsync + os.replace"]
+    H -->|Manifesto v2| H2["Registro SHA-256 físico + status + last_attempt no manifesto"]
+    H -->|Fontes Falhas| H3["Preservação Não Destrutiva: FAILED/NOT_RUN não sobrescrevem disco com []"]
+
+    H1 & H2 & H3 --> FB["Hydration de Fallback: load_snapshot() com validação SHA-256 e Quarentena"]
+    FB --> I["ai_summarizer: Avaliação de Frescor (<=36h) e Qualidade (verified vs legacy)"]
+
+    I -->|Dados Elegíveis| J["Síntese OpenAI gpt-6-luna (Aviso Editorial se Legado/Fallback)"]
+    J --> K["Gera Relatório Markdown: reports/Resumo_IA_YYYY-MM-DD.md"]
+
+    K --> M["DeliveryDispatcher: despachar_relatorio"]
+    M -->|Modo Normal| N["EmailDeliveryChannel: Gmail SMTP SSL 465"]
+    M -->|Modo --preview| P["FilePreviewDeliveryChannel: reports/preview.html + Browser"]
+
+    N --> Q["Atualiza data/ultimo_envio.txt & Toast de Sucesso"]
+    P --> R["Toast de Preview Gerado (Não altera trava diária)"]
 ```
 
 ---
@@ -37,22 +49,23 @@ A estrutura do projeto adota responsabilidade única estrita em cada módulo:
 
 | Módulo / Arquivo | Responsabilidade | Seam / Interface |
 | :--- | :--- | :--- |
-| **`main.py`** | Ponto de entrada CLI unificado, validação de argumentos, guarda de rede e orquestração do pipeline. | `--force`, `--step`, `--status`, `--check-auth`, `--to`, `--preview` |
+| **`main.py`** | Ponto de entrada CLI unificado, validação de argumentos, guarda de rede, controle de concorrência e orquestração do pipeline. | `--force`, `--step`, `--status`, `--status-banners`, `--check-auth`, `--to`, `--preview` |
 | **`src/core/config.py`** | Carregamento de variáveis de ambiente (`.env`), resolução de caminhos absolutos e credenciais. | Classe `Config` e constantes de diretórios |
 | **`src/core/logger.py`** | Logger centralizado com saída em console e arquivo rotativo (`logs/execucao.log`, 5MB, até 3 backups). | `get_logger(name)` |
-| **`src/core/models.py`** | Modelos fortemente tipados (`Tweet`, `GitHubRepo`, `ResearchPaper`, `DailyIngestionBatch`) com sanitização e snapshot. | Dataclasses com `from_dict`, `to_dict`, `save_snapshot`, `load_snapshot` |
+| **`src/core/models.py`** | Modelos fortemente tipados e imutáveis (`frozen=True`: `Tweet`, `GitHubRepo`, `ResearchPaper`, `DailyIngestionBatch`, `SourceCollectionResult`, `SourceStatus`). Centraliza o protocolo transacional de persistência (`save_snapshot`) e recuperação (`load_snapshot`) com integridade SHA-256. | Dataclasses com `from_dict`, `to_dict`, `save_snapshot`, `load_snapshot` |
+| **`src/core/manifest.py`** | Governança do manifesto v2 (`snapshot_metadata.json`), cálculo de hash SHA-256, migração em memória de v1 para v2 (`legacy_unverified`), validação de integridade/schema e avaliação de frescor temporal (`is_source_fresh`). | `validar_schema_manifesto`, `migrar_manifesto_v1_para_v2`, `is_source_fresh`, `_calcular_sha256_arquivo` |
 | **`src/core/retry.py`** | Mecanismo de resiliência com backoff exponencial e jitter aleatório para chamadas de rede externas. | `retry_with_backoff(func, max_retries, initial_delay)` |
 | **`src/core/notifier.py`** | Emissor de notificações nativas do Windows (Toast) via PowerShell para alertar início, conclusão e falhas. | `notificar_windows(titulo, mensagem)` |
 | **`src/core/healthcheck.py`** | Diagnóstico rápido (< 5s) das credenciais e conectividade de todas as 5 integrações externas. | `executar_healthcheck()` |
-| **`src/core/lock.py`** | Abstração de trava de exclusão mútua em nível de SO (`msvcrt` no Windows / `fcntl` no Linux) para prevenção de concorrência. | `TaskLock(lock_file)` |
+| **`src/core/lock.py`** | Primitivas de exclusão mútua em nível de SO (`msvcrt` no Windows / `fcntl` no Linux) para lock de processo (`adquirir_trava_pipeline`) e de snapshot (`adquirir_trava_snapshot`), além de isolamento seguro de arquivos corrompidos (`mover_para_quarentena`). | `adquirir_trava_pipeline(path)`, `adquirir_trava_snapshot(path)`, `mover_para_quarentena(file, dir)` |
 | **`src/core/smtp.py`** | Conexão de rede SMTP segura via TLS com validação ativa de certificados e hostname (`ssl.create_default_context()`). | `criar_conexao_smtp_ssl(host, port, timeout)` |
-| **`src/collectors/base.py`** | Protocolo estrutural `IngestionSource` para desacoplamento de fontes de dados. | `IngestionSource(name, target_field, collect())` |
-| **`src/collectors/pipeline.py`** | Orquestrador de ingestão unificado com isolamento de falhas por fonte e persistência de snapshot. | `IngestionPipeline().run(target_source)` |
-| **`src/collectors/twitter.py`** | Automação com Playwright (Chromium headless) com sessão persistente (`.session/`) para raspar Feed e Radar VIP. | `TwitterSource`, `coletar_tweets_vip` |
-| **`src/collectors/github.py`** | Cliente HTTP nativo que consome a API de busca do GitHub para elencar os repositórios mais favoritados da semana. | `GitHubSource`, `coletar_github_trending` |
-| **`src/collectors/huggingface.py`**| Cliente HTTP nativo que busca e elenca os artigos científicos mais votados do Hugging Face Daily Papers. | `HuggingFaceSource`, `coletar_papers_huggingface` |
+| **`src/collectors/base.py`** | Protocolo estrutural `IngestionSource` para coletores desacoplados de disco, exigindo retorno em memória de `SourceCollectionResult[T]` com tuplas imutáveis e estados formais. | `IngestionSource(name, target_field, collect())` |
+| **`src/collectors/pipeline.py`** | Orquestrador de ingestão unificado com isolamento de falhas por fonte, execução com zero locks, persistência centralizada (`save_snapshot`) e hidratação de fallback (`load_snapshot`). | `IngestionPipeline(data_dir).run(target_source)` |
+| **`src/collectors/twitter.py`** | Coletor puro do X/Twitter via Playwright (Chromium headless) com sessão persistente (`.session/`). Retorna `SourceCollectionResult[Tweet]` em memória sem escrita física em disco. | `TwitterSource`, `coletar_tweets_vip` |
+| **`src/collectors/github.py`** | Coletor puro da API de busca do GitHub para elencar repositórios em alta. Retorna `SourceCollectionResult[GitHubRepo]` em memória sem escrita física em disco. | `GitHubSource`, `coletar_github_trending` |
+| **`src/collectors/huggingface.py`**| Coletor puro da API do Hugging Face Daily Papers. Retorna `SourceCollectionResult[ResearchPaper]` em memória sem escrita física em disco. | `HuggingFaceSource`, `coletar_papers_huggingface` |
 | **`src/processors/prompts.py`** | Banco de prompts isolados para curadoria, síntese analítica, tradução técnica e Takeaway de Engenharia. | `get_prompt_resumo_ia`, `get_prompt_github`, etc. |
-| **`src/processors/ai_summarizer.py`**| Orquestrador de inferência com OpenAI (`gpt-6-luna`), consumindo `DailyIngestionBatch` em memória. | `gerar_resumo_ia(batch=None)` |
+| **`src/processors/ai_summarizer.py`**| Orquestrador de inferência com OpenAI (`gpt-6-luna`). Valida frescor (<= 36h) e qualidade dos dados, aplicando avisos editoriais para dados históricos/legados ou degradação graciosa para fontes ausentes. | `gerar_resumo_ia(batch=None, output_path=None, data_dir=None)` |
 | **`src/delivery/banner_selector.py`** | Seletor rotativo de banners com hierarquia em 3 Tiers, catálogo de exaustão e feriados móveis/fixos. | `BannerSelector().selecionar_banner()` |
 | **`src/delivery/renderer.py`** | Transforma o Markdown final em HTML responsivo estilo Bento Grid Modular com imagens servidas via GitHub Raw. | `render_bento_email(markdown_content)` |
 | **`src/delivery/base.py`** | Protocolo `DeliveryChannel` e adaptadores de entrega (`EmailDeliveryChannel`, `FilePreviewDeliveryChannel`). | `DeliveryChannel.deliver(subject, html, recipient)` |
@@ -83,19 +96,27 @@ A estrutura do projeto adota responsabilidade única estrita em cada módulo:
 ## 4. Persistência e Estrutura de Diretórios
 
 ```text
-├── assets/                     # Banners estáticos servidos via CDN pública GitHub Raw
-├── data/                       # Arquivos temporários e estado de execução
-│   ├── github_trending.json    # Dados brutos coletados do GitHub
-│   ├── hf_papers.json          # Artigos científicos em JSON
-│   ├── tweets_coletados.json   # Tweets e metadados de engajamento do X
-│   └── ultimo_envio.txt        # Trava diária contendo a data do último envio (YYYY-MM-DD)
+├── assets/                          # Banners estáticos servidos via CDN pública GitHub Raw
+├── data/                            # Dados, metadados, backups e travas de execução
+│   ├── github_trending.json         # Dados ativos coletados do GitHub
+│   ├── github_trending.json.prev    # Backup rotativo da última versão válida
+│   ├── hf_papers.json               # Artigos científicos ativos em JSON
+│   ├── hf_papers.json.prev          # Backup rotativo de papers científicos
+│   ├── tweets_coletados.json        # Tweets e métricas ativas do X/Twitter
+│   ├── tweets_coletados.json.prev   # Backup rotativo de tweets coletados
+│   ├── snapshot_metadata.json       # Manifesto v2 com SHA-256, status e contagens
+│   ├── snapshot_metadata.json.prev  # Backup rotativo do manifesto
+│   ├── snapshot.lock                # Trava de SO para persistência e recuperação de snapshots
+│   ├── .pipeline.lock               # Trava de SO para exclusão mútua do pipeline diário
+│   ├── ultimo_envio.txt             # Trava diária de idempotência (YYYY-MM-DD)
+│   └── quarantine/                  # Arquivos corrompidos isolados com timestamp e UUID4
 ├── logs/
-│   └── execucao.log            # Histórico unificado com rotação de até 15MB totais
+│   └── execucao.log                 # Histórico unificado com rotação de até 15MB totais
 ├── reports/
-│   └── Resumo_IA_YYYY-MM-DD.md # Relatórios em Markdown versionados
-├── scripts/                    # Scripts operacionais (execução silenciosa, setup e login)
-├── src/                        # Código-fonte da aplicação
-└── tests/                      # Suíte de testes automatizados com unittest
+│   └── Resumo_IA_YYYY-MM-DD.md      # Relatórios em Markdown versionados
+├── scripts/                         # Scripts operacionais (execução silenciosa, setup e login)
+├── src/                             # Código-fonte da aplicação
+└── tests/                           # Suíte de testes automatizados com unittest
 ```
 
 ---
@@ -105,8 +126,13 @@ A estrutura do projeto adota responsabilidade única estrita em cada módulo:
 1. **Localização dos Canais de Entrega (`src/delivery/base.py`):**
    A especificação inicial sugeria subdiretórios individuais (`src/delivery/channels/email.py` e `preview.py`). Ambos os canais somam menos de 90 linhas de código no total. Mantê-los coesos em `src/delivery/base.py` junto à definição do protocolo `DeliveryChannel` evita fragmentação desnecessária em micro-arquivos sem qualquer prejuízo ao encapsulamento ou à testabilidade.
 
-2. **Isolamento de Snapshots e Rastreabilidade Temporal:**
-   Execuções completas (`all`) geram um lote unificado e persistem preventivamente os 3 snapshots em disco com estampa consolidada em `snapshot_metadata.json`. Em passos de coleta isolada (`--step collect-<fonte>`), apenas o arquivo e o metadado da fonte alvo são atualizados em disco, garantindo que coletas antigas de outras fontes não recebam uma falsa estampa de coleta recente. Na etapa isolada de síntese (`--step summarize`), `DailyIngestionBatch.load_snapshot()` reconstitui o estado existente em `data/` como mecanismo de fallback/recuperação.
+2. **Persistência Atômica, Resiliência de Snapshots e Rastreabilidade (Spec 0007):**
+   - **Desacoplamento de I/O nos Coletores (Resolução de ARC-01):** Os módulos coletores (`src/collectors/`) não realizam I/O físico em disco. Retornam instâncias imutáveis de `SourceCollectionResult[T]` com status explícito (`SUCCESS`, `EMPTY`, `PARTIAL`, `FAILED`, `NOT_RUN`). A responsabilidade de persistência física é centralizada exclusivamente em `DailyIngestionBatch.save_snapshot()`.
+   - **Preservação Não Destrutiva de Snapshots Válidos (Resolução de DEF-01):** Coletas com falha (`FAILED`), parciais sem novos dados (`PARTIAL`) ou não executadas (`NOT_RUN`) jamais sobrescrevem os snapshots consolidados existentes em `data/` com listas vazias `[]`. O arquivo físico ativo e seus metadados anteriores permanecem preservados em disco.
+   - **Protocolo de Escrita Transacional e Backup Rotativo (.prev):** Antes de qualquer gravação de novos dados, o arquivo ativo é rotacionado atomicamente para `.prev`. Os novos dados são gravados em arquivo temporário com PID/UUID (`.tmp`), sofrem `flush()` e `os.fsync()`, e são renomeados atomicamente via `os.replace()`, com fsync no diretório pai em ambientes POSIX.
+   - **Governança do Manifesto v2 e Integridade SHA-256:** O arquivo `snapshot_metadata.json` adota schema versionado (`version: 2`) com rastreamento do ciclo de execução (`last_attempt`: status `running`/`completed`/`failed`, trigger e PID) e catálogo por fonte contendo o hash SHA-256 calculado a partir dos bytes em disco. O sintetizador e o loader rejeitam dirty reads se houver execução `running` ativa.
+   - **Recuperação com Quarentena Delimitada:** Na leitura (`load_snapshot()`), se o arquivo ativo estiver ausente, corrompido ou com hash divergente do manifesto, ele é isolado em `data/quarantine/` (com nome composto por timestamp microssegundos e UUID4) e o arquivo `.prev` íntegro é promovido para ativo. A quarentena é estritamente delimitada aos artefatos de snapshot do pipeline, preservando outros arquivos em `data/`.
+   - **Frescor Temporal e Migração Legada com Aviso Editorial:** O frescor é avaliado no intervalo $[-300\text{s}, 36\text{h}]$ via `is_source_fresh()`. Snapshots históricos pré-Spec 0007 são migrados em memória com flag `quality: "legacy_unverified"`. Quando o sintetizador consome dados legados ou de contingência histórica após falha no dia atual, injeta automaticamente uma nota editorial de advertência no início da seção correspondente.
 
 3. **MIME Multipart com Fallback em Texto Puro (`plain_text`):**
    O parâmetro opcional `plain_text` no método `deliver` de `DeliveryChannel` permite anexar uma versão em texto puro como parte alternativa (`multipart/alternative`), prevenindo alertas de spam e renderização de anexos binários em clientes de e-mail corporativos.
