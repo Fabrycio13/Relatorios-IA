@@ -25,6 +25,7 @@ Registros formais de decisões arquiteturais (*Architecture Decision Records*):
 * **[`adr/0002-coleta-playwright-sessao-x.md`](adr/0002-coleta-playwright-sessao-x.md)**: Raspagem de feed e radar VIP com persistência de cookies no Playwright.
 * **[`adr/0003-cdn-raw-banners-email.md`](adr/0003-cdn-raw-banners-email.md)**: Hospedagem imutável de banners de alta resolução no GitHub Raw.
 * **[`adr/0004-resiliencia-rede-pos-boot.md`](adr/0004-resiliencia-rede-pos-boot.md)**: Pré-verificação de socket TCP com timeout de 60s pós-boot do sistema.
+* **[`adr/0005-ciclo-vida-e-isolamento-de-edicoes.md`](adr/0005-ciclo-vida-e-isolamento-de-edicoes.md)**: Desacoplamento da projeção em memória do número de edição, isolamento do `--preview` e persistência atômica pós-SMTP.
 
 ---
 

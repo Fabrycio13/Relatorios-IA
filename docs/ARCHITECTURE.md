@@ -44,12 +44,14 @@ flowchart TD
     I -->|Dados Elegíveis| J["Síntese OpenAI gpt-6-luna (Aviso Editorial se Legado/Fallback)"]
     J --> K["Gera Relatório Markdown: reports/Resumo_IA_YYYY-MM-DD.md"]
 
-    K --> M["DeliveryDispatcher: despachar_relatorio"]
+    K --> PRE["Resolução em Memória: obter_numero_edicao (persist=False) & resolver_banner_do_dia"]
+    PRE --> M["DeliveryDispatcher: despachar_relatorio (Renderização livre de persistência)"]
     M -->|Modo Normal (E-mail)| N["EmailDeliveryChannel: Gmail SMTP SSL 465"]
     M -->|Modo --preview| P["FilePreviewDeliveryChannel: reports/preview.html + Browser"]
 
-    N --> Q["Atualiza data/ultimo_envio.txt & Toast de Sucesso"]
-    P --> R["Toast de Preview Gerado (Não altera trava diária)"]
+    N --> CONF["Pós-SMTP: confirmar_banner_utilizado & confirmar_edicao_utilizada"]
+    CONF --> Q["Atualiza data/ultimo_envio.txt & Toast de Sucesso"]
+    P --> R["Toast de Preview Gerado (Zero alterações em disco: sem trava, edições ou banners)"]
 ```
 
 ---
@@ -78,7 +80,7 @@ A estrutura do projeto adota responsabilidade única estrita em cada módulo:
 | **`src/processors/prompts.py`** | Banco de prompts isolados para curadoria, síntese analítica, tradução técnica e Takeaway de Engenharia. | `get_prompt_resumo_ia`, `get_prompt_github`, etc. |
 | **`src/processors/ai_summarizer.py`**| Orquestrador de inferência com OpenAI (`gpt-6-luna`). Valida frescor (<= 36h) e qualidade dos dados, aplicando avisos editoriais para dados históricos/legados ou degradação graciosa para fontes ausentes. | `gerar_resumo_ia(batch=None, output_path=None, data_dir=None)` |
 | **`src/delivery/banner_selector.py`** | Seletor rotativo de banners com hierarquia em 3 Tiers, catálogo de exaustão e feriados móveis/fixos. | `BannerSelector().selecionar_banner()` |
-| **`src/delivery/renderer.py`** | Transforma o Markdown final em HTML responsivo estilo Bento Grid Modular com imagens servidas via GitHub Raw. | `render_bento_email(markdown_content)` |
+| **`src/delivery/renderer.py`** | Transforma o Markdown final em HTML responsivo estilo Bento Grid Modular com imagens servidas via GitHub Raw. Livre de efeitos colaterais de persistência durante a renderização. | `render_bento_email(...)`, `obter_numero_edicao`, `confirmar_edicao_utilizada` |
 | **`src/delivery/base.py`** | Protocolo `DeliveryChannel` e adaptadores de entrega (`EmailDeliveryChannel`, `FilePreviewDeliveryChannel`). | `DeliveryChannel.deliver(subject, html, recipient)` |
 | **`src/delivery/dispatcher.py`**| Orquestrador de entrega que lê o Markdown, renderiza o HTML e despacha para o canal injetado. | `despachar_relatorio(caminho, channel, destinatario)` |
 | **`src/delivery/sender.py`** | Facade retrocompatível para envio de e-mail via Gmail SMTP SSL. | `enviar_relatorio_email(destinatario, caminho_relatorio)` |
@@ -147,6 +149,13 @@ A estrutura do projeto adota responsabilidade única estrita em cada módulo:
 
 3. **MIME Multipart com Fallback em Texto Puro (`plain_text`):**
    O parâmetro opcional `plain_text` no método `deliver` de `DeliveryChannel` permite anexar uma versão em texto puro como parte alternativa (`multipart/alternative`), prevenindo alertas de spam e renderização de anexos binários em clientes de e-mail corporativos.
+
+4. **Isolamento de Preview e Ciclo de Vida do Número de Edição (ADR 0005):**
+   - **Desacoplamento entre Projeção e Persistência:** A resolução do número sequencial (`ANO I - Nº XXX`) opera em memória sem I/O de escrita por padrão (`obter_numero_edicao(persist=False)`). O comando `--preview` e a suíte de testes geram o relatório sem alterar `data/edicoes.json`.
+   - **Renderização sem Efeitos Colaterais de Persistência:** `render_bento_email()` recebe o número já resolvido e não executa gravações em disco durante a geração do HTML.
+   - **Invariante de Correspondência Exata:** O valor projetado pré-envio é repassado intacto pelo dispatcher e confirmado após o envio, assegurando que o número gravado seja exatamente o número exibido no e-mail entregue.
+   - **Confirmação Estritamente Pós-SMTP:** A persistência física via `confirmar_edicao_utilizada()` ocorre exclusivamente no `main.py` após o sucesso do transporte SMTP.
+   - **Proteção Anti-Sobrescrita (DEF-01) e Conflitos:** Se `data/edicoes.json` existir mas a leitura/validação falhar, a gravação é abortada para preservar os bytes originais em disco. Rejeitam-se divergências de numeração para a mesma data ou duplicações de edições existentes. Arquivos temporários `.tmp` são removidos defensivamente em falhas de escrita atômica.
 
 
 
