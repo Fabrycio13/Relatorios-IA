@@ -1,4 +1,8 @@
-from .renderer import render_bento_email
+from .renderer import (
+    render_bento_email,
+    obter_numero_edicao,
+    confirmar_edicao_utilizada,
+)
 from .sender import enviar_relatorio_email
 from .base import DeliveryChannel, EmailDeliveryChannel, FilePreviewDeliveryChannel
 from .dispatcher import despachar_relatorio
@@ -15,6 +19,8 @@ from .banner_selector import (
 
 __all__ = [
     "render_bento_email",
+    "obter_numero_edicao",
+    "confirmar_edicao_utilizada",
     "enviar_relatorio_email",
     "DeliveryChannel",
     "EmailDeliveryChannel",

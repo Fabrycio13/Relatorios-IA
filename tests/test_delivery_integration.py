@@ -98,7 +98,8 @@ class TestDeliveryIntegration(unittest.TestCase):
                  patch("main.gerar_resumo_ia", return_value=dummy_report), \
                  patch("src.delivery.base.REPORTS_DIR", tmp_path), \
                  patch("main.STATUS_FILE", tmp_path / "ultimo_envio.txt"), \
-                 patch("src.delivery.banner_selector.DATA_DIR", tmp_path):
+                 patch("src.delivery.banner_selector.DATA_DIR", tmp_path), \
+                 patch("src.delivery.renderer.DATA_DIR", tmp_path):
 
                 test_args = ["main.py", "--preview"]
                 with patch.object(sys, "argv", test_args):
@@ -127,6 +128,7 @@ class TestDeliveryIntegration(unittest.TestCase):
                 # 4. Garante que a trava antirrepetição e histórico NUNCA são gravados em preview
                 mock_registrar_sucesso.assert_not_called()
                 self.assertFalse((tmp_path / "historico_banners.json").exists())
+                self.assertFalse((tmp_path / "edicoes.json").exists(), "edicoes.json não deve ser gravado em preview")
 
     @patch("src.delivery.base.webbrowser.open")
     @patch("smtplib.SMTP_SSL")
@@ -148,7 +150,8 @@ class TestDeliveryIntegration(unittest.TestCase):
             with patch("src.core.config.config.obter_ultimo_relatorio", return_value=dummy_report), \
                  patch("src.delivery.base.REPORTS_DIR", tmp_path), \
                  patch("main.STATUS_FILE", tmp_path / "ultimo_envio.txt"), \
-                 patch("src.delivery.banner_selector.DATA_DIR", tmp_path):
+                 patch("src.delivery.banner_selector.DATA_DIR", tmp_path), \
+                 patch("src.delivery.renderer.DATA_DIR", tmp_path):
 
                 test_args = ["main.py", "--step", "email", "--preview"]
                 with patch.object(sys, "argv", test_args):
@@ -162,6 +165,7 @@ class TestDeliveryIntegration(unittest.TestCase):
                 mock_smtp_ssl.assert_not_called()
                 mock_registrar_sucesso.assert_not_called()
                 self.assertFalse((tmp_path / "historico_banners.json").exists())
+                self.assertFalse((tmp_path / "edicoes.json").exists(), "edicoes.json não deve ser gravado em preview")
 
     @patch("main.confirmar_banner_utilizado")
     @patch("main.registrar_envio_sucesso")
@@ -229,6 +233,7 @@ class TestDeliveryIntegration(unittest.TestCase):
             with patch("src.core.config.config.obter_ultimo_relatorio", return_value=dummy_report), \
                  patch("src.delivery.base.config.get_email_credentials", return_value=("sender@gmail.com", "secret123", "dest@domain.com")), \
                  patch("src.delivery.banner_selector.DATA_DIR", tmp_path), \
+                 patch("src.delivery.renderer.DATA_DIR", tmp_path), \
                  patch("main.STATUS_FILE", tmp_path / "ultimo_envio.txt"):
 
                 test_args = ["main.py", "--step", "email", "--force"]
@@ -240,6 +245,12 @@ class TestDeliveryIntegration(unittest.TestCase):
                 dados = json.loads(historico_path.read_text(encoding="utf-8"))
                 hoje_str = datetime.now().strftime("%Y-%m-%d")
                 self.assertIn(hoje_str, dados["ultimo_envio_por_data"])
+
+                # Verifica que edicoes.json foi confirmado e persistido após o envio com sucesso
+                edicoes_path = tmp_path / "edicoes.json"
+                self.assertTrue(edicoes_path.exists(), "edicoes.json deveria ter sido persistido após sucesso SMTP")
+                dados_edicoes = json.loads(edicoes_path.read_text(encoding="utf-8"))
+                self.assertIn(hoje_str, dados_edicoes)
 
     @patch("main.notificar_windows")
     @patch("smtplib.SMTP_SSL")
@@ -260,6 +271,7 @@ class TestDeliveryIntegration(unittest.TestCase):
             with patch("src.core.config.config.obter_ultimo_relatorio", return_value=dummy_report), \
                  patch("src.delivery.base.config.get_email_credentials", return_value=("sender@gmail.com", "secret123", "dest@domain.com")), \
                  patch("src.delivery.banner_selector.DATA_DIR", tmp_path), \
+                 patch("src.delivery.renderer.DATA_DIR", tmp_path), \
                  patch("main.STATUS_FILE", tmp_path / "ultimo_envio.txt"):
 
                 test_args = ["main.py", "--step", "email", "--force"]
@@ -268,8 +280,9 @@ class TestDeliveryIntegration(unittest.TestCase):
                         main.main()
                     self.assertEqual(cm.exception.code, 1)
 
-                # Garante que historico_banners.json NÃO foi criado
+                # Garante que historico_banners.json e edicoes.json NÃO foram criados
                 self.assertFalse(historico_path.exists())
+                self.assertFalse((tmp_path / "edicoes.json").exists(), "edicoes.json não deve ser criado em falha SMTP")
 
     def test_concorrencia_pipeline_bloqueia_segundo_processo(self):
         """Valida que uma segunda execução concorrente do pipeline é bloqueada e encerra com código 0."""
@@ -591,6 +604,93 @@ class TestDeliveryIntegration(unittest.TestCase):
                 self.assertTrue(
                     (tmp_path / "historico_banners.json").exists(),
                     "Uma regressão que escreva no histórico DEVE ser capturada no tmp_path."
+                )
+
+    @patch("main.confirmar_banner_utilizado")
+    @patch("main.confirmar_edicao_utilizada", return_value=False)
+    @patch("main.logger.warning")
+    @patch("main.notificar_windows")
+    @patch("smtplib.SMTP_SSL")
+    def test_e2e_delivery_confirmar_edicao_failure_logs_warning_and_does_not_abort(
+        self,
+        mock_smtp_ssl,
+        mock_notificar,
+        mock_logger_warning,
+        mock_confirmar_edicao,
+        mock_confirmar_banner
+    ):
+        """
+        Prioridade 4: Garante que se confirmar_edicao_utilizada retornar False após sucesso do SMTP,
+        o sistema registra aviso local sem afirmar que o SMTP falhou, sem retentar e sem abortar o pipeline.
+        """
+        mock_server = MagicMock()
+        mock_smtp_ssl.return_value.__enter__.return_value = mock_server
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            dummy_report = tmp_path / "Resumo_IA_2026-10-27.md"
+            dummy_report.write_text("# Relatório Produção", encoding="utf-8")
+
+            with patch("src.core.config.config.obter_ultimo_relatorio", return_value=dummy_report), \
+                 patch("src.delivery.base.config.get_email_credentials", return_value=("sender@gmail.com", "secret123", "dest@domain.com")), \
+                 patch("main.STATUS_FILE", tmp_path / "ultimo_envio.txt"):
+
+                test_args = ["main.py", "--step", "email"]
+                with patch.object(sys, "argv", test_args):
+                    # Não deve levantar SystemExit(1)
+                    main.main()
+
+                # Garante exatamente 1 envio SMTP (sem reenviar)
+                self.assertEqual(mock_server.sendmail.call_count, 1)
+
+                # Garante aviso registrado no log sobre a falha de persistência local da edição
+                avisos = [call[0][0] for call in mock_logger_warning.call_args_list if call[0]]
+                self.assertTrue(
+                    any("persistência em edicoes.json falhou" in str(msg) for msg in avisos),
+                    f"Deveria ter registrado log de aviso sobre falha em persistir edição. Avisos emitidos: {avisos}"
+                )
+
+    @patch("main.confirmar_banner_utilizado")
+    @patch("main.confirmar_edicao_utilizada", side_effect=OSError("Disk full"))
+    @patch("main.logger.warning")
+    @patch("main.notificar_windows")
+    @patch("smtplib.SMTP_SSL")
+    def test_e2e_delivery_confirmar_edicao_exception_logs_warning_and_does_not_abort(
+        self,
+        mock_smtp_ssl,
+        mock_notificar,
+        mock_logger_warning,
+        mock_confirmar_edicao,
+        mock_confirmar_banner
+    ):
+        """
+        Prioridade 4: Garante que se confirmar_edicao_utilizada levantar exceção de I/O após sucesso do SMTP,
+        o sistema captura a exceção, emite warning e conclui sem abortar nem retentar o envio.
+        """
+        mock_server = MagicMock()
+        mock_smtp_ssl.return_value.__enter__.return_value = mock_server
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            dummy_report = tmp_path / "Resumo_IA_2026-10-27.md"
+            dummy_report.write_text("# Relatório Produção", encoding="utf-8")
+
+            with patch("src.core.config.config.obter_ultimo_relatorio", return_value=dummy_report), \
+                 patch("src.delivery.base.config.get_email_credentials", return_value=("sender@gmail.com", "secret123", "dest@domain.com")), \
+                 patch("main.STATUS_FILE", tmp_path / "ultimo_envio.txt"):
+
+                test_args = ["main.py", "--step", "email"]
+                with patch.object(sys, "argv", test_args):
+                    main.main()
+
+                # Garante exatamente 1 envio SMTP
+                self.assertEqual(mock_server.sendmail.call_count, 1)
+
+                # Garante aviso registrado no log sobre a exceção pós-SMTP
+                avisos = [call[0][0] for call in mock_logger_warning.call_args_list if call[0]]
+                self.assertTrue(
+                    any("erro ao persistir edicoes.json" in str(msg) for msg in avisos),
+                    f"Deveria ter registrado log de aviso sobre exceção pós-SMTP. Avisos emitidos: {avisos}"
                 )
 
 
