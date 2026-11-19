@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 import time
 from contextlib import nullcontext
@@ -27,6 +28,8 @@ from src.delivery import (
     confirmar_banner_utilizado,
     reconciliar_historico_se_necessario,
     exibir_status_banners,
+    obter_numero_edicao,
+    confirmar_edicao_utilizada,
 )
 from src.core.lock import adquirir_trava_pipeline, ConcorrenciaDetectadaError
 
@@ -86,11 +89,23 @@ def verificar_status_envio() -> str | None:
     return None
 
 def registrar_envio_sucesso(dia_str: str):
+    tmp_status = None
     try:
-        with open(STATUS_FILE, "w", encoding="utf-8") as f:
+        STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        tmp_status = STATUS_FILE.with_name(f"{STATUS_FILE.name}.tmp")
+        with open(tmp_status, "w", encoding="utf-8") as f:
             f.write(dia_str)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_status, STATUS_FILE)
     except Exception as e:
         logger.warning(f"Não foi possível salvar status em {STATUS_FILE}: {e}")
+        if tmp_status is not None:
+            try:
+                if tmp_status.exists():
+                    tmp_status.unlink()
+            except OSError:
+                pass
 
 def aguardar_conexao_internet(timeout_segundos: int = 60) -> bool:
     """Aguarda até que a conexão de internet esteja ativa (útil para execuções logo após o boot do PC)."""
@@ -232,12 +247,14 @@ def main():
                     logger.info("\n▶️  [ETAPA 3/3] Renderização e Pré-visualização Local (Preview)...")
                     agora_preview = datetime.now()
                     banner_preview = resolver_banner_do_dia(data_envio=agora_preview)
+                    numero_preview = obter_numero_edicao(agora_preview.strftime("%Y-%m-%d"), persist=False)
                     channel = FilePreviewDeliveryChannel()
                     sucesso = despachar_relatorio(
                         caminho_relatorio=relatorio_para_envio,
                         channel=channel,
                         data_envio=agora_preview,
-                        banner_info=banner_preview
+                        banner_info=banner_preview,
+                        numero_edicao=numero_preview
                     )
                     if not sucesso:
                         logger.error("❌ Falha ao gerar preview local.")
@@ -250,6 +267,7 @@ def main():
                     agora_envio = datetime.now()
                     reconciliar_historico_se_necessario(data_envio=agora_envio, status_file=STATUS_FILE)
                     banner_do_dia = resolver_banner_do_dia(data_envio=agora_envio)
+                    numero_edicao_envio = obter_numero_edicao(agora_envio.strftime("%Y-%m-%d"), persist=False)
 
                     channel = EmailDeliveryChannel()
                     sucesso_email = despachar_relatorio(
@@ -257,7 +275,8 @@ def main():
                         channel=channel,
                         destinatario=args.to,
                         data_envio=agora_envio,
-                        banner_info=banner_do_dia
+                        banner_info=banner_do_dia,
+                        numero_edicao=numero_edicao_envio
                     )
                     if not sucesso_email:
                         logger.error("❌ Falha ao enviar o e-mail.")
@@ -266,6 +285,17 @@ def main():
 
                     # Persiste atomicamente o uso do banner EXCLUSIVAMENTE após o envio bem-sucedido
                     confirmar_banner_utilizado(banner_info=banner_do_dia, data_envio=agora_envio)
+
+                    # Persiste atomicamente o número da edição EXCLUSIVAMENTE após o envio bem-sucedido
+                    try:
+                        sucesso_edicao = confirmar_edicao_utilizada(
+                            data_envio=agora_envio,
+                            numero_edicao=numero_edicao_envio
+                        )
+                        if not sucesso_edicao:
+                            logger.warning("⚠️ O e-mail foi entregue via SMTP, mas a persistência em edicoes.json falhou.")
+                    except Exception as e:
+                        logger.warning(f"⚠️ O e-mail foi entregue via SMTP, mas ocorreu um erro ao persistir edicoes.json: {e}")
 
                     if args.step == "all":
                         registrar_envio_sucesso(hoje_str)

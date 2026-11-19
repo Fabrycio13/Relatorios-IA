@@ -1,6 +1,8 @@
 import re
 import json
 import html
+import os
+import logging
 import urllib.parse
 import ipaddress
 from datetime import datetime
@@ -8,35 +10,146 @@ from pathlib import Path
 from src.core.config import HEADER_BANNER_URL, HEADER_FULL_HD_URL, FOOTER_BANNER_URL, DATA_DIR
 from src.delivery.banner_selector import resolver_banner_do_dia, BannerInfo
 
-def obter_numero_edicao(data_str: str | None = None) -> str:
+logger = logging.getLogger(__name__)
+
+
+def _carregar_edicoes(edicoes_file: Path) -> dict | None:
+    """
+    Carrega o mapa de edições de edicoes.json.
+    Retorna um dicionário vazio se o arquivo não existir fisicamente.
+    Retorna None se o arquivo existir, mas a leitura, decodificação ou validação falhar,
+    impedindo a sobrescrita destrutiva de histórico preexistente.
+    """
+    if not edicoes_file.exists():
+        return {}
+
+    try:
+        with open(edicoes_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            if not isinstance(data, dict):
+                logger.warning(f"Formato inválido em {edicoes_file}: esperado dict, obtido {type(data).__name__}")
+                return None
+            return data
+    except Exception as e:
+        logger.warning(f"Aviso ao ler edicoes.json ({edicoes_file}): {e}")
+        return None
+
+
+def _salvar_edicoes_atomico(edicoes_file: Path, edicoes: dict, data_str: str, num: int) -> bool:
+    """Grava atomicamente o arquivo edicoes.json utilizando arquivo temporário e os.replace."""
+    tmp_file = None
+    try:
+        edicoes_file.parent.mkdir(parents=True, exist_ok=True)
+        edicoes[data_str] = num
+        tmp_file = edicoes_file.with_name(f"{edicoes_file.name}.tmp")
+        with open(tmp_file, "w", encoding="utf-8") as f:
+            json.dump(edicoes, f, indent=2, ensure_ascii=False)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_file, edicoes_file)
+        return True
+    except Exception as e:
+        logger.warning(f"Aviso ao salvar edicoes.json atomicamente ({edicoes_file}): {e}")
+        if tmp_file is not None:
+            try:
+                if tmp_file.exists():
+                    tmp_file.unlink()
+            except OSError:
+                pass
+        return False
+
+
+def obter_numero_edicao(
+    data_str: str | None = None,
+    persist: bool = False,
+    edicoes_file: Path | None = None
+) -> str:
     """
     Retorna o número sequencial da edição formatado como '001', '002', etc.
-    Persiste o histórico em data/edicoes.json para que cada nova data gere uma nova edição.
+    Por padrão (persist=False), projeta o número puramente em memória sem alterar disco.
+    Se persist=True, salva atomicamente (.tmp + replace) em data/edicoes.json caso o arquivo seja válido.
     """
     if not data_str:
         data_str = datetime.now().strftime("%Y-%m-%d")
 
-    edicoes_file = DATA_DIR / "edicoes.json"
-    edicoes = {}
-    if edicoes_file.exists():
-        try:
-            with open(edicoes_file, "r", encoding="utf-8") as f:
-                edicoes = json.load(f)
-        except Exception:
-            edicoes = {}
+    if edicoes_file is None:
+        edicoes_file = DATA_DIR / "edicoes.json"
+
+    edicoes = _carregar_edicoes(edicoes_file)
+    if edicoes is None:
+        # Arquivo existe mas falhou na leitura/validação: não sobrescrever sob nenhuma hipótese
+        return "001"
 
     if data_str in edicoes:
         num = edicoes[data_str]
     else:
         num = len(edicoes) + 1
-        edicoes[data_str] = num
-        try:
-            with open(edicoes_file, "w", encoding="utf-8") as f:
-                json.dump(edicoes, f, indent=2, ensure_ascii=False)
-        except Exception:
-            pass
+        if persist:
+            _salvar_edicoes_atomico(edicoes_file, edicoes, data_str, num)
 
     return f"{num:03d}"
+
+
+def confirmar_edicao_utilizada(
+    data_envio: datetime | None = None,
+    numero_edicao: str | int | None = None,
+    edicoes_file: Path | None = None
+) -> bool:
+    """
+    Persiste atomicamente em edicoes.json a edição confirmada após envio SMTP bem-sucedido.
+    Garante que o número confirmado corresponda exatamente ao que foi renderizado.
+    Retorna False e preserva os bytes originais se a leitura falhar ou se houver conflito de numeração.
+    """
+    if data_envio is None:
+        data_envio = datetime.now()
+
+    data_str = data_envio.strftime("%Y-%m-%d")
+
+    if edicoes_file is None:
+        edicoes_file = DATA_DIR / "edicoes.json"
+
+    edicoes = _carregar_edicoes(edicoes_file)
+    if edicoes is None:
+        logger.warning(
+            f"Não foi possível confirmar edição: falha na leitura ou validação de {edicoes_file}. "
+            "Arquivo original preservado integralmente para evitar sobrescrita destrutiva."
+        )
+        return False
+
+    if numero_edicao is not None:
+        try:
+            num = int(numero_edicao)
+        except (ValueError, TypeError):
+            logger.warning(f"Número de edição inválido ({numero_edicao}) fornecido para confirmação.")
+            return False
+    else:
+        num = len(edicoes) + 1
+
+    if num <= 0:
+        logger.warning(f"Número de edição não-positivo ({num}) rejeitado.")
+        return False
+
+    # Validação de consistência: data já existente
+    if data_str in edicoes:
+        if edicoes[data_str] == num:
+            return True  # Idempotência segura
+        else:
+            logger.warning(
+                f"Conflito de numeração detectado para {data_str}: "
+                f"já registrado como {edicoes[data_str]}, mas tentou confirmar como {num}. Confirmação rejeitada."
+            )
+            return False
+
+    # Validação de consistência: número já atribuído a outra data
+    if num in edicoes.values():
+        datas_com_num = [k for k, v in edicoes.items() if v == num]
+        logger.warning(
+            f"Conflito de numeração detectado: a edição {num} já está atribuída a {datas_com_num}. "
+            f"Confirmação rejeitada para a nova data {data_str}."
+        )
+        return False
+
+    return _salvar_edicoes_atomico(edicoes_file, edicoes, data_str, num)
 
 _HOST_LABEL_PATTERN = re.compile(r"\A[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\Z")
 
@@ -140,7 +253,8 @@ def format_inline(text: str) -> str:
 def render_bento_email(
     md_text: str,
     data_envio: datetime | None = None,
-    banner_info: BannerInfo | None = None
+    banner_info: BannerInfo | None = None,
+    numero_edicao: str | None = None
 ) -> str:
     """
     Renderizador Oficial estilo Jornal Impresso Tradicional (The Engineering Gazette).
@@ -493,9 +607,9 @@ def render_bento_email(
         """)
 
     body_content = "\n".join(articles_html)
-    hoje = datetime.now()
-    hoje_formatada = hoje.strftime("%d/%m/%Y")
-    data_iso = hoje.strftime("%Y-%m-%d")
+    data_ref = data_envio or datetime.now()
+    hoje_formatada = data_ref.strftime("%d/%m/%Y")
+    data_iso = data_ref.strftime("%Y-%m-%d")
 
     # Mapeamento do dia da semana em português
     dias_semana = {
@@ -507,8 +621,9 @@ def render_bento_email(
         5: "SÁBADO",
         6: "DOMINGO"
     }
-    dia_semana_nome = dias_semana.get(hoje.weekday(), "EDIÇÃO DIÁRIA")
-    numero_edicao = obter_numero_edicao(data_iso)
+    dia_semana_nome = dias_semana.get(data_ref.weekday(), "EDIÇÃO DIÁRIA")
+    if not numero_edicao:
+        numero_edicao = obter_numero_edicao(data_iso, persist=False)
 
     full_html = f"""<!DOCTYPE html>
 <html lang="pt-BR">

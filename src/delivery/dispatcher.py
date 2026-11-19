@@ -15,7 +15,8 @@ def despachar_relatorio(
     channel: DeliveryChannel | None = None,
     destinatario: str | None = None,
     data_envio: datetime | None = None,
-    banner_info: BannerInfo | None = None
+    banner_info: BannerInfo | None = None,
+    numero_edicao: str | None = None
 ) -> bool:
     """
     Orquestra a leitura do Markdown do relatório, renderização do HTML Bento Grid
@@ -49,7 +50,8 @@ def despachar_relatorio(
         html_content = render_bento_email(
             md_content,
             data_envio=data_envio,
-            banner_info=banner_info
+            banner_info=banner_info,
+            numero_edicao=numero_edicao
         )
     except Exception as e:
         logger.error(f"Erro ao renderizar template Bento Grid: {e}")

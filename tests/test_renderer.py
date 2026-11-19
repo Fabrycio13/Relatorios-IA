@@ -1,5 +1,6 @@
 import html.parser
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 from src.delivery.renderer import format_inline, render_bento_email, _is_safe_url
 
@@ -753,6 +754,222 @@ CANARY_7_TAKEAWAY <div style='behavior:url(x); background:url(javascript:alert(7
             any("meta_inesperada_ou_modificada" in u for u in parser.unexpected_tags_found),
             f"Esperava registro de meta inesperada, obteve: {parser.unexpected_tags_found}"
         )
+
+
+class TestEditionLifecycleAndDateHandling(unittest.TestCase):
+    """Testes TDD para isolamento do renderer, pureza de preview e respeito a data_envio."""
+
+    def test_render_bento_email_respects_data_envio(self):
+        """Garante que render_bento_email utiliza data_envio no cabeçalho em vez de datetime.now()."""
+        from datetime import datetime
+        sample_md = "## 📌 Destaques Principais do Dia\n- Item 1\n\n---\n\n## 💡 Takeaway Prático de Engenharia do Dia\n- Item 2"
+        data_passada = datetime(2025, 5, 1, 8, 30)  # Quinta-feira, 01/05/2025
+        html = render_bento_email(sample_md, data_envio=data_passada)
+
+        self.assertIn("01/05/2025", html, "A data formatada no cabeçalho deveria ser 01/05/2025")
+        self.assertIn("QUINTA-FEIRA", html, "O dia da semana no cabeçalho deveria ser QUINTA-FEIRA")
+
+    def test_render_bento_email_does_not_mutate_edicoes_json(self):
+        """Garante que a renderização de uma data inédita NUNCA grava edicoes.json no disco (pureza do preview)."""
+        import tempfile
+        from pathlib import Path
+        from datetime import datetime
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            edicoes_dest = tmp_path / "edicoes.json"
+
+            sample_md = "## 📌 Destaques Principais do Dia\n- Item 1\n\n---\n\n## 💡 Takeaway Prático de Engenharia do Dia\n- Item 2"
+            data_nova = datetime(2030, 1, 1, 8, 0)
+
+            with patch("src.delivery.renderer.DATA_DIR", tmp_path):
+                html = render_bento_email(sample_md, data_envio=data_nova)
+
+                # O HTML deve conter a edição projetada
+                self.assertIn("ANO I - Nº", html)
+                # O arquivo edicoes.json NÃO pode ter sido criado no disco
+                self.assertFalse(
+                    edicoes_dest.exists(),
+                    f"Efeito colateral detectado: {edicoes_dest} foi gravado fisicamente durante a renderização!"
+                )
+
+    def test_confirmar_edicao_utilizada_persists_exact_number_atomically(self):
+        """Garante que confirmar_edicao_utilizada persiste exatamente o número confirmado de forma atômica."""
+        import tempfile
+        import json
+        from pathlib import Path
+        from datetime import datetime
+        from src.delivery.renderer import confirmar_edicao_utilizada, obter_numero_edicao
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            edicoes_file = tmp_path / "edicoes.json"
+
+            # 1. Projeção pura em memória para data inédita
+            data_teste = datetime(2026, 12, 25, 9, 0)
+            proj = obter_numero_edicao("2026-12-25", persist=False, edicoes_file=edicoes_file)
+            self.assertEqual(proj, "001")
+            self.assertFalse(edicoes_file.exists())
+
+            # 2. Confirmação pós-SMTP com o número projetado
+            with patch("src.delivery.renderer.DATA_DIR", tmp_path):
+                sucesso = confirmar_edicao_utilizada(data_envio=data_teste, numero_edicao=proj)
+                self.assertTrue(sucesso)
+                self.assertTrue(edicoes_file.exists())
+
+                conteudo = json.loads(edicoes_file.read_text(encoding="utf-8"))
+                self.assertEqual(conteudo.get("2026-12-25"), 1)
+
+            # 3. Idempotência: reconfirmar mesma data não incrementa nem altera
+            with patch("src.delivery.renderer.DATA_DIR", tmp_path):
+                sucesso_reexec = confirmar_edicao_utilizada(data_envio=data_teste, numero_edicao=proj)
+                self.assertTrue(sucesso_reexec)
+                conteudo_reexec = json.loads(edicoes_file.read_text(encoding="utf-8"))
+                self.assertEqual(len(conteudo_reexec), 1)
+                self.assertEqual(conteudo_reexec.get("2026-12-25"), 1)
+
+    def test_confirmar_edicao_utilizada_failure_returns_false_and_logs_warning(self):
+        """Garante que falha de escrita em edicoes.json retorna False sem levantar exceção fatal."""
+        import tempfile
+        from datetime import datetime
+        from unittest.mock import patch
+        from src.delivery.renderer import confirmar_edicao_utilizada
+
+        data_teste = datetime(2026, 12, 25, 9, 0)
+        with patch("src.delivery.renderer._salvar_edicoes_atomico", return_value=False):
+            sucesso = confirmar_edicao_utilizada(data_envio=data_teste, numero_edicao="001")
+            self.assertFalse(sucesso, "Deveria retornar False quando o salvamento atômico falha.")
+
+    def test_render_bento_email_accepts_explicit_numero_edicao(self):
+        """Garante que render_bento_email utiliza numero_edicao explícito se fornecido."""
+        sample_md = "## 📌 Destaques Principais do Dia\n- Item 1\n\n---\n\n## 💡 Takeaway Prático de Engenharia do Dia\n- Item 2"
+        html = render_bento_email(sample_md, numero_edicao="999")
+        self.assertIn("ANO I - Nº 999", html)
+
+    def test_confirmar_edicao_utilizada_corrupted_file_preserves_bytes_and_fails(self):
+        """
+        Prioridade 1 & 2: Garante que se edicoes.json estiver corrompido ou inválido,
+        confirmar_edicao_utilizada retorna False e preserva integralmente os bytes originais em disco.
+        """
+        import tempfile
+        from datetime import datetime
+        from src.delivery.renderer import confirmar_edicao_utilizada
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            edicoes_file = Path(tmp_dir) / "edicoes.json"
+            corrupted_bytes = b"CORRUPTED_JSON_DATA{{{"
+            edicoes_file.write_bytes(corrupted_bytes)
+
+            data_teste = datetime(2026, 12, 25, 9, 0)
+            sucesso = confirmar_edicao_utilizada(
+                data_envio=data_teste,
+                numero_edicao="028",
+                edicoes_file=edicoes_file
+            )
+
+            self.assertFalse(sucesso, "Deveria falhar ao tentar confirmar sobre arquivo corrompido.")
+            self.assertEqual(
+                edicoes_file.read_bytes(),
+                corrupted_bytes,
+                "Os bytes do arquivo corrompido DEVEM ser integralmente preservados (sem sobrescrita destrutiva)."
+            )
+
+            # Teste adicional: se for JSON válido mas formato inválido (ex: lista em vez de dict)
+            list_bytes = b'["item1", "item2"]'
+            edicoes_file.write_bytes(list_bytes)
+            sucesso_list = confirmar_edicao_utilizada(
+                data_envio=data_teste,
+                numero_edicao="028",
+                edicoes_file=edicoes_file
+            )
+            self.assertFalse(sucesso_list, "Deveria falhar se o JSON contiver tipo incompatível (lista).")
+            self.assertEqual(edicoes_file.read_bytes(), list_bytes)
+
+    def test_obter_numero_edicao_corrupted_file_does_not_overwrite_disk(self):
+        """Garante que obter_numero_edicao com persist=True não sobrescreve arquivo corrompido."""
+        import tempfile
+        from src.delivery.renderer import obter_numero_edicao
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            edicoes_file = Path(tmp_dir) / "edicoes.json"
+            corrupted_bytes = b"MALFORMED_JSON_CONTENT"
+            edicoes_file.write_bytes(corrupted_bytes)
+
+            proj = obter_numero_edicao("2026-12-25", persist=True, edicoes_file=edicoes_file)
+            self.assertEqual(proj, "001")
+            self.assertEqual(
+                edicoes_file.read_bytes(),
+                corrupted_bytes,
+                "obter_numero_edicao JAMAIS deve destruir arquivo corrompido existente."
+            )
+
+    def test_confirmar_edicao_utilizada_detects_state_divergence_and_rejects_conflict(self):
+        """
+        Prioridade 3: Testa alteração de estado entre projeção e confirmação.
+        Garante que a confirmação persiste exatamente o número enviado ou rejeita
+        inconsistências (duplicatas ou números conflitantes), sem aceitar silenciosamente.
+        """
+        import tempfile
+        import json
+        from datetime import datetime
+        from src.delivery.renderer import confirmar_edicao_utilizada
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            edicoes_file = Path(tmp_dir) / "edicoes.json"
+            # Estado inicial com 2 edições
+            estado_inicial = {"2026-12-23": 1, "2026-12-24": 2}
+            edicoes_file.write_text(json.dumps(estado_inicial), encoding="utf-8")
+
+            # Cenário 1: Projeção foi 3. Entre projeção e envio, nada colidiu.
+            # Confirmação com numero_edicao=3 deve gravar exatamente 3.
+            data_teste = datetime(2026, 12, 25, 9, 0)
+            sucesso = confirmar_edicao_utilizada(
+                data_envio=data_teste,
+                numero_edicao="003",
+                edicoes_file=edicoes_file
+            )
+            self.assertTrue(sucesso)
+            conteudo = json.loads(edicoes_file.read_text(encoding="utf-8"))
+            self.assertEqual(conteudo.get("2026-12-25"), 3)
+
+            # Cenário 2: Conflito na mesma data com número diferente.
+            # Para 2026-12-25, já está gravado 3. Tentar confirmar como 4 deve ser REJEITADO.
+            sucesso_conflito_data = confirmar_edicao_utilizada(
+                data_envio=data_teste,
+                numero_edicao="004",
+                edicoes_file=edicoes_file
+            )
+            self.assertFalse(sucesso_conflito_data, "Deveria rejeitar número conflitante para a mesma data.")
+            conteudo = json.loads(edicoes_file.read_text(encoding="utf-8"))
+            self.assertEqual(conteudo.get("2026-12-25"), 3, "Número original não deve ser alterado.")
+
+            # Cenário 3: Número já atribuído a outra data (duplicação de edição).
+            # Tentar confirmar para 2026-12-26 uma edição com número 3 (já de 2026-12-25).
+            data_nova = datetime(2026, 12, 26, 9, 0)
+            sucesso_conflito_num = confirmar_edicao_utilizada(
+                data_envio=data_nova,
+                numero_edicao="003",
+                edicoes_file=edicoes_file
+            )
+            self.assertFalse(sucesso_conflito_num, "Deveria rejeitar reutilização de número de edição já existente.")
+            conteudo = json.loads(edicoes_file.read_text(encoding="utf-8"))
+            self.assertNotIn("2026-12-26", conteudo)
+
+    def test_salvar_edicoes_atomico_cleans_up_tmp_file_on_error(self):
+        """
+        Prioridade 5: Garante limpeza defensiva de arquivos .tmp em caso de falha de escrita.
+        """
+        import tempfile
+        from src.delivery.renderer import _salvar_edicoes_atomico
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            edicoes_file = Path(tmp_dir) / "edicoes.json"
+            tmp_file = edicoes_file.with_name(f"{edicoes_file.name}.tmp")
+
+            with patch("os.replace", side_effect=OSError("Disk replacement failure")):
+                sucesso = _salvar_edicoes_atomico(edicoes_file, {}, "2026-12-25", 1)
+                self.assertFalse(sucesso)
+                self.assertFalse(tmp_file.exists(), "Arquivo .tmp deve ser removido defensivamente em caso de falha.")
 
 
 if __name__ == "__main__":

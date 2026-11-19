@@ -425,20 +425,25 @@ while True:
             },
         }
 
-        # Avaliação de 'github': deve detectar 'legacy_unverified' e marcar is_historical=True, is_usable=True
-        is_usable, is_historical, is_stale = _avaliar_frescor_e_qualidade(
-            "github", repos, sources_meta, collection_status=None
-        )
-        self.assertTrue(is_usable)
-        self.assertTrue(is_historical, "Deve reconhecer quality='legacy_unverified' via alias github_trending")
-        self.assertFalse(is_stale)
+        # Avaliação de frescor controlada deterministicamente via self.now_fixed
+        with patch(
+            "src.processors.ai_summarizer.is_source_fresh",
+            side_effect=lambda dt, max_hours=36.0, **kw: is_source_fresh(dt, max_hours=max_hours, now=self.now_fixed)
+        ):
+            # Avaliação de 'github': deve detectar 'legacy_unverified' e marcar is_historical=True, is_usable=True
+            is_usable, is_historical, is_stale = _avaliar_frescor_e_qualidade(
+                "github", repos, sources_meta, collection_status=None
+            )
+            self.assertTrue(is_usable)
+            self.assertTrue(is_historical, "Deve reconhecer quality='legacy_unverified' via alias github_trending")
+            self.assertFalse(is_stale)
 
-        # Avaliação de 'papers': deve detectar updated_at obsoleto (>36h) e marcar is_stale=True, is_usable=False
-        is_usable_p, is_historical_p, is_stale_p = _avaliar_frescor_e_qualidade(
-            "papers", papers, sources_meta, collection_status=None
-        )
-        self.assertFalse(is_usable_p, "Dados obsoletos de papers não devem ser utilizáveis")
-        self.assertTrue(is_stale_p, "Deve reconhecer timestamp de hf_papers como stale (>36h)")
+            # Avaliação de 'papers': deve detectar updated_at obsoleto (>36h) e marcar is_stale=True, is_usable=False
+            is_usable_p, is_historical_p, is_stale_p = _avaliar_frescor_e_qualidade(
+                "papers", papers, sources_meta, collection_status=None
+            )
+            self.assertFalse(is_usable_p, "Dados obsoletos de papers não devem ser utilizáveis")
+            self.assertTrue(is_stale_p, "Deve reconhecer timestamp de hf_papers como stale (>36h)")
 
     # -------------------------------------------------------------------------
     # B-02: Garantia de Timezone em from_dict e Offsets Conhecidos
