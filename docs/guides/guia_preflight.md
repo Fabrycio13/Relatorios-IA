@@ -16,15 +16,35 @@ O script [`scripts/preflight.py`](../../scripts/preflight.py) é o portão de qu
 
 ---
 
-## 2. Invocação Canônica
+## 2. Invocação Canônica e Fluxo Operacional Obrigatório
 
-A partir da raiz do repositório:
+A partir da raiz do repositório, o preflight canônico é executado via:
 
 ```bash
 python scripts/preflight.py
 ```
 
 O script utiliza internamente `sys.executable` para invocar a suíte de testes com o mesmo interpretador Python ativo no terminal.
+
+### Ordem Operacional Mandatória (Ciclo de Vida de Commit e Push):
+
+O preflight valida o snapshot em staging (`git diff --cached`) e os commits locais pendentes em relação à base remota. A sequência operacional obrigatória para desenvolvedores e agentes de IA é:
+
+```mermaid
+flowchart LR
+    A["1. Preparar Alterações\n(Working tree)"] --> B["2. Staging Restrito\ngit add <arquivos>"]
+    B --> C["3. Preflight no Staging\npython scripts/preflight.py"]
+    C --> D["4. Criar Commit Local\ngit commit -m '...'"]
+    D --> E["5. Preflight Pós-Commit\npython scripts/preflight.py"]
+    E --> F["6. Publicação Remota\ngit push"]
+```
+
+1. **Preparar alterações:** Modifique apenas os arquivos pertencentes ao escopo da tarefa, mantendo a working tree limpa de artefatos indesejados.
+2. **Fazer staging explícito e restrito:** Adicione exclusivamente os arquivos autorizados (`git add <arquivo1> <arquivo2>`).
+3. **Executar o preflight sobre o snapshot staged:** Execute `python scripts/preflight.py`. O preflight inspeciona o diff staged em busca de segredos, caminhos proibidos e erros de whitespace.
+4. **Criar o commit local:** Somente após a aprovação com **Código 0**, crie o commit local (`git commit`).
+5. **Revalidar os commits locais pendentes (Pré-Push):** Execute novamente `python scripts/preflight.py`. O preflight agora validará cada commit local acumulado em relação à base de tracking (`@{upstream}` ou `origin/main`).
+6. **Publicar no remoto:** Somente com o preflight aprovado e no estado `AHEAD` (`pronto_para_push = True`), execute `git push`.
 
 ---
 
@@ -101,11 +121,28 @@ flowchart TD
 * `*.pem`, `*.key`, `*.pfx`, `*.pkcs12`.
 * `data/ultimo_envio.txt`, `data/*.lock`, `data/*.tmp`, `data/quarantine/*`, `*.lock`.
 
-### Política de Fixtures em Testes Automatizados:
-Para evitar falsos positivos nos testes, fixtures e mocks **devem utilizar placeholders sintaticamente inválidos** que nunca coincidem com as especificações oficiais:
-* Em vez de um token fictício com 36 caracteres alfanuméricos, use: `"ghp_TEST_PLACEHOLDER"` (tamanho inválido).
-* Em vez de uma chave Google com 39 caracteres, use: `"AIza_MOCK_INVALID_KEY"` (tamanho inválido).
-* Em vez de chave PEM real, use: `"-----BEGIN DUMMY TEST KEY-----"`.
+### Política Estrita de Fixtures em Testes Automatizados:
+
+O preflight **não possui exceções genéricas** para arquivos de teste (como diretórios `tests/`). Qualquer arquivo staged que contenha um padrão de credencial real ou token sintético completo será bloqueado. Para evitar falsos positivos nos testes preservando a capacidade de validação dos scanners, adote estritamente as duas estratégias abaixo:
+
+#### Estratégia 1: Placeholders Sintaticamente Inválidos (Testes Neutros / Negativos)
+Quando o teste precisa simular valores de configuração, chaves ou tokens, mas **não tem o propósito de acionar o scanner de segurança**, utilize placeholders que violam intencionalmente a especificação sintática das credenciais oficiais:
+* **GitHub Token Inválido:** `"ghp_TEST_PLACEHOLDER"` (tamanho e caracteres fora da especificação).
+* **Google API Key Inválida:** `"AIza_MOCK_INVALID_KEY"` (tamanho e caracteres fora da especificação).
+* **Chave PEM Fictícia:** `"-----BEGIN DUMMY TEST KEY-----"`.
+* **Senha Gmail Fictícia:** `"GMAIL_APP_PASSWORD = 'curta'"` (tamanho menor que 16 caracteres).
+
+#### Estratégia 2: Construção Dinâmica em Runtime (Testes Positivos de Detecção e Masking)
+Quando o teste precisa validar que o scanner detecta e mascara padrões reais de segredos, o token **nunca deve ser escrito literalmente no código-fonte versionado**. Em vez disso, monte o padrão em tempo de execução via concatenação ou multiplicação de strings:
+* **GitHub Token Sintético:** `"ghp_" + ("1" * 36)`
+* **Google API Key Sintética:** `"AIza" + "SyD-" + ("a" * 31)`
+* **Chave PEM Sintética:** `"-----BEGIN " + "RSA " + "PRIVATE " + "KEY-----"`
+* **Senha Gmail Sintética:** `"GMAIL_" + "APP_PASSWORD = '" + ("abcd " * 4) + "'"`
+
+*Mecanismo de Isolamento:* No disco e no repositório versionado, o código-fonte contém apenas chamadas de concatenação em Python, que passam limpas pelo scanner de staging. Durante a execução da suíte, o token completo é sintetizado na memória volátil e gravado em repositórios Git temporários isolados (`tempfile.TemporaryDirectory`), permitindo validar com 100% de fidelidade a detecção, a rejeição e o mascaramento.
+
+#### Meta-teste de Prevenção de Regressão:
+A suíte `tests/test_preflight.py` conta com um meta-teste hermético determinístico (`test_meta_proprio_arquivo_test_preflight_livre_de_segredos_literais`). Ele lê o próprio arquivo de testes e o submete ao scanner do preflight. Qualquer token sintético válido escrito literalmente provocará falha imediata na suíte de testes antes que o staging seja aprovado.
 
 ---
 

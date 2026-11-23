@@ -12,6 +12,7 @@ try:
         executar_suite_testes,
         mascarar_segredo,
         _inspecionar_commit_atomico,
+        _escanear_linhas_por_segredos,
         CAMINHOS_PROIBIDOS,
         REGEX_SEGREDOS,
         ResultadoInspecaoGit,
@@ -23,6 +24,7 @@ except ImportError:
     executar_suite_testes = None
     mascarar_segredo = None
     _inspecionar_commit_atomico = None
+    _escanear_linhas_por_segredos = None
     CAMINHOS_PROIBIDOS = []
     REGEX_SEGREDOS = []
     ResultadoInspecaoGit = None
@@ -108,6 +110,20 @@ class TestPreflightUnitario(unittest.TestCase):
         self.assertNotIn("abcd efgh ijkl mnop", texto_erros)
         self.assertIn("ghp_****", texto_erros)
         self.assertIn("AIza****", texto_erros)
+
+    def test_meta_proprio_arquivo_test_preflight_livre_de_segredos_literais(self):
+        """Garante que o próprio arquivo de testes não contém tokens sintéticos válidos escritos literalmente."""
+        caminho_teste = Path(__file__).resolve()
+        conteudo = caminho_teste.read_text(encoding="utf-8")
+        linhas_simuladas = ["+" + linha for linha in conteudo.splitlines()]
+
+        erros = _escanear_linhas_por_segredos(linhas_simuladas, caminho_teste.name)
+        self.assertEqual(
+            erros,
+            [],
+            f"O arquivo {caminho_teste.name} contém padrões literais de segredos que violam o staging: {erros}. "
+            "Utilize placeholders inválidos ou monte tokens sintéticos dinamicamente em runtime.",
+        )
 
     def test_unitario_suite_testes_captura_dinamica_e_retorno(self):
         """Valida que executar_suite_testes captura saída dinâmica e rejeita 'Ran 0 tests'."""
