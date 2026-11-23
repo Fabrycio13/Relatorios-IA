@@ -6,6 +6,9 @@ email_config.json
 
 # Dados em cache e estado de execução
 data/*.json
+data/*.prev
+data/*.json.prev
+data/quarantine/
 data/ultimo_envio.txt
 data/*.lock
 *.lock
@@ -19,6 +22,7 @@ ultimo_envio.txt
 
 # Relatórios locais e prévias temporárias em HTML
 reports/*.html
+reports/*.md
 
 # Logs
 logs/

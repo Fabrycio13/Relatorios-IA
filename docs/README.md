@@ -14,6 +14,7 @@ Este diretório reúne as especificações técnicas, registros de decisão arqu
 ---
 
 ### 💻 Guias Práticos e Manuais Operacionais (`docs/guides/`)
+* **[`guides/guia_preflight.md`](guides/guia_preflight.md)**: Manual operacional do preflight canônico (`scripts/preflight.py`), detalhando as verificações de segurança de staging, histórico Git, whitespace e testes herméticos.
 * **[`guides/migracao_notebook.md`](guides/migracao_notebook.md)**: Passo a passo de 5 minutos para transformar um notebook com tela desligada e tampa fechada em servidor doméstico 24/7 para envio autônomo dos relatórios com IP residencial real.
 * **[`guides/style_guide_banners.md`](guides/style_guide_banners.md)**: Manual estético de arte, dimensões (1360 × 760 px Retina 2x), paletas, pesos (220–280 KB) e playbook de prompts de IA para os estilos *Pintura Digital Japonesa* e *Chilogravura Vitoriana*.
 

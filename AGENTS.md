@@ -41,8 +41,11 @@ Antes de planejar ou alterar código, consulte a documentação oficial existent
    * **Comando Canônico:** A suíte completa deve ser executada com `python -m unittest discover -s tests -t . -v` para assegurar a carga do pacote `tests/__init__.py`. Execuções seletivas devem utilizar notação de módulo pontuada (`python -m unittest tests.<modulo> -v`).
    * **Limite de Subprocessos Filhos:** Subprocessos crus (`subprocess.Popen([sys.executable, ...])`) possuem espaço de memória independente e não herdam automaticamente os interceptores do processo-pai; testes de concorrência multiprocesso devem se ater a operações locais de lock/IPC.
 
-4. **Isolamento de Branches e Preservação da Working Tree (Preflight Git):**
-   * **Preflight Mandatório:** Antes de planejar código ou criar branches, execute `git status --short` e `git branch --show-current`.
+4. **Isolamento de Branches, Preservação da Working Tree e Preflight Canônico:**
+   * **Preflight Canônico Mandatório:** Antes de propor commits locais ou publicações remotas (`git push`), execute obrigatoriamente:
+     `python scripts/preflight.py`
+     O preflight é uma ferramenta estritamente de leitura que valida segurança de arquivos staged, integridade de commits locais, formatação de whitespace e executa a suíte canônica completa de testes herméticos. Consulte [`docs/guides/guia_preflight.md`](docs/guides/guia_preflight.md) para detalhes operacionais.
+   * **Inspeção Prévia de Branches:** Antes de planejar código ou criar branches, execute `git status --short` e `git branch --show-current`.
    * **Working Tree Suja e Parada Obrigatória:** Se houver arquivos modificados, adicionados ou não rastreados que não pertençam à tarefa atual, **interrompa imediatamente** qualquer operação de troca ou criação de branch. Apresente o `git status --short` ao desenvolvedor e aguarde decisão humana explícita.
    * **Proibição Estrita de Comandos Destrutivos:** Jamais execute automaticamente qualquer operação que descarte, sobrescreva, mova ou oculte alterações locais (incluindo `git stash`, `git reset`, `git clean`, `git checkout`, `git switch` ou `git restore`) quando a working tree contiver alterações locais não salvas.
    * **Atualização Remota Obrigatória:** Antes de derivar novas branches de `origin/main`, execute `git fetch origin`. Caso o fetch falhe (timeout, ausência de rede ou credenciais), **interrompa o fluxo** e informe a limitação ao usuário antes de prosseguir.
